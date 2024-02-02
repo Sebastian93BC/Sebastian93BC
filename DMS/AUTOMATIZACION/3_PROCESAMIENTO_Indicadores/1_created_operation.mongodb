@@ -1,0 +1,605 @@
+[
+  {
+    $limit:
+      //Just for create_operation
+      1,
+  },
+  {
+    $addFields: {
+      //Just for create_operation
+      _id: "$$REMOVE",
+      lastUpdatedAt: "$$REMOVE",
+      proceso: "$$REMOVE",
+      currentUpdatedDate: "$$REMOVE",
+    },
+  },
+  {
+    $addFields: {
+      //Just for create_operation
+      _id: "$$REMOVE",
+      processName: "E3_Procesamiento_Indicadores",
+      processDate: {
+        $toDate: "2024-01-31",
+        // "{{$json.fechaProceso}}"
+      },
+      description:
+        "Procesamiento de Indicadores, margenmetric y proceso de agrupaciones",
+      processFrequency: "Mensual",
+      fromColletion: "Margenmetric",
+      toColletion:
+        "Margenmetric, Margenmetricsegmentnatural, Margenmetricsegmentjuridico",
+      startDate: "$$NOW",
+      endDate: "nda",
+      runtimeInMinutes: "nda",
+      status: "En Proceso",
+      subProcess: [
+        {
+          processName:
+            "M_1_Indicadores_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento de indicadores base en la colección margenmetric",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_2_saldosPromedio6m_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento saldos promedio 6 meses",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_3_SumaAnual13m_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento suma anual 13 meses",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_4_CrecimientoAnual_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento crecimiento anual diciembre-mes actual",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_5_saldosPromedio3m_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento saldos promedio 3 meses",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_6_Reciprocicad_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento reciprocidad",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_7_tarjetaCredito_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento tarjetas de crédito",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_8_SumaAnual12m_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento suma anual 12 meses",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "M_9_relatedProducts_Margenmetric",
+          processDate: "nda",
+          description:
+            "Procesamiento relatedProducts",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margenmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "A_5_AgrupacionMargengeneralmetric_Margengeneralmetric",
+          processDate: "nda",
+          description:
+            "Genera la colección Margengeneralmetric",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion: "Margengeneralmetric",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "A_6_AgrupacionMSN_Margenmetricsegmentnatural",
+          processDate: "nda",
+          description:
+            "Procesamiento Margenmetricsegmentnatural",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion:
+            "Margenmetricsegmentnatural",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+        {
+          processName:
+            "A_7_AgrupacionMSJ_Margenmetricsegmentjuridico",
+          processDate: "nda",
+          description:
+            "Procesamiento Margenmetricsegmentjuridico",
+          processFrequency: "Mensual",
+          fromColletion: "Margenmetric",
+          toColletion:
+            "Margenmetricsegmentjuridico",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera",
+        },
+      ],
+    },
+  },
+  // {
+  //   $match: {
+  //Just for start, updated and check_operation
+  //     processName: "E3_Procesamiento_Indicadores",
+  //     $expr: {
+  //       $eq: [
+  //         "$processDate",
+  //         {
+  //           $toDate: "2023-10-31",
+  //"{{$json.fechaProceso}}"
+  //         },
+  //       ],
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for start_operation
+  //     subProcess: {
+  //       $map: {
+  //         input: "$subProcess",
+  //         as: "input",
+  //         in: {
+  //           $cond: [
+  //             {
+  //               $and: [
+  //                 {
+  //                   $eq: [
+  //                     "$$input.processName",
+  //                     "M_1_Indicadores_Margenmetric",
+  // "{{$json.proceso}}"
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               $mergeObjects: [
+  //                 {
+  //                   processName:
+  //                     "M_1_Indicadores_Margenmetric",
+  //  "{{$json.proceso}}"
+  //                 },
+  //                 {
+  //                   processDate: "$processDate",
+  //                 },
+  //                 {
+  //                   description:
+  //                     "$$input.description",
+  //                 },
+  //                 {
+  //                   processFrequency:
+  //                     "$$input.processFrequency",
+  //                 },
+  //                 {
+  //                   fromColletion:
+  //                     "$$input.fromColletion",
+  //                 },
+  //                 {
+  //                   toColletion:
+  //                     "$$input.toColletion",
+  //                 },
+  //                 {
+  //                   startDate: "$$NOW",
+  //                 },
+  //                 {
+  //                   endDate: "$$input.endDate",
+  //                 },
+  //                 {
+  //                   runtimeInMinutes: "",
+  //                 },
+  //                 {
+  //                   status: "En Proceso",
+  //                 },
+  //               ],
+  //             },
+  //             "$$input",
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for updated_operation
+  //     subProcess: {
+  //       $map: {
+  //         input: "$subProcess",
+  //         as: "item",
+  //         in: {
+  //           $cond: [
+  //             {
+  //               $and: [
+  //                 {
+  //                   $eq: [
+  //                     "$$item.processName",
+  //                     "M_1_Indicadores_Margenmetric",
+  //"{{$json.proceso}}"
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               $mergeObjects: [
+  //                 {
+  //                   processName:
+  //                     "M_1_Indicadores_Margenmetric",
+  // "{{$json.proceso}}"
+  //                 },
+  //                 {
+  //                   processDate:
+  //                     "$$item.processDate",
+  //                 },
+  //                 {
+  //                   description:
+  //                     "$$item.description",
+  //                 },
+  //                 {
+  //                   processFrequency:
+  //                     "$$item.processFrequency",
+  //                 },
+  //                 {
+  //                   fromColletion:
+  //                     "$$item.fromColletion",
+  //                 },
+  //                 {
+  //                   toColletion:
+  //                     "$$item.toColletion",
+  //                 },
+  //                 {
+  //                   startDate: "$$item.startDate",
+  //                 },
+  //                 {
+  //                   endDate: "$$NOW",
+  //                 },
+  //                 {
+  //                   runtimeInMinutes: {
+  //                     $round: [
+  //                       {
+  //                         $divide: [
+  //                           {
+  //                             $subtract: [
+  //                               "$$NOW",
+  //                               "$$item.startDate",
+  //                             ],
+  //                           },
+  //                           60000,
+  //                         ],
+  //                       },
+  //                       2,
+  //                     ],
+  //                   },
+  //                 },
+  //                 {
+  //                   status: "Finalizado",
+  //                 },
+  //               ],
+  //             },
+  //             "$$item",
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for updated and check_operation
+  //     status: {
+  //       $cond: [
+  //         {
+  //           $or: [
+  //             {
+  //               $in: [
+  //                 "En Proceso",
+  //                 "$subProcess.status",
+  //               ],
+  //             },
+  //             {
+  //               $in: [
+  //                 "En espera",
+  //                 "$subProcess.status",
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //         "En Proceso",
+  //         "Finalizado",
+  //       ],
+  //     },
+  //     endDate: "$$NOW",
+  //     runtimeInMinutes: {
+  //       $round: [
+  //         {
+  //           $divide: [
+  //             {
+  //               $subtract: ["$$NOW", "$startDate"],
+  //             },
+  //             60000,
+  //           ],
+  //         },
+  //         2,
+  //       ],
+  //     },
+  //   },
+  // },
+  // {
+  //   $project:
+  //     /**
+  //      * Just for check_operation
+  //      */
+  //     {
+  //       status: 1,
+  //       fechaProceso: "$processDate",
+  //     },
+  // },
+  {
+    $merge: {
+      // no for check_operation
+      into: "sidis_statusProcesos",
+      on: ["processName", "processDate"],
+    },
+  },
+]
+
+////////////////////////////////////////
+
+[
+  {
+    "$limit": 1
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "lastUpdatedAt": "$$REMOVE", 
+      "proceso": "$$REMOVE", 
+      "currentUpdatedDate": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "processName": "E3_Procesamiento_Indicadores", 
+      "processDate": {
+        "$toDate": "{{$json.fechaProceso}}"
+      }, 
+      "description": "Procesamiento de Indicadores, margenmetric y proceso de agrupaciones", 
+      "processFrequency": "Mensual", 
+      "fromColletion": "Margenmetric", 
+      "toColletion": "Margenmetric, Margenmetricsegmentnatural, Margenmetricsegmentjuridico", 
+      "startDate": "$$NOW", 
+      "endDate": "nda", 
+      "runtimeInMinutes": "nda", 
+      "status": "En Proceso", 
+      "subProcess": [
+        {
+          "processName": "M_1_Indicadores_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento de indicadores base en la colección margenmetric", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_2_saldosPromedio6m_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento saldos promedio 6 meses", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_3_SumaAnual13m_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento suma anual 13 meses", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_4_CrecimientoAnual_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento crecimiento anual diciembre-mes actual", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_5_saldosPromedio3m_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento saldos promedio 3 meses", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_6_Reciprocicad_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento reciprocidad", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_7_tarjetaCredito_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento tarjetas de crédito", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_8_SumaAnual12m_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento suma anual 12 meses", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "M_9_relatedProducts_Margenmetric", 
+          "processDate": "nda", 
+          "description": "Procesamiento relatedProducts", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_5_AgrupacionMargengeneralmetric_Margengeneralmetric", 
+          "processDate": "nda", 
+          "description": "Genera la colección Margengeneralmetric", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margengeneralmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_6_AgrupacionMSN_Margenmetricsegmentnatural", 
+          "processDate": "nda", 
+          "description": "Procesamiento Margenmetricsegmentnatural", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetricsegmentnatural", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_7_AgrupacionMSJ_Margenmetricsegmentjuridico", 
+          "processDate": "nda", 
+          "description": "Procesamiento Margenmetricsegmentjuridico", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetricsegmentjuridico", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }
+      ]
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "processName", "processDate"
+      ]
+    }
+  }
+]

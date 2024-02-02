@@ -1,0 +1,134 @@
+[
+  {
+    $match: {
+      $expr: {
+        $eq: [
+          "$fechaProceso",
+          {
+            $toDate:
+              "2023-06-30T00:00:00.000+00:00",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      reciprocidadGeneral: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $lte: [
+                  "$montoAbonadoProm3m",
+                  null,
+                ],
+              },
+              then: 0,
+            },
+            {
+              case: {
+                $lte: ["$saldoActivo", null],
+              },
+              then: 0,
+            },
+            {
+              case: {
+                $eq: ["$saldoActivo", 0],
+              },
+              then: 0,
+            },
+          ],
+          default: {
+            $round: [
+              {
+                $divide: [
+                  "$montoAbonadoProm3m",
+                  "$saldoActivo",
+                ],
+              },
+              4,
+            ],
+          },
+        },
+      },
+      fechaProceso: 1,
+      codigoGrupoeconomico: 1,
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricgrupo",
+      on: [
+        "fechaProceso",
+        "codigoGrupoeconomico",
+      ],
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fechaProceso", {
+            "$toDate": "{{$json.fechaProceso}}"
+          }
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "reciprocidadGeneral": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$lte": [
+                  "$montoAbonadoProm3m", null
+                ]
+              }, 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$saldoActivo", null
+                ]
+              }, 
+              "then": 0
+            }, {
+              "case": {
+                "$eq": [
+                  "$saldoActivo", 0
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$round": [
+              {
+                "$divide": [
+                  "$montoAbonadoProm3m", "$saldoActivo"
+                ]
+              }, 4
+            ]
+          }
+        }
+      }, 
+      "fechaProceso": 1, 
+      "codigoGrupoeconomico": 1
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricgrupo", 
+      "on": [
+        "fechaProceso", "codigoGrupoeconomico"
+      ]
+    }
+  }
+]

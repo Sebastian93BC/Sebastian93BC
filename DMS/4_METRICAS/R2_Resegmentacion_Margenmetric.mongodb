@@ -1,0 +1,138 @@
+[
+    {
+      $match: {
+        $and: [
+          {
+            $expr: {
+              $eq: [
+                "$lastDigRif",
+                "5",
+                //{ "$toString": "{{$json.lastDigRif}}" }
+              ],
+            },
+          },
+          {
+            $expr: {
+              $eq: [
+                "$fechaProceso",
+                {
+                  $toDate: "2023-12-31",
+                  //"{{$json.fechaProceso}}"
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        rifCedula: 1,
+        codigoBanca: 1,
+        nombreBanca: 1,
+        codigoSegmento: 1,
+        nombreSegmento: 1,
+        codigoSubsegmento: 1,
+        nombreSubsegmento: 1,
+        codigoGrupoeconomico: 1,
+        nombreGrupoeconomico: 1,
+        nombreNSE: 1,
+        _id: 0,
+        fechaProceso: {
+          $split: [
+            "2022-08-31, 2023-06-30, 2023-07-31, 2023-08-31, 2023-09-30, 2023-11-30, 2023-05-31, 2022-10-31, 2022-12-31, 2022-01-31, 2023-10-31, 2023-01-31, 2023-12-31, 2022-03-31, 2022-09-30, 2022-06-30, 2022-05-31, 2022-07-31, 2022-11-30, 2022-04-30, 2022-02-28, 2023-02-28, 2023-03-31, 2023-04-30",
+            //"{{$json.fechas}}"
+            ",",
+          ],
+        },
+        updatedAt: "$$NOW",
+      },
+    },
+    {
+      $unwind: {
+        path: "$fechaProceso",
+      },
+    },
+    {
+      $addFields: {
+        fechaProceso: {
+          $toDate: "$fechaProceso",
+        },
+      },
+    },
+     {
+           $merge: {
+             into: "Margenmetric",
+         on: ["rifCedula", "fechaProceso"],
+         whenMatched: "merge",
+         whenNotMatched: "discard",
+   },
+ }
+  ]
+
+
+  ////////////////////////////
+
+
+  [
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$eq": [
+                "$lastDigRif", { "$toString": "{{$json.lastDigRif}}" }
+              ]
+            }
+          }, {
+            "$expr": {
+              "$eq": [
+                "$fechaProceso", {
+                  "$toDate": "{{$json.fechaProceso}}"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }, {
+      "$project": {
+        "rifCedula": 1, 
+        "codigoBanca": 1, 
+        "nombreBanca": 1, 
+        "codigoSegmento": 1, 
+        "nombreSegmento": 1, 
+        "codigoSubsegmento": 1, 
+        "nombreSubsegmento": 1, 
+        "codigoGrupoeconomico": 1, 
+        "nombreGrupoeconomico": 1, 
+        "nombreNSE": 1, 
+        "_id": 0, 
+        "fechaProceso": {
+          "$split": [
+            "{{$json.fechas}}", ","
+          ]
+        }, 
+        "updatedAt": "$$NOW"
+      }
+    }, {
+      "$unwind": {
+        "path": "$fechaProceso"
+      }
+    }, {
+      "$addFields": {
+        "fechaProceso": {
+          "$toDate": "$fechaProceso"
+        }
+      }
+    }, {
+        "$merge": {
+          "into": "Margenmetric", 
+          "on": [
+            "rifCedula", "fechaProceso"
+          ], 
+          "whenMatched": "merge", 
+          "whenNotMatched": "discard"
+        }
+      }
+  ]

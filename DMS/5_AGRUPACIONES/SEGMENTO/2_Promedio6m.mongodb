@@ -1,0 +1,239 @@
+[
+  {
+    $addFields: {
+      //Editar
+      fechaSuperior: {
+        $dateFromParts: {
+          year: {
+            $year: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+
+          month: {
+            $month: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      fechaProcesoAct: {
+        $dateFromParts: {
+          year: {
+            $year: "$fechaProceso",
+          },
+          month: {
+            $month: "$fechaProceso",
+          },
+        },
+      },
+      fechaInferior: {
+        $dateSubtract: {
+          startDate: {
+            $dateFromParts: {
+              year: {
+                $year: "$fechaSuperior",
+              },
+              month: {
+                $month: "$fechaSuperior",
+              },
+            },
+          },
+          unit: "month",
+          amount: 5,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProcesoAct",
+              "$fechaInferior",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProcesoAct",
+              "$fechaSuperior",
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        codigoSegmento: "$codigoSegmento",
+      },
+      codigoSegmento: {
+        $first: "$codigoSegmento",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      saldoDolar6m: {
+        $sum: "$saldoDolar",
+      },
+      saldoEuro6m: {
+        $sum: "$saldoEuro",
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldoDolarProm6m: {
+        $round: [
+          {
+            $divide: ["$saldoDolar6m", 6],
+          },
+          4,
+        ],
+      },
+      saldoEuroProm6m: {
+        $round: [
+          {
+            $divide: ["$saldoEuro6m", 6],
+          },
+          4,
+        ],
+      },
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricsegmento",
+      on: ["fechaProceso", "codigoSegmento"],
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$addFields": {
+      "fechaSuperior": {
+        "$dateFromParts": {
+          "year": {
+            "$year": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }, 
+          "month": {
+            "$month": {
+              "$toDate": "2023-06-30"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProcesoAct": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaProceso"
+          }, 
+          "month": {
+            "$month": "$fechaProceso"
+          }
+        }
+      }, 
+      "fechaInferior": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$fechaSuperior"
+              }, 
+              "month": {
+                "$month": "$fechaSuperior"
+              }
+            }
+          }, 
+          "unit": "month", 
+          "amount": 5
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProcesoAct", "$fechaInferior"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProcesoAct", "$fechaSuperior"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "codigoSegmento": "$codigoSegmento"
+      }, 
+      "codigoSegmento": {
+        "$first": "$codigoSegmento"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "saldoDolar6m": {
+        "$sum": "$saldoDolar"
+      }, 
+      "saldoEuro6m": {
+        "$sum": "$saldoEuro"
+      }
+    }
+  }, {
+    "$addFields": {
+      "saldoDolarProm6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$saldoDolar6m", 6
+            ]
+          }, 4
+        ]
+      }, 
+      "saldoEuroProm6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$saldoEuro6m", 6
+            ]
+          }, 4
+        ]
+      }, 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricsegmento", 
+      "on": [
+        "fechaProceso", "codigoSegmento"
+      ]
+    }
+  }
+]

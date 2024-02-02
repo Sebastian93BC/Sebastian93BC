@@ -1,0 +1,279 @@
+/// fecha
+
+[
+  {
+    $match: {
+      processName: "E2_Procesamiento",
+    },
+  },
+  {
+    $group: {
+      _id: "$processName",
+      dates: {
+        $max: "$processDate",
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      fechaProceso: {
+        $substr: [
+          {
+            $toString: "$dates",
+          },
+          0,
+          10,
+        ],
+      },
+    },
+  },
+]
+
+//
+
+[
+  {
+    "$match": {
+      "processName": "E2_Procesamiento"
+    }
+  }, {
+    "$group": {
+      "_id": "$processName", 
+      "dates": {
+        "$max": "$processDate"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "fechaProceso": {
+        "$substr": [
+          {
+            "$toString": "$dates"
+          }, 0, 10
+        ]
+      }
+    }
+  }
+]
+
+
+////////////
+
+
+[
+  // {
+  //   $match: {
+  //     processName: "E2_Procesamiento",
+  //   },
+  // },
+  // {
+  //   $group: {
+  //     _id: "$processName",
+  //     dates: {
+  //       $max: "$processDate",
+  //     },
+  //   },
+  // },
+  // {
+  //   $project: {
+  //     _id: 0,
+  //     fechaProceso: {
+  //       $substr: [
+  //         {
+  //           $toString: "$dates",
+  //         },
+  //         0,
+  //         10,
+  //       ],
+  //     },
+  //   },
+  // },
+  {
+    $match: {
+      //Just for start, updated and check_operations
+      processName: "E2_Procesamiento",
+      $expr: {
+        $eq: [
+          "$processDate",
+          {
+            $toDate: "2024-01-31",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      //Just for Mauro updated_operation
+      processMauroSteps: {
+        $map: {
+          input: "$processMauroSteps",
+          as: "item",
+          in: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      "$$item.processName",
+                      "MS_ProcesamientoProductosVinculados",
+                    ],
+                  },
+                ],
+              },
+              {
+                $mergeObjects: [
+                  {
+                    processName:
+                      "$$item.processName",
+                  },
+                  {
+                    processDate:
+                      "$$item.processDate",
+                  },
+                  {
+                    description:
+                      "$$item.description",
+                  },
+                  {
+                    processFrequency:
+                      "$$item.processFrequency",
+                  },
+                  {
+                    fromColletion:
+                      "$$item.fromColletion",
+                  },
+                  {
+                    toColletion:
+                      "$$item.toColletion",
+                  },
+                  {
+                    startDate: "$$item.startDate",
+                  },
+                  {
+                    endDate: "$$NOW",
+                  },
+                  {
+                    runtimeInMinutes: {
+                      $round: [
+                        {
+                          $divide: [
+                            {
+                              $subtract: [
+                                "$$NOW",
+                                "$$item.startDate",
+                              ],
+                            },
+                            60000,
+                          ],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                  {
+                    status: "Finalizado",
+                  },
+                ],
+              },
+              "$$item",
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $merge: {
+      //No for check_operation
+      into: "sidis_statusProcesos",
+      on: ["processName", "processDate"],
+    },
+  },
+]
+
+///////
+
+
+[
+  {
+    "$match": {
+      "processName": "E2_Procesamiento", 
+      "$expr": {
+        "$eq": [
+          "$processDate", {
+            "$toDate": "{{$json.fechaProceso}}"
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "processMauroSteps": {
+        "$map": {
+          "input": "$processMauroSteps", 
+          "as": "item", 
+          "in": {
+            "$cond": [
+              {
+                "$and": [
+                  {
+                    "$eq": [
+                      "$$item.processName", "MS_ProcesamientoProductosVinculados"
+                    ]
+                  }
+                ]
+              }, {
+                "$mergeObjects": [
+                  {
+                    "processName": "$$item.processName"
+                  }, {
+                    "processDate": "$$item.processDate"
+                  }, {
+                    "description": "$$item.description"
+                  }, {
+                    "processFrequency": "$$item.processFrequency"
+                  }, {
+                    "fromColletion": "$$item.fromColletion"
+                  }, {
+                    "toColletion": "$$item.toColletion"
+                  }, {
+                    "startDate": "$$item.startDate"
+                  }, {
+                    "endDate": "$$NOW"
+                  }, {
+                    "runtimeInMinutes": {
+                      "$round": [
+                        {
+                          "$divide": [
+                            {
+                              "$subtract": [
+                                "$$NOW", "$$item.startDate"
+                              ]
+                            }, 60000
+                          ]
+                        }, 2
+                      ]
+                    }
+                  }, {
+                    "status": "Finalizado"
+                  }
+                ]
+              }, "$$item"
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "processName", "processDate"
+      ]
+    }
+  }
+]

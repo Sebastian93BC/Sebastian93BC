@@ -1,0 +1,272 @@
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$file_date", {
+            "$subtract": [
+              {
+                "$dateTrunc": {
+                  "date": "$$NOW", 
+                  "unit": "day"
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_cod_operac", 
+      "let": {
+        "yesterdayDate": "$yesterdayDate", 
+        "ren_cod_op": "$ren_cod_op"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$file_date", "$$yesterdayDate"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$ren_cod_op", "$ren_cod_op"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ], 
+      "as": "sidis_cod_operac_ayer"
+    }
+  }, {
+    "$addFields": {
+      "changeUseCodeOp": {
+        "$cond": [
+          {
+            "$or": [
+              {
+                "$ne": [
+                  "$ren_cod_anulacion", {
+                    "$first": "$sidis_cod_operac_ayer.ren_cod_anulacion"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_cod_concep_imp", {
+                    "$first": "$sidis_cod_operac_ayer.ren_cod_concep_imp"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_cod_contab", {
+                    "$first": "$sidis_cod_operac_ayer.ren_cod_contab"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_cod_interfaz", {
+                    "$first": "$sidis_cod_operac_ayer.ren_cod_interfaz"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_cod_op", {
+                    "$first": "$sidis_cod_operac_ayer.ren_cod_op"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_desc_cod_op", {
+                    "$first": "$sidis_cod_operac_ayer.ren_desc_cod_op"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_acti", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_acti"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_anula", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_anula"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_apecan", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_apecan"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_apli_ext", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_apli_ext"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_blq_cheque", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_blq_cheque"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_cheque", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_cheque"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_cobrar_com", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_cobrar_com"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_giro_dep", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_giro_dep"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_grupo", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_grupo"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_lavado", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_lavado"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_obser", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_obser"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_si_plazo", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_si_plazo"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_sin_doc", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_sin_doc"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_tipo", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_tipo"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_ind_tipo_op", {
+                    "$first": "$sidis_cod_operac_ayer.ren_ind_tipo_op"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_num_dias_asu", {
+                    "$first": "$sidis_cod_operac_ayer.ren_num_dias_asu"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_nume_dias_inf", {
+                    "$first": "$sidis_cod_operac_ayer.ren_nume_dias_inf"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_nume_dias_sup", {
+                    "$first": "$sidis_cod_operac_ayer.ren_nume_dias_sup"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_sentido_asu", {
+                    "$first": "$sidis_cod_operac_ayer.ren_sentido_asu"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_sentido_inf", {
+                    "$first": "$sidis_cod_operac_ayer.ren_sentido_inf"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_sentido_sup", {
+                    "$first": "$sidis_cod_operac_ayer.ren_sentido_sup"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_tipo_dias_asu", {
+                    "$first": "$sidis_cod_operac_ayer.ren_tipo_dias_asu"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_tipo_dias_inf", {
+                    "$first": "$sidis_cod_operac_ayer.ren_tipo_dias_inf"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_tipo_dias_sup", {
+                    "$first": "$sidis_cod_operac_ayer.ren_tipo_dias_sup"
+                  }
+                ]
+              }, {
+                "$ne": [
+                  "$ren_tipo_valor", {
+                    "$first": "$sidis_cod_operac_ayer.ren_tipo_valor"
+                  }
+                ]
+              }
+            ]
+          }, true, false
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "fecha_carga": {
+        "$cond": [
+          "$changeUseCodeOp", "$file_date", {
+            "$first": "$sidis_cod_operac_ayer.fecha_carga"
+          }
+        ]
+      }, 
+      "changeUseCodeOp": 1
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_cod_operac", 
+      "on": "_id", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "discard"
+    }
+  }
+]

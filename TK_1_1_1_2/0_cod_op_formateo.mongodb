@@ -1,0 +1,338 @@
+[
+    {
+      "$match": {
+        "$expr": {
+          "$eq": [
+            "$file_date", {
+              "$subtract": [
+                {
+                  "$dateTrunc": {
+                    "date": "$$NOW", 
+                    "unit": "day"
+                  }
+                }, {
+                  "$multiply": [
+                    {
+                      "$toInt": "{{$json.offSet}}"
+                    }, 86400000
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }, {
+      "$project": {
+        "file_date": 1, 
+        "yesterdayDate": {
+          "$subtract": [
+            "$file_date", 86400000
+          ]
+        }, 
+        "ren_fecha_alta": {
+          "$convert": {
+            "input": "$ren_fecha_alta", 
+            "to": "date", 
+            "onError": "$ren_fecha_alta", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_cod_op": {
+          "$convert": {
+            "input": "$ren_cod_op", 
+            "to": "string", 
+            "onError": "$ren_cod_op", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_desc_cod_op": {
+          "$convert": {
+            "input": "$ren_desc_cod_op", 
+            "to": "string", 
+            "onError": "$ren_desc_cod_op", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_cod_anulacion": {
+          "$convert": {
+            "input": "$ren_cod_anulacion", 
+            "to": "string", 
+            "onError": "$ren_cod_anulacion", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_centro_actz": {
+          "$convert": {
+            "input": "$ren_centro_actz", 
+            "to": "string", 
+            "onError": "$ren_centro_actz", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_userid_actz": {
+          "$convert": {
+            "input": "$ren_userid_actz", 
+            "to": "string", 
+            "onError": "$ren_userid_actz", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_netname_actz": {
+          "$convert": {
+            "input": "$ren_netname_actz", 
+            "to": "string", 
+            "onError": "$ren_netname_actz", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_entidad_actz": {
+          "$convert": {
+            "input": "$ren_entidad_actz", 
+            "to": "string", 
+            "onError": "$ren_entidad_actz", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_hora_actz": {
+          "$convert": {
+            "input": "$ren_hora_actz", 
+            "to": "string", 
+            "onError": "$ren_hora_actz", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_sentido_asu": {
+          "$convert": {
+            "input": "$ren_sentido_asu", 
+            "to": "string", 
+            "onError": "$ren_sentido_asu", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_nume_dias_inf": {
+          "$convert": {
+            "input": "$ren_nume_dias_inf", 
+            "to": "int", 
+            "onError": "$ren_nume_dias_inf", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_giro_dep": {
+          "$convert": {
+            "input": "$ren_ind_giro_dep", 
+            "to": "string", 
+            "onError": "$ren_ind_giro_dep", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_tipo_dias_sup": {
+          "$convert": {
+            "input": "$ren_tipo_dias_sup", 
+            "to": "string", 
+            "onError": "$ren_tipo_dias_sup", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_apecan": {
+          "$convert": {
+            "input": "$ren_ind_apecan", 
+            "to": "string", 
+            "onError": "$ren_ind_apecan", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_si_plazo": {
+          "$convert": {
+            "input": "$ren_ind_si_plazo", 
+            "to": "string", 
+            "onError": "$ren_ind_si_plazo", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_tipo_valor": {
+          "$convert": {
+            "input": "$ren_tipo_valor", 
+            "to": "string", 
+            "onError": "$ren_tipo_valor", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_sentido_sup": {
+          "$convert": {
+            "input": "$ren_sentido_sup", 
+            "to": "string", 
+            "onError": "$ren_sentido_sup", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_tipo": {
+          "$convert": {
+            "input": "$ren_ind_tipo", 
+            "to": "string", 
+            "onError": "$ren_ind_tipo", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_apli_ext": {
+          "$convert": {
+            "input": "$ren_ind_apli_ext", 
+            "to": "string", 
+            "onError": "$ren_ind_apli_ext", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_acti": {
+          "$convert": {
+            "input": "$ren_ind_acti", 
+            "to": "string", 
+            "onError": "$ren_ind_acti", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_lavado": {
+          "$convert": {
+            "input": "$ren_ind_lavado", 
+            "to": "string", 
+            "onError": "$ren_ind_lavado", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_tipo_dias_asu": {
+          "$convert": {
+            "input": "$ren_tipo_dias_asu", 
+            "to": "string", 
+            "onError": "$ren_tipo_dias_asu", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_cod_interfaz": {
+          "$convert": {
+            "input": "$ren_cod_interfaz", 
+            "to": "string", 
+            "onError": "$ren_cod_interfaz", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_cod_contab": {
+          "$convert": {
+            "input": "$ren_cod_contab", 
+            "to": "string", 
+            "onError": "$ren_cod_contab", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_tipo_op": {
+          "$convert": {
+            "input": "$ren_ind_tipo_op", 
+            "to": "string", 
+            "onError": "$ren_ind_tipo_op", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_sentido_inf": {
+          "$convert": {
+            "input": "$ren_sentido_inf", 
+            "to": "string", 
+            "onError": "$ren_sentido_inf", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_nume_dias_sup": {
+          "$convert": {
+            "input": "$ren_nume_dias_sup", 
+            "to": "string", 
+            "onError": "$ren_nume_dias_sup", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_obser": {
+          "$convert": {
+            "input": "$ren_ind_obser", 
+            "to": "string", 
+            "onError": "$ren_ind_obser", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_blq_cheque": {
+          "$convert": {
+            "input": "$ren_ind_blq_cheque", 
+            "to": "string", 
+            "onError": "$ren_ind_blq_cheque", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_cobrar_com": {
+          "$convert": {
+            "input": "$ren_ind_cobrar_com", 
+            "to": "string", 
+            "onError": "$ren_ind_cobrar_com", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_cod_concep_imp": {
+          "$convert": {
+            "input": "$ren_cod_concep_imp", 
+            "to": "string", 
+            "onError": "$ren_cod_concep_imp", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_num_dias_asu": {
+          "$convert": {
+            "input": "$ren_num_dias_asu", 
+            "to": "string", 
+            "onError": "$ren_num_dias_asu", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_anula": {
+          "$convert": {
+            "input": "$ren_ind_anula", 
+            "to": "string", 
+            "onError": "$ren_ind_anula", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_sin_doc": {
+          "$convert": {
+            "input": "$ren_ind_sin_doc", 
+            "to": "string", 
+            "onError": "$ren_ind_sin_doc", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_grupo": {
+          "$convert": {
+            "input": "$ren_ind_grupo", 
+            "to": "string", 
+            "onError": "$ren_ind_grupo", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_tipo_dias_inf": {
+          "$convert": {
+            "input": "$ren_tipo_dias_inf", 
+            "to": "string", 
+            "onError": "$ren_tipo_dias_inf", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "ren_ind_cheque": {
+          "$convert": {
+            "input": "$ren_ind_cheque", 
+            "to": "string", 
+            "onError": "$ren_ind_cheque", 
+            "onNull": "$$REMOVE"
+          }
+        }, 
+        "fecha_carga": "", 
+        "fecha_baja": ""
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_cod_operac", 
+        "on": "_id"
+      }
+    }
+  ]

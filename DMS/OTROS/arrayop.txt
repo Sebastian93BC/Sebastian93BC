@@ -1,0 +1,31 @@
+//test
+
+{
+  "procesos.P_6_margenFormateoSidisMargen.sub_procesos":
+    {
+      $map: {
+        input: {
+          $range: [
+            0,
+            {
+              $size:
+                "$procesos.P_6_margenFormateoSidisMargen.sub_procesos",
+            },
+          ],
+        },
+        as: "index",
+        in: {
+          $cond: [
+            { $eq: ["$$index", 0] },
+            "En proceso",
+            {
+              $arrayElemAt: [
+                "$procesos.P_6_margenFormateoSidisMargen.sub_procesos",
+                "$$index",
+              ],
+            },
+          ],
+        },
+      },
+    },
+}

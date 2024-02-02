@@ -1,0 +1,81 @@
+[
+  {
+    $limit: 1,
+  },
+  {
+    $project: {
+      _id: 0,
+      fechaProceso: {
+        $toString: {
+          $subtract: [
+            {
+              $toDate: {
+                $dateFromString: {
+                  dateString: {
+                    $dateToString: {
+                      format:
+                        "%Y-%m-%dT00:00:00%z",
+                      date: {
+                        $toDate: "$$NOW",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $multiply: [
+                {
+                  $toInt: "0",
+                  //"{{$json.offSet}}"
+                },
+                86400000,
+              ],
+            },
+          ],
+        },
+      },
+      proceso: "webhook_messages_marketing",
+    },
+  },
+]
+
+///
+
+
+[
+  {
+    "$limit": 1
+  }, {
+    "$project": {
+      "_id": 0, 
+      "fechaProceso": {
+        "$toString": {
+          "$subtract": [
+            {
+              "$toDate": {
+                "$dateFromString": {
+                  "dateString": {
+                    "$dateToString": {
+                      "format": "%Y-%m-%dT00:00:00%z", 
+                      "date": {
+                        "$toDate": "$$NOW"
+                      }
+                    }
+                  }
+                }
+              }
+            }, {
+              "$multiply": [
+                {
+                  "$toInt": "{{$json.offSet}}"
+                }, 86400000
+              ]
+            }
+          ]
+        }
+      }, 
+      "proceso": "webhook_messages_marketing"
+    }
+  }
+]

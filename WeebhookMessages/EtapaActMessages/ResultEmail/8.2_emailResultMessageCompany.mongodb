@@ -1,0 +1,745 @@
+[
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gt: [
+              "$updatedAt",
+              {
+                $toDate:
+                  "2023-12-20T00:00:00.000+00:00",
+                //"{{$json.lastUpdatedAt}}"
+              },
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$updatedAt",
+              {
+                $toDate:
+                  "2023-12-22T03:00:00.000+00:00",
+                //"{{$json.currentUpdatedDate}}"
+              },
+            ],
+          },
+        },
+        {
+          $expr: {
+            $eq: [
+              "$batchNumber",
+              "1",
+              //"{{$json.batchNumber}}"
+            ],
+          },
+        },
+        {
+          campaignId: {
+            $exists: true,
+          },
+        },
+      ],
+    },
+  },
+  {
+    $project: {
+      email: "$recipients.email",
+      updatedAt: 1,
+      opened: "$recipients.event-opened",
+      delivered: "$recipients.event-delivered",
+      clicked: "$recipients.event-clicked",
+      complained: "$recipients.event-complained",
+      failed: "$recipients.event-failed",
+      unsubscribed:
+        "$recipients.event-unsubscribed",
+    },
+  },
+  {
+    $group: {
+      _id: "$email",
+      docs: {
+        $addToSet: "$$ROOT",
+      },
+      updatedAt: {
+        $max: "$updatedAt",
+      },
+    },
+  },
+  {
+    $project: {
+      doc: {
+        $filter: {
+          input: "$docs",
+          as: "value",
+          cond: {
+            $eq: [
+              "$$value.updatedAt",
+              "$updatedAt",
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $replaceRoot:
+      /**
+       * replacementDocument: A document or string.
+       */
+      {
+        newRoot: {
+          $mergeObjects: ["$doc"],
+        },
+      },
+  },
+  {
+    $addFields: {
+      _id: "$$REMOVE",
+      updatedAt: "$$REMOVE",
+      opened: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $first: "$opened",
+              },
+              null,
+            ],
+          },
+          true,
+          "$$REMOVE",
+        ],
+      },
+      delivered: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $first: "$delivered",
+              },
+              null,
+            ],
+          },
+          true,
+          "$$REMOVE",
+        ],
+      },
+      clicked: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $first: "$clicked",
+              },
+              null,
+            ],
+          },
+          true,
+          "$$REMOVE",
+        ],
+      },
+      complained: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $first: "$complained",
+              },
+              null,
+            ],
+          },
+          true,
+          "$$REMOVE",
+        ],
+      },
+      failed: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $first: "$failed",
+              },
+              null,
+            ],
+          },
+          true,
+          "$$REMOVE",
+        ],
+      },
+      unsubscribed: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $first: "$unsubscribed",
+              },
+              null,
+            ],
+          },
+          true,
+          "$$REMOVE",
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      "emailResult.result": {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $gt: ["$opened", null],
+              },
+              then: "deliverable",
+            },
+            {
+              case: {
+                $gt: ["$delivered", null],
+              },
+              then: "unknown",
+            },
+            {
+              case: {
+                $gt: ["$clicked", null],
+              },
+              then: "deliverable",
+            },
+            {
+              case: {
+                $gt: ["$unsubscribed", null],
+              },
+              then: "undeliverable",
+            },
+            {
+              case: {
+                $gt: ["$complained", null],
+              },
+              then: "undeliverable",
+            },
+            {
+              case: {
+                $gt: ["$failed", null],
+              },
+              then: "undeliverable",
+            },
+          ],
+          default: "unknown",
+        },
+      },
+      "emailResult.reason": {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $gt: ["$opened", null],
+              },
+              then: "opened",
+            },
+            {
+              case: {
+                $gt: ["$delivered", null],
+              },
+              then: "delivered",
+            },
+            {
+              case: {
+                $gt: ["$clicked", null],
+              },
+              then: "clicked",
+            },
+            {
+              case: {
+                $gt: ["$unsubscribed", null],
+              },
+              then: "unsubscribed",
+            },
+            {
+              case: {
+                $gt: ["$complained", null],
+              },
+              then: "complained",
+            },
+            {
+              case: {
+                $gt: ["$failed", null],
+              },
+              then: "failed",
+            },
+          ],
+          default: "$$REMOVE",
+        },
+      },
+      "emailResult.risk": {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $gt: ["$opened", null],
+              },
+              then: "low",
+            },
+            {
+              case: {
+                $gt: ["$delivered", null],
+              },
+              then: "unknown",
+            },
+            {
+              case: {
+                $gt: ["$clicked", null],
+              },
+              then: "low",
+            },
+            {
+              case: {
+                $gt: ["$unsubscribed", null],
+              },
+              then: "high",
+            },
+            {
+              case: {
+                $gt: ["$complained", null],
+              },
+              then: "high",
+            },
+            {
+              case: {
+                $gt: ["$failed", null],
+              },
+              then: "high",
+            },
+          ],
+          default: "unknown",
+        },
+      },
+      opened: "$$REMOVE",
+      delivered: "$$REMOVE",
+      clicked: "$$REMOVE",
+      complained: "$$REMOVE",
+      failed: "$$REMOVE",
+      unsubscribed: "$$REMOVE",
+    },
+  },
+  {
+    $lookup: {
+      //from: "People",
+      from: "Company",
+      //from: "Externalpotential",
+      let: {
+        email: {
+          $toLower: "$email",
+        },
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$email", "$$email"],
+            },
+          },
+        },
+        {
+          $project: {
+            vat: 1,
+            lastDigRif: 1,
+          },
+        },
+        {
+          $limit: 1,
+        },
+      ],
+      as: "People",
+    },
+  },
+  {
+    $unwind: {
+      path: "$People",
+      preserveNullAndEmptyArrays: false,
+    },
+  },
+  {
+    $addFields: {
+      email: {
+        $toLower: "$email",
+      },
+      vat: "$People.vat",
+      lastDigRif: "$People.lastDigRif",
+      People: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      //  into: "People",
+      // on: ["vat", "lastDigRif"],
+      into: "Company",
+      on: "vat",
+      //into: "Externalpotential",
+      //on: "email",
+      whenMatched: "merge",
+      whenNotMatched: "discard",
+    },
+  },
+]
+
+///////////
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gt": [
+              "$updatedAt", {
+                "$toDate": "{{$json.lastUpdatedAt}}"
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$updatedAt", {
+                "$toDate": "{{$json.currentUpdatedDate}}"
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$eq": [
+              "$batchNumber","{{$json.batchNumber}}"
+            ]
+          }
+        }, {
+          "campaignId": {
+            "$exists": true
+          }
+        }
+      ]
+    }
+  }, {
+    "$project": {
+      "email": "$recipients.email", 
+      "updatedAt": 1, 
+      "opened": "$recipients.event-opened", 
+      "delivered": "$recipients.event-delivered", 
+      "clicked": "$recipients.event-clicked", 
+      "complained": "$recipients.event-complained", 
+      "failed": "$recipients.event-failed", 
+      "unsubscribed": "$recipients.event-unsubscribed"
+    }
+  }, {
+    "$group": {
+      "_id": "$email", 
+      "docs": {
+        "$addToSet": "$$ROOT"
+      }, 
+      "updatedAt": {
+        "$max": "$updatedAt"
+      }
+    }
+  }, {
+    "$project": {
+      "doc": {
+        "$filter": {
+          "input": "$docs", 
+          "as": "value", 
+          "cond": {
+            "$eq": [
+              "$$value.updatedAt", "$updatedAt"
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": {
+        "$mergeObjects": [
+          "$doc"
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "updatedAt": "$$REMOVE", 
+      "opened": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$first": "$opened"
+              }, null
+            ]
+          }, true, "$$REMOVE"
+        ]
+      }, 
+      "delivered": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$first": "$delivered"
+              }, null
+            ]
+          }, true, "$$REMOVE"
+        ]
+      }, 
+      "clicked": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$first": "$clicked"
+              }, null
+            ]
+          }, true, "$$REMOVE"
+        ]
+      }, 
+      "complained": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$first": "$complained"
+              }, null
+            ]
+          }, true, "$$REMOVE"
+        ]
+      }, 
+      "failed": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$first": "$failed"
+              }, null
+            ]
+          }, true, "$$REMOVE"
+        ]
+      }, 
+      "unsubscribed": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$first": "$unsubscribed"
+              }, null
+            ]
+          }, true, "$$REMOVE"
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "emailResult.result": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$gt": [
+                  "$opened", null
+                ]
+              }, 
+              "then": "deliverable"
+            }, {
+              "case": {
+                "$gt": [
+                  "$delivered", null
+                ]
+              }, 
+              "then": "unknown"
+            }, {
+              "case": {
+                "$gt": [
+                  "$clicked", null
+                ]
+              }, 
+              "then": "deliverable"
+            }, {
+              "case": {
+                "$gt": [
+                  "$unsubscribed", null
+                ]
+              }, 
+              "then": "undeliverable"
+            }, {
+              "case": {
+                "$gt": [
+                  "$complained", null
+                ]
+              }, 
+              "then": "undeliverable"
+            }, {
+              "case": {
+                "$gt": [
+                  "$failed", null
+                ]
+              }, 
+              "then": "undeliverable"
+            }
+          ], 
+          "default": "unknown"
+        }
+      }, 
+      "emailResult.reason": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$gt": [
+                  "$opened", null
+                ]
+              }, 
+              "then": "opened"
+            }, {
+              "case": {
+                "$gt": [
+                  "$delivered", null
+                ]
+              }, 
+              "then": "delivered"
+            }, {
+              "case": {
+                "$gt": [
+                  "$clicked", null
+                ]
+              }, 
+              "then": "clicked"
+            }, {
+              "case": {
+                "$gt": [
+                  "$unsubscribed", null
+                ]
+              }, 
+              "then": "unsubscribed"
+            }, {
+              "case": {
+                "$gt": [
+                  "$complained", null
+                ]
+              }, 
+              "then": "complained"
+            }, {
+              "case": {
+                "$gt": [
+                  "$failed", null
+                ]
+              }, 
+              "then": "failed"
+            }
+          ], 
+          "default": "$$REMOVE"
+        }
+      }, 
+      "emailResult.risk": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$gt": [
+                  "$opened", null
+                ]
+              }, 
+              "then": "low"
+            }, {
+              "case": {
+                "$gt": [
+                  "$delivered", null
+                ]
+              }, 
+              "then": "unknown"
+            }, {
+              "case": {
+                "$gt": [
+                  "$clicked", null
+                ]
+              }, 
+              "then": "low"
+            }, {
+              "case": {
+                "$gt": [
+                  "$unsubscribed", null
+                ]
+              }, 
+              "then": "high"
+            }, {
+              "case": {
+                "$gt": [
+                  "$complained", null
+                ]
+              }, 
+              "then": "high"
+            }, {
+              "case": {
+                "$gt": [
+                  "$failed", null
+                ]
+              }, 
+              "then": "high"
+            }
+          ], 
+          "default": "unknown"
+        }
+      }, 
+      "opened": "$$REMOVE", 
+      "delivered": "$$REMOVE", 
+      "clicked": "$$REMOVE", 
+      "complained": "$$REMOVE", 
+      "failed": "$$REMOVE", 
+      "unsubscribed": "$$REMOVE"
+    }
+  }, {
+    "$lookup": {
+      "from": "Company", 
+      "let": {
+        "email": {
+          "$toLower": "$email"
+        }
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$email", "$$email"
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "vat": 1, 
+            "lastDigRif": 1
+          }
+        }, {
+          "$limit": 1
+        }
+      ], 
+      "as": "People"
+    }
+  }, {
+    "$unwind": {
+      "path": "$People", 
+      "preserveNullAndEmptyArrays": false
+    }
+  }, {
+    "$addFields": {
+      "email": {
+        "$toLower": "$email"
+      }, 
+      "vat": "$People.vat", 
+      "lastDigRif": "$People.lastDigRif", 
+      "People": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Company", 
+      "on": "vat", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "discard"
+    }
+  }
+]

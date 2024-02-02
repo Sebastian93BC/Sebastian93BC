@@ -1,0 +1,229 @@
+[
+  {
+    $lookup: {
+      from: "Parametricbancasegnse",
+      let: {
+        nombreBanca: "$nombreBanca",
+        nombreSegmento: "$nombreSegmento",
+        nombreNSE: "$nombreNSE",
+        persona: "$persona",
+      },
+      pipeline: [
+        {
+          $match: {
+            $and: [
+              {
+                $expr: {
+                  $eq: [
+                    "$$nombreBanca",
+                    "$banca_old",
+                  ],
+                },
+              },
+              {
+                $expr: {
+                  $eq: [
+                    "$$nombreSegmento",
+                    "$segmento_old",
+                  ],
+                },
+              },
+              {
+                $expr: {
+                  $eq: [
+                    "$$nombreNSE",
+                    "$nivel_socioecon_old",
+                  ],
+                },
+              },
+              {
+                $expr: {
+                  $eq: [
+                    "$$persona",
+                    "$persona_old",
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+      as: "result",
+    },
+  },
+  {
+    $match: {
+      $expr: {
+        $gt: [
+          {
+            $size: "$result",
+          },
+          0,
+        ],
+      },
+    },
+  },
+  // {
+  //   $match:
+  //     /**
+  //      * query: The query in MQL.
+  //      */
+  //     {
+  //       $expr: {
+  //         $lte: [
+  //           {
+  //             $size: "$result",
+  //           },
+  //           0,
+  //         ],
+  //       },
+  //     },
+  // },
+  {
+    $addFields: {
+      "segmentacionAnt.nombreBanca":
+        "$nombreBanca",
+      "segmentacionAnt.nombreSegmento":
+        "$nombreSegmento",
+      "segmentacionAnt.nombreNSE": "$nombreNSE",
+      "segmentacionAnt.persona": "$persona",
+      integrationIdsAnterior: "$integrationIds",
+      nombreBanca: {
+        $first: "$result.banca_new",
+      },
+      nombreSegmento: {
+        $first: "$result.segmento_new",
+      },
+      nombreNSE: {
+        $first: "$result.nivel_socioecon_new",
+      },
+      persona: {
+        $first: "$result.persona_new",
+      },
+      "integrationIds.margen.nombreBanca": {
+        $first: "$result.banca_new",
+      },
+      "integrationIds.margen.nombreSegmento": {
+        $first: "$result.segmento_new",
+      },
+      "integrationIds.margen.nombreNSE": {
+        $first: "$result.nivel_socioecon_new",
+      },
+      "integrationIds.margen.persona": {
+        $first: "$result.persona_new",
+      },
+    },
+  },
+  {
+    $addFields: {
+      result: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margengeneralmetric",
+      on: "_id",
+    },
+  },
+]
+
+//n8n
+
+[
+{
+    "$lookup": {
+      "from": "Parametricbancasegnse", 
+      "let": {
+        "nombreBanca": "$nombreBanca", 
+        "nombreSegmento": "$nombreSegmento", 
+        "nombreNSE": "$nombreNSE", 
+        "persona": "$persona"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$nombreBanca", "$banca_old"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$nombreSegmento", "$segmento_old"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$nombreNSE", "$nivel_socioecon_old"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$persona", "$persona_old"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ], 
+      "as": "result"
+    }
+  }, {
+    "$match": {
+      "$expr": {
+        "$gt": [
+          {
+            "$size": "$result"
+          }, 0
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "segmentacionAnt.nombreBanca": "$nombreBanca", 
+      "segmentacionAnt.nombreSegmento": "$nombreSegmento", 
+      "segmentacionAnt.nombreNSE": "$nombreNSE", 
+      "segmentacionAnt.persona": "$persona", 
+      "integrationIdsAnterior": "$integrationIds", 
+      "nombreBanca": {
+        "$first": "$result.banca_new"
+      }, 
+      "nombreSegmento": {
+        "$first": "$result.segmento_new"
+      }, 
+      "nombreNSE": {
+        "$first": "$result.nivel_socioecon_new"
+      }, 
+      "persona": {
+        "$first": "$result.persona_new"
+      }, 
+      "integrationIds.margen.nombreBanca": {
+        "$first": "$result.banca_new"
+      }, 
+      "integrationIds.margen.nombreSegmento": {
+        "$first": "$result.segmento_new"
+      }, 
+      "integrationIds.margen.nombreNSE": {
+        "$first": "$result.nivel_socioecon_new"
+      }, 
+      "integrationIds.margen.persona": {
+        "$first": "$result.persona_new"
+      }
+    }
+  }, {
+    "$addFields": {
+      "result": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margengeneralmetric", 
+      "on": "_id"
+    }
+  }
+]

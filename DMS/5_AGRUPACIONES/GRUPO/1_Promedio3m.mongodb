@@ -1,0 +1,222 @@
+[
+  {
+    $addFields: {
+      //Editar
+      fechaSuperior: {
+        $dateFromParts: {
+          year: {
+            $year: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+
+          month: {
+            $month: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      fechaProcesoAct: {
+        $dateFromParts: {
+          year: {
+            $year: "$fechaProceso",
+          },
+          month: {
+            $month: "$fechaProceso",
+          },
+        },
+      },
+      fechaInferior: {
+        $dateSubtract: {
+          startDate: {
+            $dateFromParts: {
+              year: {
+                $year: "$fechaSuperior",
+              },
+              month: {
+                $month: "$fechaSuperior",
+              },
+            },
+          },
+          unit: "month",
+          amount: 2,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProcesoAct",
+              "$fechaInferior",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProcesoAct",
+              "$fechaSuperior",
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        codigoGrupoeconomico:
+          "$codigoGrupoeconomico",
+      },
+      codigoGrupoeconomico: {
+        $first: "$codigoGrupoeconomico",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      montoAbonado3m: {
+        $sum: "$montoAbonado",
+      },
+    },
+  },
+  {
+    $addFields: {
+      montoAbonadoProm3m: {
+        $round: [
+          {
+            $divide: ["$montoAbonado3m", 3],
+          },
+          4,
+        ],
+      },
+      rifCedula: "$rifCedula",
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricgrupo",
+      on: [
+        "fechaProceso",
+        "codigoGrupoeconomico",
+      ],
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$addFields": {
+      "fechaSuperior": {
+        "$dateFromParts": {
+          "year": {
+            "$year": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }, 
+          "month": {
+            "$month": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProcesoAct": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaProceso"
+          }, 
+          "month": {
+            "$month": "$fechaProceso"
+          }
+        }
+      }, 
+      "fechaInferior": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$fechaSuperior"
+              }, 
+              "month": {
+                "$month": "$fechaSuperior"
+              }
+            }
+          }, 
+          "unit": "month", 
+          "amount": 2
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProcesoAct", "$fechaInferior"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProcesoAct", "$fechaSuperior"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "codigoGrupoeconomico": "$codigoGrupoeconomico"
+      }, 
+      "codigoGrupoeconomico": {
+        "$first": "$codigoGrupoeconomico"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "montoAbonado3m": {
+        "$sum": "$montoAbonado"
+      }
+    }
+  }, {
+    "$addFields": {
+      "montoAbonadoProm3m": {
+        "$round": [
+          {
+            "$divide": [
+              "$montoAbonado3m", 3
+            ]
+          }, 4
+        ]
+      }, 
+      "rifCedula": "$rifCedula", 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricgrupo", 
+      "on": [
+        "fechaProceso", "codigoGrupoeconomico"
+      ]
+    }
+  }
+]

@@ -1,0 +1,636 @@
+[
+  {
+    $match: {
+      $expr: {
+        $eq: [
+          {
+            $subtract: [
+              {
+                $toDate: {
+                  $dateFromString: {
+                    dateString: {
+                      $dateToString: {
+                        format:
+                          "%Y-%m-%dT00:00:00%z",
+                        date: {
+                          $toDate: "$$NOW",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $multiply: [
+                  {
+                    $toInt: "10",
+                    //"{{$json.offSet}}"
+                  },
+                  86400000,
+                ],
+              },
+            ],
+          },
+          "$fecha_valor",
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "Ingresoscartcredmetric",
+      localField: "previusMonthDate",
+      foreignField: "fecha_valor",
+      as: "IngresoscartcredmetricpreviusMonthDate",
+    },
+  },
+  {
+    $lookup: {
+      from: "Ingresoscartcredmetric",
+      localField: "previusYearDate",
+      foreignField: "fecha_valor",
+      as: "IngresoscartcredmetricpreviusYearDate",
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      fecha_valor: 1,
+      iccActualBs: {
+        $cond: [
+          "$firstDayMonth",
+          "$sal_net_actTotalBs",
+          {
+            $sum: [
+              "$sal_net_actTotalBs",
+              "$sal_net_actTotalBsyesterday",
+            ],
+          },
+        ],
+      },
+      iccActual: {
+        $cond: [
+          "$firstDayMonth",
+          "$sal_net_actTotalBsUSD",
+          {
+            $sum: [
+              "$sal_net_actTotalBsUSD",
+              "$sal_net_actTotalBsUSDyesterday",
+            ],
+          },
+        ],
+      },
+      iccAcMensualBs: {
+        $sum: [
+          "$sal_net_actTotalBs",
+          "$capindifTotalBs",
+        ],
+      },
+      iccAcMensual: {
+        $sum: [
+          "$sal_net_actTotalBsUSD",
+          "$capindifTotalBsUSD",
+        ],
+      },
+      iccAcMensualAntBs: {
+        $subtract: [
+          {
+            $sum: [
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBs",
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBs",
+              },
+            ],
+          },
+          1,
+        ],
+      },
+      iccAcMensualAnt: {
+        $subtract: [
+          {
+            $sum: [
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBsUSD",
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBsUSD",
+              },
+            ],
+          },
+          1,
+        ],
+      },
+      iccAcAnualBs: {
+        $cond: [
+          true,
+          {
+            $sum: [
+              "$sal_actTotalBs",
+              "$sal_actTotalBsyesterday",
+            ],
+          },
+          "$sal_actTotalBs",
+        ],
+      },
+      iccAcAnual: {
+        $cond: [
+          true,
+          {
+            $sum: [
+              "$sal_actTotalBsUSD",
+              "$sal_actTotalBsUSDyesterday",
+            ],
+          },
+          "$sal_actTotalBsUSD",
+        ],
+      },
+      iccAcAnualAntBs: {
+        $cond: [
+          true,
+          {
+            $sum: [
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBs",
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsyesterday",
+              },
+            ],
+          },
+          {
+            $first:
+              "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBs",
+          },
+        ],
+      },
+      iccAcAnualAnt: {
+        $cond: [
+          true,
+          {
+            $sum: [
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsUSD",
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsUSDyesterday",
+              },
+            ],
+          },
+          {
+            $first:
+              "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsUSD",
+          },
+        ],
+      },
+      iccVarMensualBs: {
+        $subtract: [
+          {
+            $sum: [
+              "$sal_net_actTotalBs",
+              "$capindifTotalBs",
+            ],
+          },
+          {
+            $subtract: [
+              {
+                $sum: [
+                  {
+                    $first:
+                      "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBs",
+                  },
+                  {
+                    $first:
+                      "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBs",
+                  },
+                ],
+              },
+              1,
+            ],
+          },
+        ],
+      },
+      iccVarMensual: {
+        $subtract: [
+          {
+            $sum: [
+              "$sal_net_actTotalBsUSD",
+              "$capindifTotalBsUSD",
+            ],
+          },
+          {
+            $subtract: [
+              {
+                $sum: [
+                  {
+                    $first:
+                      "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBsUSD",
+                  },
+                  {
+                    $first:
+                      "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBsUSD",
+                  },
+                ],
+              },
+              1,
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "Objectiveformat",
+      let: {
+        mes: {
+          $month: "$fecha_valor",
+        },
+        ano: {
+          $year: "$fecha_valor",
+        },
+      },
+      pipeline: [
+        {
+          $match: {
+            $and: [
+              {
+                $expr: {
+                  $eq: [
+                    "$$mes",
+                    {
+                      $month: "$fecha",
+                    },
+                  ],
+                },
+              },
+              {
+                $expr: {
+                  $eq: [
+                    "$$ano",
+                    {
+                      $year: "$fecha",
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        //
+      ],
+      as: "result",
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      fecha_valor: 1,
+      "ingresosCarteraBs.iccActual":
+        "$iccActualBs",
+      "ingresosCarteraBs.iccAcMensual":
+        "$iccAcMensualBs",
+      "ingresosCarteraBs.iccAcAnual":
+        "$iccAcAnualBs",
+      "ingresosCarteraBs.iccActual513":
+        "$iccActual513Bs",
+      "ingresosCarteraBs.iccAcMensual513":
+        "$iccAcMensual513Bs",
+      "ingresosCarteraBs.iccAcAnual513":
+        "$iccAcAnual513Bs",
+      "ingresosCarteraBs.capindifBs":
+        "$capindifBs",
+      "ingresosCarteraBs.capindifBsMensual":
+        "$capindifBsMensual",
+      "ingresosCarteraBs.capindifBsAnual":
+        "$capindifBsAnual",
+      "ingresosCarteraBs.iccAcMensualAnt":
+        "$iccAcMensualAntBs",
+      "ingresosCarteraBs.iccAcAnualAnt":
+        "$iccAcAnualAntBs",
+      "ingresosCarteraBs.iccVarMensual":
+        "$iccVarMensualBs",
+      "ingresosCartera.iccActual": "$iccActual",
+      "ingresosCartera.iccAcMensual":
+        "$iccAcMensual",
+      "ingresosCartera.iccAcAnual": "$iccAcAnual",
+      "ingresosCartera.iccActual513":
+        "$iccActual513",
+      "ingresosCartera.iccAcMensual513":
+        "$iccAcMensual513",
+      "ingresosCartera.iccAcAnual513":
+        "$iccAcAnual513",
+      "ingresosCartera.capindif": "$capindif",
+      "ingresosCartera.capindifMensual":
+        "$capindifMensual",
+      "ingresosCartera.capindifAnual":
+        "$capindifAnual",
+      "ingresosCartera.iccAcMensualAnt":
+        "$iccAcMensualAnt",
+      "ingresosCartera.iccAcAnualAnt":
+        "$iccAcAnualAnt",
+      "ingresosCartera.iccVarMensual":
+        "$iccVarMensual",
+      "ingresosCartera.goalIccMensual": {
+        $first: "$result.iccTot",
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "Balancemetric",
+      on: "fecha_valor",
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+////////
+
+
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          {
+            "$subtract": [
+              {
+                "$toDate": {
+                  "$dateFromString": {
+                    "dateString": {
+                      "$dateToString": {
+                        "format": "%Y-%m-%dT00:00:00%z", 
+                        "date": {
+                          "$toDate": "$$NOW"
+                        }
+                      }
+                    }
+                  }
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }, "$fecha_valor"
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Ingresoscartcredmetric", 
+      "localField": "previusMonthDate", 
+      "foreignField": "fecha_valor", 
+      "as": "IngresoscartcredmetricpreviusMonthDate"
+    }
+  }, {
+    "$lookup": {
+      "from": "Ingresoscartcredmetric", 
+      "localField": "previusYearDate", 
+      "foreignField": "fecha_valor", 
+      "as": "IngresoscartcredmetricpreviusYearDate"
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "fecha_valor": 1, 
+      "iccActualBs": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actTotalBs", {
+            "$sum": [
+              "$sal_net_actTotalBs", "$sal_net_actTotalBsyesterday"
+            ]
+          }
+        ]
+      }, 
+      "iccActual": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actTotalBsUSD", {
+            "$sum": [
+              "$sal_net_actTotalBsUSD", "$sal_net_actTotalBsUSDyesterday"
+            ]
+          }
+        ]
+      }, 
+      "iccAcMensualBs": {
+        "$sum": [
+          "$sal_net_actTotalBs", "$capindifTotalBs"
+        ]
+      }, 
+      "iccAcMensual": {
+        "$sum": [
+          "$sal_net_actTotalBsUSD", "$capindifTotalBsUSD"
+        ]
+      }, 
+      "iccAcMensualAntBs": {
+        "$subtract": [
+          {
+            "$sum": [
+              {
+                "$first": "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBs"
+              }, {
+                "$first": "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBs"
+              }
+            ]
+          }, 1
+        ]
+      }, 
+      "iccAcMensualAnt": {
+        "$subtract": [
+          {
+            "$sum": [
+              {
+                "$first": "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBsUSD"
+              }, {
+                "$first": "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBsUSD"
+              }
+            ]
+          }, 1
+        ]
+      }, 
+      "iccAcAnualBs": {
+        "$cond": [
+          true, {
+            "$sum": [
+              "$sal_actTotalBs", "$sal_actTotalBsyesterday"
+            ]
+          }, "$sal_actTotalBs"
+        ]
+      }, 
+      "iccAcAnual": {
+        "$cond": [
+          true, {
+            "$sum": [
+              "$sal_actTotalBsUSD", "$sal_actTotalBsUSDyesterday"
+            ]
+          }, "$sal_actTotalBsUSD"
+        ]
+      }, 
+      "iccAcAnualAntBs": {
+        "$cond": [
+          true, {
+            "$sum": [
+              {
+                "$first": "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBs"
+              }, {
+                "$first": "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsyesterday"
+              }
+            ]
+          }, {
+            "$first": "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBs"
+          }
+        ]
+      }, 
+      "iccAcAnualAnt": {
+        "$cond": [
+          true, {
+            "$sum": [
+              {
+                "$first": "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsUSD"
+              }, {
+                "$first": "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsUSDyesterday"
+              }
+            ]
+          }, {
+            "$first": "$IngresoscartcredmetricpreviusYearDate.sal_actTotalBsUSD"
+          }
+        ]
+      }, 
+      "iccVarMensualBs": {
+        "$subtract": [
+          {
+            "$sum": [
+              "$sal_net_actTotalBs", "$capindifTotalBs"
+            ]
+          }, {
+            "$subtract": [
+              {
+                "$sum": [
+                  {
+                    "$first": "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBs"
+                  }, {
+                    "$first": "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBs"
+                  }
+                ]
+              }, 1
+            ]
+          }
+        ]
+      }, 
+      "iccVarMensual": {
+        "$subtract": [
+          {
+            "$sum": [
+              "$sal_net_actTotalBsUSD", "$capindifTotalBsUSD"
+            ]
+          }, {
+            "$subtract": [
+              {
+                "$sum": [
+                  {
+                    "$first": "$IngresoscartcredmetricpreviusMonthDate.sal_net_actTotalBsUSD"
+                  }, {
+                    "$first": "$IngresoscartcredmetricpreviusMonthDate.capindifTotalBsUSD"
+                  }
+                ]
+              }, 1
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Objectiveformat", 
+      "let": {
+        "mes": {
+          "$month": "$fecha_valor"
+        }, 
+        "ano": {
+          "$year": "$fecha_valor"
+        }
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$mes", {
+                      "$month": "$fecha"
+                    }
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$ano", {
+                      "$year": "$fecha"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ], 
+      "as": "result"
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "fecha_valor": 1, 
+      "ingresosCarteraBs.iccActual": "$iccActualBs", 
+      "ingresosCarteraBs.iccAcMensual": "$iccAcMensualBs", 
+      "ingresosCarteraBs.iccAcAnual": "$iccAcAnualBs", 
+      "ingresosCarteraBs.iccActual513": "$iccActual513Bs", 
+      "ingresosCarteraBs.iccAcMensual513": "$iccAcMensual513Bs", 
+      "ingresosCarteraBs.iccAcAnual513": "$iccAcAnual513Bs", 
+      "ingresosCarteraBs.capindifBs": "$capindifBs", 
+      "ingresosCarteraBs.capindifBsMensual": "$capindifBsMensual", 
+      "ingresosCarteraBs.capindifBsAnual": "$capindifBsAnual", 
+      "ingresosCarteraBs.iccAcMensualAnt": "$iccAcMensualAntBs", 
+      "ingresosCarteraBs.iccAcAnualAnt": "$iccAcAnualAntBs", 
+      "ingresosCarteraBs.iccVarMensual": "$iccVarMensualBs", 
+      "ingresosCartera.iccActual": "$iccActual", 
+      "ingresosCartera.iccAcMensual": "$iccAcMensual", 
+      "ingresosCartera.iccAcAnual": "$iccAcAnual", 
+      "ingresosCartera.iccActual513": "$iccActual513", 
+      "ingresosCartera.iccAcMensual513": "$iccAcMensual513", 
+      "ingresosCartera.iccAcAnual513": "$iccAcAnual513", 
+      "ingresosCartera.capindif": "$capindif", 
+      "ingresosCartera.capindifMensual": "$capindifMensual", 
+      "ingresosCartera.capindifAnual": "$capindifAnual", 
+      "ingresosCartera.iccAcMensualAnt": "$iccAcMensualAnt", 
+      "ingresosCartera.iccAcAnualAnt": "$iccAcAnualAnt", 
+      "ingresosCartera.iccVarMensual": "$iccVarMensual", 
+      "ingresosCartera.goalIccMensual": {
+        "$first": "$result.iccTot"
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]
+

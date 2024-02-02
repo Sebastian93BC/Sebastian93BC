@@ -1,0 +1,191 @@
+[
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $eq: [
+              "$fechaProceso",
+              {
+                $toDate: "2023-11-30",
+                //"{{$json.fechaProceso}}"
+              },
+            ],
+          },
+        },
+        {
+          condicion: {
+            $in: ["NO_MOVIBLE", "Conv20"],
+          },
+        },
+        //{rifCedula: "J50019975",}
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$rifCedula",
+        fechaProceso: "$fechaProceso",
+      },
+      sidisMargen: {
+        $first: "$sidisMargen",
+      },
+      saldoConv20: {
+        $sum: "$saldoPasivo",
+      },
+      saldoConv20Bolivar: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$saldoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      saldoConv20Dolar: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "DOLARES"],
+            },
+            then: "$saldoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      saldoConv20Euro: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "EUROS"],
+            },
+            then: "$saldoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      sidisTasaconversion: {
+        $first: "$sidisTasaconversion",
+      },
+    },
+  },
+  {
+    $addFields: {
+      rifCedula: "$_id.rifCedula",
+      fechaProceso: "$_id.fechaProceso",
+      origenMargen: true,
+      origenMargenPasivos: true,
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        }, {
+          "condicion": {
+            "$in": [
+              "NO_MOVIBLE", "Conv20"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$rifCedula", 
+        "fechaProceso": "$fechaProceso"
+      }, 
+      "sidisMargen": {
+        "$first": "$sidisMargen"
+      }, 
+      "saldoConv20": {
+        "$sum": "$saldoPasivo"
+      }, 
+      "saldoConv20Bolivar": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$eq": [
+                "$denominacion", "BOLIVARES"
+              ]
+            }, 
+            "then": "$saldoPasivoDivisaOrigen", 
+            "else": 0
+          }
+        }
+      }, 
+      "saldoConv20Dolar": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$eq": [
+                "$denominacion", "DOLARES"
+              ]
+            }, 
+            "then": "$saldoPasivoDivisaOrigen", 
+            "else": 0
+          }
+        }
+      }, 
+      "saldoConv20Euro": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$eq": [
+                "$denominacion", "EUROS"
+              ]
+            }, 
+            "then": "$saldoPasivoDivisaOrigen", 
+            "else": 0
+          }
+        }
+      }, 
+      "sidisTasaconversion": {
+        "$first": "$sidisTasaconversion"
+      }
+    }
+  }, {
+    "$addFields": {
+      "rifCedula": "$_id.rifCedula", 
+      "fechaProceso": "$_id.fechaProceso", 
+      "origenMargen": true, 
+      "origenMargenPasivos": true, 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ], 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

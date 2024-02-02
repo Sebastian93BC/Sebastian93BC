@@ -1,0 +1,178 @@
+[
+  // {
+  //   $match:
+  //only for test
+  //     {
+  //       codigoSegmento: "1",
+  //       rifCedula: "J50019975",
+  //     },
+  // },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProceso",
+              {
+                $dateAdd: {
+                  startDate: {
+                    $toDate: "2023-10-31",
+                    //"{{$json.offSet}}"
+                  },
+
+                  unit: "month",
+                  amount: -5,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProceso",
+              {
+                $toDate: "2023-10-31",
+                //"{{$json.offSet}}"
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$rifCedula",
+      },
+      rifCedula: {
+        $first: "$rifCedula",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      saldoDolar6m: {
+        $sum: "$saldoDolar",
+      },
+      saldoEuro6m: {
+        $sum: "$saldoEuro",
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldoDolarProm6m: {
+        $round: [
+          {
+            $divide: ["$saldoDolar6m", 6],
+          },
+          4,
+        ],
+      },
+      saldoEuroProm6m: {
+        $round: [
+          {
+            $divide: ["$saldoEuro6m", 6],
+          },
+          4,
+        ],
+      },
+      rifCedula: "$rifCedula",
+      _id: "$$REMOVE",
+      saldoDolar6m: "$$REMOVE",
+      saldoEuro6m: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProceso", {
+                "$dateAdd": {
+                  "startDate": {
+                    "$toDate": "{{$json.offSet}}"
+                  }, 
+                  "unit": "month", 
+                  "amount": -5
+                }
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.offSet}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$rifCedula"
+      }, 
+      "rifCedula": {
+        "$first": "$rifCedula"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "saldoDolar6m": {
+        "$sum": "$saldoDolar"
+      }, 
+      "saldoEuro6m": {
+        "$sum": "$saldoEuro"
+      }
+    }
+  }, {
+    "$addFields": {
+      "saldoDolarProm6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$saldoDolar6m", 6
+            ]
+          }, 4
+        ]
+      }, 
+      "saldoEuroProm6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$saldoEuro6m", 6
+            ]
+          }, 4
+        ]
+      }, 
+      "rifCedula": "$rifCedula", 
+      "_id": "$$REMOVE", 
+      "saldoDolar6m": "$$REMOVE", 
+      "saldoEuro6m": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ]
+    }
+  }
+]

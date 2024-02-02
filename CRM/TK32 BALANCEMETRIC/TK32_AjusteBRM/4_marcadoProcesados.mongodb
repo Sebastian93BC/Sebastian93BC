@@ -1,0 +1,40 @@
+
+
+
+[
+  {
+    $match: {
+      processed: false,
+    },
+  },
+  {
+    $addFields: {
+      processed: true,
+    },
+  },
+  {
+    $merge: {
+      into: "brm_ajustado",
+      on: "_id",
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$match": {
+      "processed": false
+    }
+  }, {
+    "$addFields": {
+      "processed": true
+    }
+  }, {
+    "$merge": {
+      "into": "brm_ajustado", 
+      "on": "_id"
+    }
+  }
+]
