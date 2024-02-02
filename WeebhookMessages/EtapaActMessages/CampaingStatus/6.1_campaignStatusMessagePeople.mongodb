@@ -8,11 +8,11 @@
               "$updatedAt",
               {
                 $toDate:
-                  "2023-12-20T00:00:00.000+00:00",
+                  "2023-12-20T00:00:00.000+00:00"
                 //"{{$json.lastUpdatedAt}}"
-              },
-            ],
-          },
+              }
+            ]
+          }
         },
         {
           $expr: {
@@ -20,28 +20,28 @@
               "$updatedAt",
               {
                 $toDate:
-                  "2023-12-22T03:00:00.000+00:00",
+                  "2023-12-22T03:00:00.000+00:00"
                 //"{{$json.currentUpdatedDate}}"
-              },
-            ],
-          },
+              }
+            ]
+          }
         },
         {
           $expr: {
             $eq: [
               "$batchNumber",
-              "1",
+              "1"
               //"{{$json.batchNumber}}"
-            ],
-          },
+            ]
+          }
         },
         {
           campaignId: {
-            $exists: true,
-          },
-        },
-      ],
-    },
+            $exists: true
+          }
+        }
+      ]
+    }
   },
   {
     $lookup: {
@@ -49,41 +49,41 @@
       //from: "Company",
       //from: "Externalpotential",
       let: {
-        email: "$email",
+        email: "$email"
       },
       pipeline: [
         {
           $match: {
             $expr: {
-              $eq: ["$email", "$$email"],
-            },
-          },
+              $eq: ["$email", "$$email"]
+            }
+          }
         },
         {
           $project: {
             campaignStatus: 1,
             vat: 1,
-            lastDigRif: 1,
-          },
+            lastDigRif: 1
+          }
         },
         {
-          $limit: 1,
-        },
+          $limit: 1
+        }
       ],
-      as: "People",
-    },
+      as: "People"
+    }
   },
   {
     $match: {
       $expr: {
         $gt: [
           {
-            $size: "$People",
+            $size: "$People"
           },
-          0,
-        ],
-      },
-    },
+          0
+        ]
+      }
+    }
   },
   {
     $project: {
@@ -91,75 +91,71 @@
       campaignId: "$campaignId",
       mailgun: "$integrationIds.mailgun",
       communicationId: "$communicationId",
-      recipientId: "$recipients.recipientId",
-      name: "$recipients.name",
-      email: "$recipients.email",
-      delivered: "$recipients.delivered",
-      failed: "$recipients.failed",
-      opened: "$recipients.opened",
-      clicked: "$recipients.clicked",
-      unsubscribed: "$recipients.unsubscribed",
-      complained: "$recipients.complained",
-      stored: "$recipients.stored",
-      "event-opened": "$recipients.event-opened",
-      "event-delivered":
-        "$recipients.event-delivered",
-      "event-clicked":
-        "$recipients.event-clicked",
-      "event-complained":
-        "$recipients.event-complained",
-      "event-failed": "$recipients.event-failed",
-      "event-unsubscribed":
-        "$recipients.event-unsubscribed",
-      People: "$People",
-    },
+      recipientId: "$recipientId",
+      name: "$name",
+      email: "$email",
+      delivered: "$delivered",
+      failed: "$failed",
+      opened: "$opened",
+      clicked: "$clicked",
+      unsubscribed: "$unsubscribed",
+      complained: "$complained",
+      stored: "$stored",
+      "event-opened": "$event-opened",
+      "event-delivered": "$event-delivered",
+      "event-clicked": "$event-clicked",
+      "event-complained": "$event-complained",
+      "event-failed": "$event-failed",
+      "event-unsubscribed": "$event-unsubscribed",
+      People: "$People"
+    }
   },
   {
     $group: {
       _id: {
         campaignId: "$campaignId",
-        email: "$email",
+        email: "$email"
       },
       doc: {
-        $first: "$$ROOT",
+        $first: "$$ROOT"
       },
       People: {
-        $first: "$People",
-      },
-    },
+        $first: "$People"
+      }
+    }
   },
   {
     $group: {
       _id: {
-        email: "$_id.email",
+        email: "$_id.email"
       },
       campaignStatusMessage: {
-        $push: "$doc",
+        $push: "$doc"
       },
       People: {
-        $first: "$People",
-      },
-    },
+        $first: "$People"
+      }
+    }
   },
   {
     $addFields: {
       _id: "$$REMOVE",
       "campaignStatusMessage.People": "$$REMOVE",
       campaignStatusPeople: {
-        $first: "$People.campaignStatus",
+        $first: "$People.campaignStatus"
       },
-      email: "$_id.email",
-    },
+      email: "$_id.email"
+    }
   },
   {
     $project: {
       vat: {
-        $first: "$People.vat",
+        $first: "$People.vat"
       },
       People: "$$REMOVE",
       email: 1,
       lastDigRif: {
-        $first: "$People.lastDigRif",
+        $first: "$People.lastDigRif"
       },
       campaignStatus: {
         $setUnion: [
@@ -181,22 +177,22 @@
                                 $ifNull: [
                                   "$campaignStatusPeople.campaignId",
                                   "$campaignStatusPeople.campaignId",
-                                  [],
-                                ],
-                              },
-                            ],
+                                  []
+                                ]
+                              }
+                            ]
                           },
                           "$$message",
-                          null,
-                        ],
-                      },
-                    },
+                          null
+                        ]
+                      }
+                    }
                   },
                   as: "item",
                   cond: {
-                    $ne: ["$$item", null],
-                  },
-                },
+                    $ne: ["$$item", null]
+                  }
+                }
               },
               {
                 $filter: {
@@ -214,25 +210,25 @@
                                 $ifNull: [
                                   "$campaignStatusPeople.campaignId",
                                   "$campaignStatusPeople.campaignId",
-                                  [],
-                                ],
-                              },
-                            ],
+                                  []
+                                ]
+                              }
+                            ]
                           },
                           "$$message",
-                          null,
-                        ],
-                      },
-                    },
+                          null
+                        ]
+                      }
+                    }
                   },
                   as: "item",
                   cond: {
-                    $ne: ["$$item", null],
-                  },
-                },
+                    $ne: ["$$item", null]
+                  }
+                }
               },
-              [],
-            ],
+              []
+            ]
           },
           {
             $ifNull: [
@@ -253,23 +249,23 @@
                                   $ifNull: [
                                     "$campaignStatusPeople.campaignId",
                                     "$campaignStatusPeople.campaignId",
-                                    [],
-                                  ],
-                                },
-                              ],
-                            },
+                                    []
+                                  ]
+                                }
+                              ]
+                            }
                           },
                           "$$message",
-                          null,
-                        ],
-                      },
-                    },
+                          null
+                        ]
+                      }
+                    }
                   },
                   as: "item",
                   cond: {
-                    $ne: ["$$item", null],
-                  },
-                },
+                    $ne: ["$$item", null]
+                  }
+                }
               },
               {
                 $filter: {
@@ -288,26 +284,26 @@
                                   $ifNull: [
                                     "$campaignStatusPeople.campaignId",
                                     "$campaignStatusPeople.campaignId",
-                                    [],
-                                  ],
-                                },
-                              ],
-                            },
+                                    []
+                                  ]
+                                }
+                              ]
+                            }
                           },
                           "$$message",
-                          null,
-                        ],
-                      },
-                    },
+                          null
+                        ]
+                      }
+                    }
                   },
                   as: "item",
                   cond: {
-                    $ne: ["$$item", null],
-                  },
-                },
+                    $ne: ["$$item", null]
+                  }
+                }
               },
-              [],
-            ],
+              []
+            ]
           },
           {
             $ifNull: [
@@ -324,21 +320,21 @@
                             $not: {
                               $in: [
                                 "$$people.campaignId",
-                                "$campaignStatusMessage.campaignId",
-                              ],
-                            },
+                                "$campaignStatusMessage.campaignId"
+                              ]
+                            }
                           },
                           "$$people",
-                          null,
-                        ],
-                      },
-                    },
+                          null
+                        ]
+                      }
+                    }
                   },
                   as: "item",
                   cond: {
-                    $ne: ["$$item", null],
-                  },
-                },
+                    $ne: ["$$item", null]
+                  }
+                }
               },
               {
                 $filter: {
@@ -353,28 +349,28 @@
                             $not: {
                               $in: [
                                 "$$people.campaignId",
-                                "$campaignStatusMessage.campaignId",
-                              ],
-                            },
+                                "$campaignStatusMessage.campaignId"
+                              ]
+                            }
                           },
                           "$$people",
-                          null,
-                        ],
-                      },
-                    },
+                          null
+                        ]
+                      }
+                    }
                   },
                   as: "item",
                   cond: {
-                    $ne: ["$$item", null],
-                  },
-                },
+                    $ne: ["$$item", null]
+                  }
+                }
               },
-              [],
-            ],
-          },
-        ],
-      },
-    },
+              []
+            ]
+          }
+        ]
+      }
+    }
   },
   {
     $merge: {
@@ -385,12 +381,12 @@
       //into: "Externalpotential",
       //on: "email",
       whenMatched: "merge",
-      whenNotMatched: "discard",
-    },
-  },
+      whenNotMatched: "discard"
+    }
+  }
 ]
 
-////////////
+//n8n
 
 [
   {
@@ -468,22 +464,22 @@
       "campaignId": "$campaignId", 
       "mailgun": "$integrationIds.mailgun", 
       "communicationId": "$communicationId", 
-      "recipientId": "$recipients.recipientId", 
-      "name": "$recipients.name", 
-      "email": "$recipients.email", 
-      "delivered": "$recipients.delivered", 
-      "failed": "$recipients.failed", 
-      "opened": "$recipients.opened", 
-      "clicked": "$recipients.clicked", 
-      "unsubscribed": "$recipients.unsubscribed", 
-      "complained": "$recipients.complained", 
-      "stored": "$recipients.stored", 
-      "event-opened": "$recipients.event-opened", 
-      "event-delivered": "$recipients.event-delivered", 
-      "event-clicked": "$recipients.event-clicked", 
-      "event-complained": "$recipients.event-complained", 
-      "event-failed": "$recipients.event-failed", 
-      "event-unsubscribed": "$recipients.event-unsubscribed", 
+      "recipientId": "$recipientId", 
+      "name": "$name", 
+      "email": "$email", 
+      "delivered": "$delivered", 
+      "failed": "$failed", 
+      "opened": "$opened", 
+      "clicked": "$clicked", 
+      "unsubscribed": "$unsubscribed", 
+      "complained": "$complained", 
+      "stored": "$stored", 
+      "event-opened": "$event-opened", 
+      "event-delivered": "$event-delivered", 
+      "event-clicked": "$event-clicked", 
+      "event-complained": "$event-complained", 
+      "event-failed": "$event-failed", 
+      "event-unsubscribed": "$event-unsubscribed", 
       "People": "$People"
     }
   }, {

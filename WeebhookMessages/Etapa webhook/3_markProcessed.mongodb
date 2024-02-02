@@ -1,0 +1,63 @@
+[
+  {
+    $match: {
+      processedWeb: false
+    }
+  },
+  {
+    $addFields: {
+      processedWeb: true,
+      processedWebDate: {
+        $dateFromParts: {
+          year: {
+            $year: "$$NOW"
+          },
+          month: {
+            $month: "$$NOW"
+          },
+          day: {
+            $dayOfMonth: "$$NOW"
+          }
+        }
+      }
+    }
+  },
+  {
+    $merge: {
+      into: "Webhook",
+      on: "_id"
+    }
+  }
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "processedWeb": false
+    }
+  }, {
+    "$addFields": {
+      "processedWeb": true, 
+      "processedWebDate": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$$NOW"
+          }, 
+          "month": {
+            "$month": "$$NOW"
+          }, 
+          "day": {
+            "$dayOfMonth": "$$NOW"
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Webhook", 
+      "on": "_id"
+    }
+  }
+]

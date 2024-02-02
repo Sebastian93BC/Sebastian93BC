@@ -1,0 +1,333 @@
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gt": [
+              "$updatedAt", {
+                "$toDate": "{{$json.lastUpdatedAt}}"
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$updatedAt", {
+                "$toDate": "{{$json.currentUpdatedDate}}"
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$eq": [
+              "$batchNumber", "{{$json.batchNumber}}"
+            ]
+          }
+        }, {
+          "campaignId": {
+            "$exists": true
+          }
+        }
+      ]
+    }
+  }, {
+    "$lookup": {
+      "from": "Company", 
+      "let": {
+        "email": "$email"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$email", "$$email"
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "campaignStatus": 1, 
+            "vat": 1, 
+            "lastDigRif": 1
+          }
+        }, {
+          "$limit": 1
+        }
+      ], 
+      "as": "People"
+    }
+  }, {
+    "$match": {
+      "$expr": {
+        "$gt": [
+          {
+            "$size": "$People"
+          }, 0
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "campaignId": "$campaignId", 
+      "mailgun": "$integrationIds.mailgun", 
+      "communicationId": "$communicationId", 
+      "recipientId": "$recipientId", 
+      "name": "$name", 
+      "email": "$email", 
+      "delivered": "$delivered", 
+      "failed": "$failed", 
+      "opened": "$opened", 
+      "clicked": "$clicked", 
+      "unsubscribed": "$unsubscribed", 
+      "complained": "$complained", 
+      "stored": "$stored", 
+      "event-opened": "$event-opened", 
+      "event-delivered": "$event-delivered", 
+      "event-clicked": "$event-clicked", 
+      "event-complained": "$event-complained", 
+      "event-failed": "$event-failed", 
+      "event-unsubscribed": "$event-unsubscribed", 
+      "People": "$People"
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "campaignId": "$campaignId", 
+        "email": "$email"
+      }, 
+      "doc": {
+        "$first": "$$ROOT"
+      }, 
+      "People": {
+        "$first": "$People"
+      }
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "email": "$_id.email"
+      }, 
+      "campaignStatusMessage": {
+        "$push": "$doc"
+      }, 
+      "People": {
+        "$first": "$People"
+      }
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "campaignStatusMessage.People": "$$REMOVE", 
+      "campaignStatusPeople": {
+        "$first": "$People.campaignStatus"
+      }, 
+      "email": "$_id.email"
+    }
+  }, {
+    "$project": {
+      "vat": {
+        "$first": "$People.vat"
+      }, 
+      "People": "$$REMOVE", 
+      "email": 1, 
+      "lastDigRif": {
+        "$first": "$People.lastDigRif"
+      }, 
+      "campaignStatus": {
+        "$setUnion": [
+          {
+            "$ifNull": [
+              {
+                "$filter": {
+                  "input": {
+                    "$map": {
+                      "input": "$campaignStatusMessage", 
+                      "as": "message", 
+                      "in": {
+                        "$cond": [
+                          {
+                            "$in": [
+                              "$$message.campaignId", {
+                                "$ifNull": [
+                                  "$campaignStatusPeople.campaignId", "$campaignStatusPeople.campaignId", []
+                                ]
+                              }
+                            ]
+                          }, "$$message", null
+                        ]
+                      }
+                    }
+                  }, 
+                  "as": "item", 
+                  "cond": {
+                    "$ne": [
+                      "$$item", null
+                    ]
+                  }
+                }
+              }, {
+                "$filter": {
+                  "input": {
+                    "$map": {
+                      "input": "$campaignStatusMessage", 
+                      "as": "message", 
+                      "in": {
+                        "$cond": [
+                          {
+                            "$in": [
+                              "$$message.campaignId", {
+                                "$ifNull": [
+                                  "$campaignStatusPeople.campaignId", "$campaignStatusPeople.campaignId", []
+                                ]
+                              }
+                            ]
+                          }, "$$message", null
+                        ]
+                      }
+                    }
+                  }, 
+                  "as": "item", 
+                  "cond": {
+                    "$ne": [
+                      "$$item", null
+                    ]
+                  }
+                }
+              }, []
+            ]
+          }, {
+            "$ifNull": [
+              {
+                "$filter": {
+                  "input": {
+                    "$map": {
+                      "input": "$campaignStatusMessage", 
+                      "as": "message", 
+                      "in": {
+                        "$cond": [
+                          {
+                            "$not": {
+                              "$in": [
+                                "$$message.campaignId", {
+                                  "$ifNull": [
+                                    "$campaignStatusPeople.campaignId", "$campaignStatusPeople.campaignId", []
+                                  ]
+                                }
+                              ]
+                            }
+                          }, "$$message", null
+                        ]
+                      }
+                    }
+                  }, 
+                  "as": "item", 
+                  "cond": {
+                    "$ne": [
+                      "$$item", null
+                    ]
+                  }
+                }
+              }, {
+                "$filter": {
+                  "input": {
+                    "$map": {
+                      "input": "$campaignStatusMessage", 
+                      "as": "message", 
+                      "in": {
+                        "$cond": [
+                          {
+                            "$not": {
+                              "$in": [
+                                "$$message.campaignId", {
+                                  "$ifNull": [
+                                    "$campaignStatusPeople.campaignId", "$campaignStatusPeople.campaignId", []
+                                  ]
+                                }
+                              ]
+                            }
+                          }, "$$message", null
+                        ]
+                      }
+                    }
+                  }, 
+                  "as": "item", 
+                  "cond": {
+                    "$ne": [
+                      "$$item", null
+                    ]
+                  }
+                }
+              }, []
+            ]
+          }, {
+            "$ifNull": [
+              {
+                "$filter": {
+                  "input": {
+                    "$map": {
+                      "input": "$campaignStatusPeople", 
+                      "as": "people", 
+                      "in": {
+                        "$cond": [
+                          {
+                            "$not": {
+                              "$in": [
+                                "$$people.campaignId", "$campaignStatusMessage.campaignId"
+                              ]
+                            }
+                          }, "$$people", null
+                        ]
+                      }
+                    }
+                  }, 
+                  "as": "item", 
+                  "cond": {
+                    "$ne": [
+                      "$$item", null
+                    ]
+                  }
+                }
+              }, {
+                "$filter": {
+                  "input": {
+                    "$map": {
+                      "input": "$campaignStatusPeople", 
+                      "as": "people", 
+                      "in": {
+                        "$cond": [
+                          {
+                            "$not": {
+                              "$in": [
+                                "$$people.campaignId", "$campaignStatusMessage.campaignId"
+                              ]
+                            }
+                          }, "$$people", null
+                        ]
+                      }
+                    }
+                  }, 
+                  "as": "item", 
+                  "cond": {
+                    "$ne": [
+                      "$$item", null
+                    ]
+                  }
+                }
+              }, []
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Company", 
+      "on": "vat", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "discard"
+    }
+  }
+]

@@ -1,31 +1,37 @@
 [
-
+  // {
+  //   $match: {
+  //     "event-data.message.headers.message-id":
+  //       "20230926173022.798433b9916daae0@bdvparati.banvenez.com",
+  //     "event-data.recipient": "sinaloa@gmail.com",
+  //   },
+  // },
   {
     $match: {
       $and: [
         {
           $expr: {
-            $eq: ["$processedWeb", false],
-          },
+            $eq: ["$processedWeb", false]
+          }
         },
         {
           "event-data.message.headers.message-id":
             {
-              $exists: true,
-            },
+              $exists: true
+            }
         },
         {
           "event-data.recipient": {
-            $exists: true,
-          },
+            $exists: true
+          }
         },
         {
           "event-data.event": {
-            $exists: true,
-          },
-        },
-      ],
-    },
+            $exists: true
+          }
+        }
+      ]
+    }
   },
   {
     $group: {
@@ -34,21 +40,21 @@
           "$event-data.message.headers.message-id",
         recipient: "$event-data.recipient",
         evento: "$event-data.event",
-        timestamp: "$timestamp",
+        timestamp: "$timestamp"
       },
       updatedAt: {
-        $max: "$updatedAt",
+        $max: "$updatedAt"
       },
       url: {
-        $addToSet: "$event-data.url",
+        $addToSet: "$event-data.url"
       },
       cant: {
-        $sum: 1,
+        $sum: 1
       },
       evento: {
-        $first: "$event-data.event",
-      },
-    },
+        $first: "$event-data.event"
+      }
+    }
   },
   {
     $addFields: {
@@ -63,242 +69,233 @@
                     input: "$url",
                     as: "item",
                     cond: {
-                      $gt: ["$$item", null],
-                    },
-                  },
-                },
+                      $gt: ["$$item", null]
+                    }
+                  }
+                }
               },
-              0,
-            ],
+              0
+            ]
           },
           {
-            $first: "$url",
+            $first: "$url"
           },
-          "$$REMOVE",
-        ],
-      },
-    },
+          "$$REMOVE"
+        ]
+      }
+    }
   },
   {
     $group: {
       _id: {
         messasge: "$_id.messasge",
-        recipient: "$_id.recipient",
+        recipient: "$_id.recipient"
       },
       cant: {
-        $sum: "$cant",
+        $sum: "$cant"
       },
       updatedAt: {
-        $max: "$updatedAt",
+        $max: "$updatedAt"
       },
       openedURL: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "opened"],
+              $eq: ["$_id.evento", "opened"]
             },
             "$url",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       openedTimestamp: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "opened"],
+              $eq: ["$_id.evento", "opened"]
             },
             "$timestamp",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       openedCant: {
         $sum: {
           $cond: [
             {
-              $eq: ["$_id.evento", "opened"],
+              $eq: ["$_id.evento", "opened"]
             },
             "$cant",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       deliveredURL: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "delivered"],
+              $eq: ["$_id.evento", "delivered"]
             },
             "$url",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       deliveredTimestamp: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "delivered"],
+              $eq: ["$_id.evento", "delivered"]
             },
             "$timestamp",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       deliveredCant: {
         $sum: {
           $cond: [
             {
-              $eq: ["$_id.evento", "delivered"],
+              $eq: ["$_id.evento", "delivered"]
             },
             "$cant",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       clickedURL: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "clicked"],
+              $eq: ["$_id.evento", "clicked"]
             },
             "$url",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       clickedTimestamp: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "clicked"],
+              $eq: ["$_id.evento", "clicked"]
             },
             "$timestamp",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       clickedCant: {
         $sum: {
           $cond: [
             {
-              $eq: ["$_id.evento", "clicked"],
+              $eq: ["$_id.evento", "clicked"]
             },
             "$cant",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       complainedURL: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "complained"],
+              $eq: ["$_id.evento", "complained"]
             },
             "$url",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       complainedTimestamp: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "complained"],
+              $eq: ["$_id.evento", "complained"]
             },
             "$timestamp",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       complainedCant: {
         $sum: {
           $cond: [
             {
-              $eq: ["$_id.evento", "complained"],
+              $eq: ["$_id.evento", "complained"]
             },
             "$cant",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       failedURL: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "failed"],
+              $eq: ["$_id.evento", "failed"]
             },
             "$url",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       failedTimestamp: {
         $addToSet: {
           $cond: [
             {
-              $eq: ["$_id.evento", "failed"],
+              $eq: ["$_id.evento", "failed"]
             },
             "$timestamp",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       failedCant: {
         $sum: {
           $cond: [
             {
-              $eq: ["$_id.evento", "failed"],
+              $eq: ["$_id.evento", "failed"]
             },
             "$cant",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       unsubscribedURL: {
         $addToSet: {
           $cond: [
             {
-              $eq: [
-                "$_id.evento",
-                "unsubscribed",
-              ],
+              $eq: ["$_id.evento", "unsubscribed"]
             },
             "$url",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       unsubscribedTimestamp: {
         $addToSet: {
           $cond: [
             {
-              $eq: [
-                "$_id.evento",
-                "unsubscribed",
-              ],
+              $eq: ["$_id.evento", "unsubscribed"]
             },
             "$timestamp",
-            "$$REMOVE",
-          ],
-        },
+            "$$REMOVE"
+          ]
+        }
       },
       unsubscribedCant: {
         $sum: {
           $cond: [
             {
-              $eq: [
-                "$_id.evento",
-                "unsubscribed",
-              ],
+              $eq: ["$_id.evento", "unsubscribed"]
             },
             "$cant",
-            "$$REMOVE",
-          ],
-        },
-      },
-    },
+            "$$REMOVE"
+          ]
+        }
+      }
+    }
   },
   {
     $project: {
@@ -308,8 +305,8 @@
       updatedAtDate: {
         $dateTrunc: {
           date: "$updatedAt",
-          unit: "day",
-        },
+          unit: "day"
+        }
       },
       _id: "$$REMOVE",
       "event-opened.url": {
@@ -317,422 +314,422 @@
           {
             $eq: [
               {
-                $size: "$openedURL",
+                $size: "$openedURL"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$openedURL",
-          },
-        ],
+            $first: "$openedURL"
+          }
+        ]
       },
       "event-opened.markedOpenedAt": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$openedTimestamp",
+                $size: "$openedTimestamp"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$openedTimestamp",
-          },
-        ],
+            $first: "$openedTimestamp"
+          }
+        ]
       },
       "event-opened.cant": {
         $cond: [
           {
-            $eq: ["$openedCant", 0],
+            $eq: ["$openedCant", 0]
           },
           "$$REMOVE",
-          "$openedCant",
-        ],
+          "$openedCant"
+        ]
       },
       "event-delivered.url": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$deliveredURL",
+                $size: "$deliveredURL"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$deliveredURL",
-          },
-        ],
+            $first: "$deliveredURL"
+          }
+        ]
       },
       "event-delivered.markedDeliveredAt": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$deliveredTimestamp",
+                $size: "$deliveredTimestamp"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$deliveredTimestamp",
-          },
-        ],
+            $first: "$deliveredTimestamp"
+          }
+        ]
       },
       "event-delivered.cant": {
         $cond: [
           {
-            $eq: ["$deliveredCant", 0],
+            $eq: ["$deliveredCant", 0]
           },
           "$$REMOVE",
-          "$deliveredCant",
-        ],
+          "$deliveredCant"
+        ]
       },
       "event-clicked.url": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$clickedURL",
+                $size: "$clickedURL"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$clickedURL",
-          },
-        ],
+            $first: "$clickedURL"
+          }
+        ]
       },
       "event-clicked.markedClicked": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$clickedTimestamp",
+                $size: "$clickedTimestamp"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$clickedTimestamp",
-          },
-        ],
+            $first: "$clickedTimestamp"
+          }
+        ]
       },
       "event-clicked.cant": {
         $cond: [
           {
-            $eq: ["$clickedCant", 0],
+            $eq: ["$clickedCant", 0]
           },
           "$$REMOVE",
-          "$clickedCant",
-        ],
+          "$clickedCant"
+        ]
       },
       "event-complained.url": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$complainedURL",
+                $size: "$complainedURL"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$complainedURL",
-          },
-        ],
+            $first: "$complainedURL"
+          }
+        ]
       },
       "event-complained.markedComplainedAt": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$complainedTimestamp",
+                $size: "$complainedTimestamp"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$complainedTimestamp",
-          },
-        ],
+            $first: "$complainedTimestamp"
+          }
+        ]
       },
       "event-complained.cant": {
         $cond: [
           {
-            $eq: ["$complainedCant", 0],
+            $eq: ["$complainedCant", 0]
           },
           "$$REMOVE",
-          "$complainedCant",
-        ],
+          "$complainedCant"
+        ]
       },
       "event-failed.url": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$failedURL",
+                $size: "$failedURL"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$failedURL",
-          },
-        ],
+            $first: "$failedURL"
+          }
+        ]
       },
       "event-failed.markedFailedAt": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$failedTimestamp",
+                $size: "$failedTimestamp"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$failedTimestamp",
-          },
-        ],
+            $first: "$failedTimestamp"
+          }
+        ]
       },
       "event-failed.cant": {
         $cond: [
           {
-            $eq: ["$failedCant", 0],
+            $eq: ["$failedCant", 0]
           },
           "$$REMOVE",
-          "$failedCant",
-        ],
+          "$failedCant"
+        ]
       },
       "event-unsubscribed.url": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$unsubscribedURL",
+                $size: "$unsubscribedURL"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$unsubscribedURL",
-          },
-        ],
+            $first: "$unsubscribedURL"
+          }
+        ]
       },
       "event-unsubscribed.markedUnsubscribedAt": {
         $cond: [
           {
             $eq: [
               {
-                $size: "$unsubscribedTimestamp",
+                $size: "$unsubscribedTimestamp"
               },
-              0,
-            ],
+              0
+            ]
           },
           "$$REMOVE",
           {
-            $first: "$unsubscribedTimestamp",
-          },
-        ],
+            $first: "$unsubscribedTimestamp"
+          }
+        ]
       },
       "event-unsubscribed.cant": {
         $cond: [
           {
-            $eq: ["$unsubscribedCant", 0],
+            $eq: ["$unsubscribedCant", 0]
           },
           "$$REMOVE",
-          "$unsubscribedCant",
-        ],
+          "$unsubscribedCant"
+        ]
       },
       opened: {
         $cond: [
           {
-            $eq: ["$_id.evento", "opened"],
+            $eq: ["$_id.evento", "opened"]
           },
           1,
-          "$opened",
-        ],
+          "$opened"
+        ]
       },
       delivered: {
         $cond: [
           {
-            $eq: ["$_id.evento", "delivered"],
+            $eq: ["$_id.evento", "delivered"]
           },
           1,
-          "$delivered",
-        ],
+          "$delivered"
+        ]
       },
       clicked: {
         $cond: [
           {
-            $eq: ["$_id.evento", "clicked"],
+            $eq: ["$_id.evento", "clicked"]
           },
           1,
-          "$clicked",
-        ],
+          "$clicked"
+        ]
       },
       complained: {
         $cond: [
           {
-            $eq: ["$_id.evento", "complained"],
+            $eq: ["$_id.evento", "complained"]
           },
           1,
-          "$complained",
-        ],
+          "$complained"
+        ]
       },
       failed: {
         $cond: [
           {
-            $eq: ["$_id.evento", "failed"],
+            $eq: ["$_id.evento", "failed"]
           },
           1,
-          "$failed",
-        ],
+          "$failed"
+        ]
       },
       unsubscribed: {
         $cond: [
           {
-            $eq: ["$_id.evento", "unsubscribed"],
+            $eq: ["$_id.evento", "unsubscribed"]
           },
           1,
-          "$unsubscribed",
-        ],
-      },
-    },
+          "$unsubscribed"
+        ]
+      }
+    }
   },
   {
     $addFields: {
       "event-opened": {
         $cond: [
           {
-            $eq: ["$event-opened", {}],
+            $eq: ["$event-opened", {}]
           },
           "$$REMOVE",
-          "$event-opened",
-        ],
+          "$event-opened"
+        ]
       },
       "event-delivered": {
         $cond: [
           {
-            $eq: ["$event-delivered", {}],
+            $eq: ["$event-delivered", {}]
           },
           "$$REMOVE",
-          "$event-delivered",
-        ],
+          "$event-delivered"
+        ]
       },
       "event-clicked": {
         $cond: [
           {
-            $eq: ["$event-clicked", {}],
+            $eq: ["$event-clicked", {}]
           },
           "$$REMOVE",
-          "$event-clicked",
-        ],
+          "$event-clicked"
+        ]
       },
       "event-complained": {
         $cond: [
           {
-            $eq: ["$event-complained", {}],
+            $eq: ["$event-complained", {}]
           },
           "$$REMOVE",
-          "$event-complained",
-        ],
+          "$event-complained"
+        ]
       },
       "event-failed": {
         $cond: [
           {
-            $eq: ["$event-failed", {}],
+            $eq: ["$event-failed", {}]
           },
           "$$REMOVE",
-          "$event-failed",
-        ],
+          "$event-failed"
+        ]
       },
       "event-unsubscribed": {
         $cond: [
           {
-            $eq: ["$event-unsubscribed", {}],
+            $eq: ["$event-unsubscribed", {}]
           },
           "$$REMOVE",
-          "$event-unsubscribed",
-        ],
+          "$event-unsubscribed"
+        ]
       },
       opened: {
         $cond: [
           {
-            $eq: ["$event-opened", {}],
+            $eq: ["$event-opened", {}]
           },
           "$$REMOVE",
-          1,
-        ],
+          1
+        ]
       },
       delivered: {
         $cond: [
           {
-            $eq: ["$event-delivered", {}],
+            $eq: ["$event-delivered", {}]
           },
           "$$REMOVE",
-          1,
-        ],
+          1
+        ]
       },
       clicked: {
         $cond: [
           {
-            $eq: ["$event-clicked", {}],
+            $eq: ["$event-clicked", {}]
           },
           "$$REMOVE",
-          1,
-        ],
+          1
+        ]
       },
       complained: {
         $cond: [
           {
-            $eq: ["$event-complained", {}],
+            $eq: ["$event-complained", {}]
           },
           "$$REMOVE",
-          1,
-        ],
+          1
+        ]
       },
       failed: {
         $cond: [
           {
-            $eq: ["$event-failed", {}],
+            $eq: ["$event-failed", {}]
           },
           "$$REMOVE",
-          1,
-        ],
+          1
+        ]
       },
       unsubscribed: {
         $cond: [
           {
-            $eq: ["$event-unsubscribed", {}],
+            $eq: ["$event-unsubscribed", {}]
           },
           "$$REMOVE",
-          1,
-        ],
-      },
-    },
+          1
+        ]
+      }
+    }
   },
   {
     $lookup: {
       //cambiar el a from: "Message",
-      from: "Message_1",
+      from: "Message",
       let: {
         messageid: "$messasge",
-        email: "$recipient",
+        email: "$recipient"
       },
       pipeline: [
         {
@@ -742,26 +739,26 @@
                 $expr: {
                   $eq: [
                     "$messageid",
-                    "$$messageid",
-                  ],
-                },
+                    "$$messageid"
+                  ]
+                }
               },
               {
                 $expr: {
-                  $eq: ["$email", "$$email"],
-                },
-              },
-            ],
-          },
-        },
+                  $eq: ["$email", "$$email"]
+                }
+              }
+            ]
+          }
+        }
       ],
-      as: "Messagerecipient",
-    },
+      as: "Messagerecipient"
+    }
   },
   {
     $unwind: {
-      path: "$Messagerecipient",
-    },
+      path: "$Messagerecipient"
+    }
   },
   {
     $project: {
@@ -769,131 +766,130 @@
       email: "$recipient",
       updatedAt: 1,
       updatedAtDate: 1,
-      "Messagerecipient.recipients": 1,
       "event-opened": {
         $concatArrays: [
           {
             $cond: [
               {
-                $lte: ["$event-opened", null],
+                $lte: ["$event-opened", null]
               },
               [],
-              ["$event-opened"],
-            ],
+              ["$event-opened"]
+            ]
           },
           {
             $cond: [
               {
                 $lte: [
-                  "$Messagerecipient.recipients.event-opened",
-                  null,
-                ],
+                  "$Messagerecipient.event-opened",
+                  null
+                ]
               },
               [],
-              "$Messagerecipient.recipients.event-opened",
-            ],
-          },
-        ],
+              "$Messagerecipient.event-opened"
+            ]
+          }
+        ]
       },
       "event-delivered": {
         $concatArrays: [
           {
             $cond: [
               {
-                $lte: ["$event-delivered", null],
+                $lte: ["$event-delivered", null]
               },
               [],
-              ["$event-delivered"],
-            ],
+              ["$event-delivered"]
+            ]
           },
           {
             $cond: [
               {
                 $lte: [
-                  "$Messagerecipient.recipients.event-delivered",
-                  null,
-                ],
+                  "$Messagerecipient.event-delivered",
+                  null
+                ]
               },
               [],
-              "$Messagerecipient.recipients.event-delivered",
-            ],
-          },
-        ],
+              "$Messagerecipient.event-delivered"
+            ]
+          }
+        ]
       },
       "event-clicked": {
         $concatArrays: [
           {
             $cond: [
               {
-                $lte: ["$event-clicked", null],
+                $lte: ["$event-clicked", null]
               },
               [],
-              ["$event-clicked"],
-            ],
+              ["$event-clicked"]
+            ]
           },
           {
             $cond: [
               {
                 $lte: [
-                  "$Messagerecipient.recipients.event-clicked",
-                  null,
-                ],
+                  "$Messagerecipient.event-clicked",
+                  null
+                ]
               },
               [],
-              "$Messagerecipient.recipients.event-clicked",
-            ],
-          },
-        ],
+              "$Messagerecipient.event-clicked"
+            ]
+          }
+        ]
       },
       "event-complained": {
         $concatArrays: [
           {
             $cond: [
               {
-                $lte: ["$event-complained", null],
+                $lte: ["$event-complained", null]
               },
               [],
-              ["$event-complained"],
-            ],
+              ["$event-complained"]
+            ]
           },
           {
             $cond: [
               {
                 $lte: [
-                  "$Messagerecipient.recipients.event-complained",
-                  null,
-                ],
+                  "$Messagerecipient.event-complained",
+                  null
+                ]
               },
               [],
-              "$Messagerecipient.recipients.event-complained",
-            ],
-          },
-        ],
+              "$Messagerecipient.event-complained"
+            ]
+          }
+        ]
       },
       "event-failed": {
         $concatArrays: [
           {
             $cond: [
               {
-                $lte: ["$event-failed", null],
+                $lte: ["$event-failed", null]
               },
               [],
-              ["$event-failed"],
-            ],
+              ["$event-failed"]
+            ]
           },
           {
             $cond: [
               {
                 $lte: [
-                  "$Messagerecipient.recipients.event-failed",
-                  null,
-                ],
+                  "$Messagerecipient.event-failed",
+                  null
+                ]
               },
               [],
-              "$Messagerecipient.recipients.event-failed",
-            ],
-          },
-        ],
+              "$Messagerecipient.event-failed"
+            ]
+          }
+        ]
       },
       "event-unsubscribed": {
         $concatArrays: [
@@ -902,26 +898,26 @@
               {
                 $lte: [
                   "$event-unsubscribed",
-                  null,
-                ],
+                  null
+                ]
               },
               [],
-              ["$event-unsubscribed"],
-            ],
+              ["$event-unsubscribed"]
+            ]
           },
           {
             $cond: [
               {
                 $lte: [
-                  "$Messagerecipient.recipients.event-unsubscribed",
-                  null,
-                ],
+                  "$Messagerecipient.event-unsubscribed",
+                  null
+                ]
               },
               [],
-              "$Messagerecipient.recipients.event-unsubscribed",
-            ],
-          },
-        ],
+              "$Messagerecipient.event-unsubscribed"
+            ]
+          }
+        ]
       },
       opened: 1,
       delivered: 1,
@@ -929,73 +925,43 @@
       complained: 1,
       failed: 1,
       unsubscribed: 1,
-    },
-  },
-  {
-    $project: {
-      messageid: 1,
-      email: 1,
-      updatedAt: 1,
-      updatedAtDate: 1,
       batchNumber: {
         $toString: {
           $floor: {
             $multiply: [
               {
-                $rand: {},
+                $rand: {}
               },
-              10,
-            ],
-          },
-        },
+              10
+            ]
+          }
+        }
       },
-      "recipients.recipientId":
-        "$Messagerecipient.recipients.recipientId",
-      "recipients.name":
-        "$Messagerecipient.recipients.name",
-      "recipients.email":
-        "$Messagerecipient.recipients.email",
-      "recipients.event-opened": "$event-opened",
-      "recipients.event-delivered":
-        "$event-delivered",
-      "recipients.event-clicked":
-        "$event-clicked",
-      "recipients.event-complained":
-        "$event-complained",
-      "recipients.event-failed": "$event-failed",
-      "recipients.event-unsubscribed":
-        "$event-unsubscribed",
-      "recipients.opened": "$opened",
-      "recipients.delivered": "$delivered",
-      "recipients.clicked": "$clicked",
-      "recipients.complained": "$complained",
-      "recipients.failed": "$failed",
-      "recipients.unsubscribed": "$unsubscribed",
       updatedAt: "$$NOW",
       updatedAtDate: {
         $dateFromParts: {
           year: {
-            $year: "$$NOW",
+            $year: "$$NOW"
           },
           month: {
-            $month: "$$NOW",
+            $month: "$$NOW"
           },
           day: {
-            $dayOfMonth: "$$NOW",
-          },
-        },
-      },
-    },
+            $dayOfMonth: "$$NOW"
+          }
+        }
+      }
+    }
   },
   {
     $merge: {
-      into: "Message_1",
-      on: ["messageid", "email"],
-    },
-  },
+      into: "Message",
+      on: ["messageid", "email"]
+    }
+  }
 ]
 
-// n8n
+//
 
 [
   {
@@ -1671,7 +1637,7 @@
     }
   }, {
     "$lookup": {
-      "from": "Message_1", 
+      "from": "Message", 
       "let": {
         "messageid": "$messasge", 
         "email": "$recipient"
@@ -1709,7 +1675,6 @@
       "email": "$recipient", 
       "updatedAt": 1, 
       "updatedAtDate": 1, 
-      "Messagerecipient.recipients": 1, 
       "event-opened": {
         "$concatArrays": [
           {
@@ -1726,9 +1691,9 @@
             "$cond": [
               {
                 "$lte": [
-                  "$Messagerecipient.recipients.event-opened", null
+                  "$Messagerecipient.event-opened", null
                 ]
-              }, [], "$Messagerecipient.recipients.event-opened"
+              }, [], "$Messagerecipient.event-opened"
             ]
           }
         ]
@@ -1749,9 +1714,9 @@
             "$cond": [
               {
                 "$lte": [
-                  "$Messagerecipient.recipients.event-delivered", null
+                  "$Messagerecipient.event-delivered", null
                 ]
-              }, [], "$Messagerecipient.recipients.event-delivered"
+              }, [], "$Messagerecipient.event-delivered"
             ]
           }
         ]
@@ -1772,9 +1737,9 @@
             "$cond": [
               {
                 "$lte": [
-                  "$Messagerecipient.recipients.event-clicked", null
+                  "$Messagerecipient.event-clicked", null
                 ]
-              }, [], "$Messagerecipient.recipients.event-clicked"
+              }, [], "$Messagerecipient.event-clicked"
             ]
           }
         ]
@@ -1795,9 +1760,9 @@
             "$cond": [
               {
                 "$lte": [
-                  "$Messagerecipient.recipients.event-complained", null
+                  "$Messagerecipient.event-complained", null
                 ]
-              }, [], "$Messagerecipient.recipients.event-complained"
+              }, [], "$Messagerecipient.event-complained"
             ]
           }
         ]
@@ -1818,9 +1783,9 @@
             "$cond": [
               {
                 "$lte": [
-                  "$Messagerecipient.recipients.event-failed", null
+                  "$Messagerecipient.event-failed", null
                 ]
-              }, [], "$Messagerecipient.recipients.event-failed"
+              }, [], "$Messagerecipient.event-failed"
             ]
           }
         ]
@@ -1841,9 +1806,9 @@
             "$cond": [
               {
                 "$lte": [
-                  "$Messagerecipient.recipients.event-unsubscribed", null
+                  "$Messagerecipient.event-unsubscribed", null
                 ]
-              }, [], "$Messagerecipient.recipients.event-unsubscribed"
+              }, [], "$Messagerecipient.event-unsubscribed"
             ]
           }
         ]
@@ -1853,14 +1818,7 @@
       "clicked": 1, 
       "complained": 1, 
       "failed": 1, 
-      "unsubscribed": 1
-    }
-  }, {
-    "$project": {
-      "messageid": 1, 
-      "email": 1, 
-      "updatedAt": 1, 
-      "updatedAtDate": 1, 
+      "unsubscribed": 1, 
       "batchNumber": {
         "$toString": {
           "$floor": {
@@ -1872,21 +1830,6 @@
           }
         }
       }, 
-      "recipients.recipientId": "$Messagerecipient.recipients.recipientId", 
-      "recipients.name": "$Messagerecipient.recipients.name", 
-      "recipients.email": "$Messagerecipient.recipients.email", 
-      "recipients.event-opened": "$event-opened", 
-      "recipients.event-delivered": "$event-delivered", 
-      "recipients.event-clicked": "$event-clicked", 
-      "recipients.event-complained": "$event-complained", 
-      "recipients.event-failed": "$event-failed", 
-      "recipients.event-unsubscribed": "$event-unsubscribed", 
-      "recipients.opened": "$opened", 
-      "recipients.delivered": "$delivered", 
-      "recipients.clicked": "$clicked", 
-      "recipients.complained": "$complained", 
-      "recipients.failed": "$failed", 
-      "recipients.unsubscribed": "$unsubscribed", 
       "updatedAt": "$$NOW", 
       "updatedAtDate": {
         "$dateFromParts": {
@@ -1904,7 +1847,7 @@
     }
   }, {
     "$merge": {
-      "into": "Message_1", 
+      "into": "Message", 
       "on": [
         "messageid", "email"
       ]

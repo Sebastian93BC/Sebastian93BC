@@ -1,0 +1,91 @@
+[
+    {
+      $limit: 1
+    },
+    {
+      $lookup: {
+        from: "sidis_statusProcesos",
+        let: {
+          proceso: "messageDateLastAct"
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$$proceso", "$proceso"]
+              }
+            }
+          }
+        ],
+        as: "sidis_statusProcesos"
+      }
+    },
+    {
+      $project: {
+        _id: {
+          $first: "$sidis_statusProcesos._id"
+        },
+        currentUpdatedDate: {
+          $toString: "$$NOW"
+        },
+        lastUpdatedDate: {
+          $toString: {
+            $first:
+              "$sidis_statusProcesos.currentUpdatedDate"
+          }
+        }
+      }
+    },
+    {
+      $merge: {
+        into: "sidis_statusProcesos",
+        on: "_id"
+      }
+    }
+  ]
+
+  //n8n
+
+  [
+    {
+      "$limit": 1
+    }, {
+      "$lookup": {
+        "from": "sidis_statusProcesos", 
+        "let": {
+          "proceso": "messageDateLastAct"
+        }, 
+        "pipeline": [
+          {
+            "$match": {
+              "$expr": {
+                "$eq": [
+                  "$$proceso", "$proceso"
+                ]
+              }
+            }
+          }
+        ], 
+        "as": "sidis_statusProcesos"
+      }
+    }, {
+      "$project": {
+        "_id": {
+          "$first": "$sidis_statusProcesos._id"
+        }, 
+        "currentUpdatedDate": {
+          "$toString": "$$NOW"
+        }, 
+        "lastUpdatedDate": {
+          "$toString": {
+            "$first": "$sidis_statusProcesos.currentUpdatedDate"
+          }
+        }
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_statusProcesos", 
+        "on": "_id"
+      }
+    }
+  ]

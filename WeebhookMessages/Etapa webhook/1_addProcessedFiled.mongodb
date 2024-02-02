@@ -2,9 +2,9 @@
   {
     $match: {
       processedWeb: {
-        $exists: false,
-      },
-    },
+        $exists: false
+      }
+    }
   },
   {
     $addFields: {
@@ -12,15 +12,15 @@
       updatedAtDate: {
         $dateFromParts: {
           year: {
-            $year: "$updatedAt",
+            $year: "$updatedAt"
           },
           month: {
-            $month: "$updatedAt",
+            $month: "$updatedAt"
           },
           day: {
-            $dayOfMonth: "$updatedAt",
-          },
-        },
+            $dayOfMonth: "$updatedAt"
+          }
+        }
       },
       timestamp: {
         $dateTrunc: {
@@ -30,30 +30,29 @@
                 $multiply: [
                   {
                     $toDecimal:
-                      "$event-data.timestamp",
+                      "$event-data.timestamp"
                   },
-                  1000,
-                ],
-              },
-            },
+                  1000
+                ]
+              }
+            }
           },
-          unit: "second",
-        },
+          unit: "second"
+        }
       },
-      updatedAtSec: "$$REMOVE",
-    },
+      updatedAtSec: "$$REMOVE"
+    }
   },
   {
     $merge: {
       into: "Webhook",
       on: "_id",
-      whenMatched: "replace",
-    },
-  },
+      whenMatched: "replace"
+    }
+  }
 ]
 
-/////
-
+//n8n
 
 [
   {
