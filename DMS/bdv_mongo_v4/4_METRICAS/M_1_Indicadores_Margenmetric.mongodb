@@ -1,0 +1,124 @@
+[
+  {
+    $match: {
+      $expr: {
+        $eq: [
+          "$fechaProceso",
+          {
+            $toDate:
+              "2023-11-30T00:00:00.000+00:00",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      montoAbonado: {
+        $cond: [
+          {
+            $lte: ["$abonoLiqActivo", null],
+          },
+          {
+            $round: [
+              {
+                $sum: [
+                  "$montoCreditoPasivo",
+                  "$depositosEfectivoDolares",
+                ],
+              },
+              4,
+            ],
+          },
+          {
+            $round: [
+              {
+                $subtract: [
+                  {
+                    $sum: [
+                      "$montoCreditoPasivo",
+                      "$depositosEfectivoDolares",
+                    ],
+                  },
+                  "$abonoLiqActivo",
+                ],
+              },
+              4,
+            ],
+          },
+        ],
+      },
+      rifCedula: 1,
+      fechaProceso: 1,
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["rifCedula", "fechaProceso"],
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fechaProceso", {
+            "$toDate": "{{$json.fechaProceso}}"
+          }
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "montoAbonado": {
+        "$cond": [
+          {
+            "$lte": [
+              "$abonoLiqActivo", null
+            ]
+          }, {
+            "$round": [
+              {
+                "$sum": [
+                  "$montoCreditoPasivo", "$depositosEfectivoDolares"
+                ]
+              }, 4
+            ]
+          }, {
+            "$round": [
+              {
+                "$subtract": [
+                  {
+                    "$sum": [
+                      "$montoCreditoPasivo", "$depositosEfectivoDolares"
+                    ]
+                  }, "$abonoLiqActivo"
+                ]
+              }, 4
+            ]
+          }
+        ]
+      }, 
+      "rifCedula": 1, 
+      "fechaProceso": 1
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "rifCedula", "fechaProceso"
+      ], 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

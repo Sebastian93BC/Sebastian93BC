@@ -1,0 +1,27 @@
+[
+  {
+    $match: {
+      $and: [
+        { mcl_rif_cedula: { $gte: "J00000000" } },
+        { mcl_rif_cedula: { $lte: "J99999999" } },
+      ],
+    },
+  },
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      mcl_fecha_proceso: {
+        $gte: ISODate("2022-12-31T00:00:00.000+00:00"),
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "sidis_margen_test",
+      on: "_id",
+      whenNotMatched: "insert",
+    },
+  },
+]

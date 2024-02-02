@@ -1,0 +1,524 @@
+[
+  {
+    $match: {
+      $and: [
+        {
+          mcl_fecha_proceso: {
+            $gte: ISODate(
+              "2022-03-01T00:00:00.000+00:00"
+            ),
+          },
+        },
+        {
+          mcl_fecha_proceso: {
+            $lt: ISODate(
+              "2022-04-01T00:00:00.000+00:00"
+            ),
+          },
+        },
+      ],
+    },
+  },
+  {
+    $addFields: {
+      mcl_cuenta_contable1_substr: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+    },
+  },
+  {
+    $match: {
+      mcl_naturaleza_producto: {
+        $in: [2, 6],
+      },
+      mcl_producto: {
+        $nin: [196, 197, 198, 808, 809],
+      },
+      mcl_banca: {
+        $nin: [5, 4],
+      },
+      mcl_cuenta_contable1_substr: {
+        $nin: ["231", "241", "611", "819"],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon:
+          "$mcl_nivel_socioecon",
+        mcl_grupo_economico:
+          "$mcl_grupo_economico",
+        mcl_naturaleza_producto:
+          "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair:
+          "$mcl_producto_altair",
+        mcl_subproducto_altair:
+          "$mcl_subproducto_altair",
+        mcl_cuenta_contable1:
+          "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+      },
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+    },
+  },
+  // {
+  //   $lookup:
+  //     /**
+  //      * from: The target collection.
+  //      * localField: The local join field.
+  //      * foreignField: The target join field.
+  //      * as: The name for the results.
+  //      * pipeline: Optional pipeline to run on the foreign collection.
+  //      * let: Optional variables to use in the pipeline field stages.
+  //      */
+  //     {
+  //       from: "sidis_segmentacion",
+  //       localField: "_id.mcl_rif_cedula",
+  //       foreignField: "seg_rif_cedula",
+  //       as: "result",
+  //     },
+  // },
+  // {
+  //   $addFields:
+  //     /**
+  //      * newField: The new field name.
+  //      * expression: The new field expression.
+  //      */
+  //     {
+  //       maxFechaProceso: {
+  //         $max: "$result.seg_fecha_proceso",
+  //       },
+  //     },
+  // },
+  // {
+  //   $addFields:
+  //     /**
+  //      * newField: The new field name.
+  //      * expression: The new field expression.
+  //      */
+  //     {
+  //       data: {
+  //         $filter: {
+  //           input: "$result",
+  //           as: "result",
+  //           cond: {
+  //             $eq: [
+  //               "$$result.seg_fecha_proceso",
+  //               "$maxFechaProceso",
+  //             ],
+  //           },
+  //         },
+  //       },
+  //     },
+  // },
+  {
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      //mcl_nombre_banca: {
+      //  $first: "$data.seg_nombre_banca",
+      //},
+      mcl_segmento: "$_id.mcl_segmento",
+      //mcl_nombre_segmento: {
+      //  $first: "$data.seg_nombre_segmento",
+      // },
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      //mcl_nombre_subsegmento: {
+      //  $first: "$data.seg_nombre_subsegmento",
+      //},
+      mcl_nombre_cliente:
+        "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon:
+        "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico:
+        "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair:
+        "$_id.mcl_producto_altair",
+      mcl_subproducto_altair:
+        "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1:
+        "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+    },
+  },
+  // {
+  //   $project:
+  //     /**
+  //      * specifications: The fields to
+  //      *   include or exclude.
+  //      */
+  //     {
+  //       result: 0,
+  //       data: 0,
+  //       maxFechaProceso: 0,
+  //     },
+  // },
+  {
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: [
+          "$result.prd_nombre_producto",
+          0,
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      result: 0,
+      data: 0,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      resultSize: {
+        $size: "$result",
+      },
+      moneda_base: "BOLIVARES",
+    },
+  },
+  {
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "$moneda_base",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: [
+                  "$result.denominacion",
+                  0,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: [
+                  "$result.condicion",
+                  0,
+                ],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      resultSize: 0,
+      result: 0,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "mcl_fecha_proceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      tasa_dolar: {
+        $arrayElemAt: ["$result.Tasa_DOL", 0],
+      },
+      relacion_eur: {
+        $divide: [
+          {
+            $arrayElemAt: ["$result.Tasa_EUR", 0],
+          },
+          {
+            $arrayElemAt: ["$result.Tasa_DOL", 0],
+          },
+        ],
+      },
+      saldo_divisa_origen: "$saldo",
+      promedio_divisa_origen: "$promedio",
+      monto_debitos_divisa_origen:
+        "$monto_debitos",
+      monto_creditos_divisa_origen:
+        "$monto_creditos",
+    },
+  },
+  {
+    $addFields: {
+      saldo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: [
+                  "$denominacion",
+                  "$moneda_base",
+                ],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$saldo",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$saldo",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$saldo",
+        },
+      },
+      promedio: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: [
+                  "$denominacion",
+                  "$moneda_base",
+                ],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$promedio",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$promedio",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$promedio",
+        },
+      },
+      monto_debitos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: [
+                  "$denominacion",
+                  "$moneda_base",
+                ],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_debitos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$monto_debitos",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$monto_debitos",
+        },
+      },
+      monto_creditos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: [
+                  "$denominacion",
+                  "$moneda_base",
+                ],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_creditos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$monto_creditos",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$monto_creditos",
+        },
+      },
+      divisa_origen: "$denominacion",
+    },
+  },
+  {
+    $project: {
+      result: 0,
+      mcl_estatus: 0,
+      condicion: 0,
+      denominacion: 0,
+      moneda_base: 0,
+    },
+  },
+  {
+    $out:
+      /**
+       * Provide the name of the output collection.
+       */
+      "Margenmetricspasivo_test",
+  },
+  // {
+  //   $merge:
+  //     /**
+  //      * into: The target collection.
+  //      * on: Fields to  identify.
+  //      * let: Defined variables.
+  //      * whenMatched: Action for matching docs.
+  //      * whenNotMatched: Action for non-matching docs.
+  //      */
+  //     {
+  //       into: "Margenmetricspasivo",
+  //       on: "_id",
+  //       whenNotMatched: "insert",
+  //     },
+  // }
+]

@@ -1,0 +1,57 @@
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        $or: [
+          {
+            nombreSegmento:
+              "PYMES I (PEQUE\ufffdA INDUSTRIA)",
+          },
+          {
+            nombreSegmento:
+              "PYMES I (PEQUE¬A INDUSTRIA)",
+          },
+        ],
+      },
+  },
+  {
+    $addFields: {
+      nombreSegmento:
+        "PYMES I (PEQUEÑA INDUSTRIA)",
+    },
+  },
+  {
+    $merge: {
+      into: "Margengeneralmetric",
+      on: "_id",
+    },
+  },
+]
+
+///n8n
+
+[
+  {
+    "$match": {
+      "$or": [
+        {
+          "nombreSegmento": "PYMES I (PEQUE\ufffdA INDUSTRIA)"
+        }, {
+          "nombreSegmento": "PYMES I (PEQUE¬A INDUSTRIA)"
+        }
+      ]
+    }
+  }, {
+    "$addFields": {
+      "nombreSegmento": "PYMES I (PEQUEÑA INDUSTRIA)"
+    }
+  }, {
+    "$merge": {
+      "into": "Margengeneralmetric", 
+      "on": "_id"
+    }
+  }
+]

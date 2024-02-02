@@ -1,0 +1,47 @@
+//Desde Margenmetric a Margenmetricnatural
+[
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      $and: [
+        {
+          fechaProceso: {
+            $gte: ISODate("2023-03-01T00:00:00.000+00:00"),
+          },
+        },
+        {
+          fechaProceso: {
+            $lt: ISODate("2023-04-01T00:00:00.000+00:00"),
+          },
+        },
+      ],
+    },
+  },{
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        persona: {
+          $eq: "Natural",
+        },
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricnatural",
+        on: "_id",
+        whenNotMatched: "insert",
+      },
+  },
+]

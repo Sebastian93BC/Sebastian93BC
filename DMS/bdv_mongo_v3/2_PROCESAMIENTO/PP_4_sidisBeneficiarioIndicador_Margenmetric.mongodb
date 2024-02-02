@@ -1,0 +1,504 @@
+[
+  {
+    $match: {
+      $and: [
+        {
+          snb_rif_empresa: {
+            $exists: true,
+          },
+        },
+        {
+          $expr: {
+            $eq: [
+              {
+                $month: "$snb_fec_valor",
+              },
+              {
+                $month: {
+                  $toDate: "2023-06-30",
+                  //"$toDate": "{{$json.fechaProceso}}"
+                },
+              },
+            ],
+          },
+        },
+        {
+          $expr: {
+            $eq: [
+              {
+                $year: "$snb_fec_valor",
+              },
+              {
+                $year: {
+                  $toDate: "2023-06-30",
+                  //"$toDate": "{{$json.fechaProceso}}"
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_ordenante",
+      let: {
+        rif_empresa: "$snb_rif_empresa",
+        id_debito: "$snb_id_debito",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $eq: [
+                    "$sno_rif_empresa",
+                    "$$rif_empresa",
+                  ],
+                },
+                {
+                  $eq: [
+                    "$sno_id_debito",
+                    "$$id_debito",
+                  ],
+                },
+                {
+                  $eq: [
+                    "$sno_tipo_pago",
+                    "PROVEEDORE",
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            sno_rif_empresa: 1,
+            sno_tipo_pago: 1,
+            sno_num_cuenta: 1,
+            sno_medio_envi: 1,
+            sno_fec_valor: 1,
+          },
+        },
+      ],
+      as: "ordenante",
+    },
+  },
+  {
+    $unwind: "$ordenante",
+  },
+  {
+    $addFields: {
+      fechaProceso: {
+        $subtract: [
+          {
+            $dateFromParts: {
+              year: {
+                $year: "$snb_fec_valor",
+              },
+              month: {
+                $sum: [
+                  {
+                    $month: "$snb_fec_valor",
+                  },
+                  1,
+                ],
+              },
+            },
+          },
+          86400000,
+        ],
+      },
+      tipo_banco: {
+        $cond: [
+          {
+            $eq: [
+              {
+                $substr: [
+                  "$snb_num_cuenta",
+                  0,
+                  4,
+                ],
+              },
+              "0102",
+            ],
+          },
+          "BDV",
+          "OTROS",
+        ],
+      },
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$snb_rif_empresa",
+        fechaProceso: "$fechaProceso",
+      },
+      beneficiarios: {
+        $addToSet: "$snb_ci_benefic",
+      },
+      volumenPagosProveedor: {
+        $sum: "$snb_mto_pcorrecto",
+      },
+      volumenPagosProveedorBDV: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$tipo_banco", "BDV"],
+            },
+            then: "$snb_mto_pcorrecto",
+            else: 0,
+          },
+        },
+      },
+      volumenPagosProveedorOTRO: {
+        $sum: {
+          $cond: {
+            if: {
+              $ne: ["$tipo_banco", "BDV"],
+            },
+            then: "$snb_mto_pcorrecto",
+            else: 0,
+          },
+        },
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "_id.fechaProceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      tasa: {
+        $first: "$result.Tasa_DOL",
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      rifCedula: "$_id.rifCedula",
+      fechaProceso: "$_id.fechaProceso",
+      cantidadBeneficiario: {
+        $size: "$beneficiarios",
+      },
+      volumenPagosProveedor: {
+        $round: [
+          {
+            $divide: [
+              "$volumenPagosProveedor",
+              "$tasa",
+            ],
+          },
+          2,
+        ],
+      },
+      volumenPagosProveedorOTRO: {
+        $round: [
+          {
+            $divide: [
+              "$volumenPagosProveedorOTRO",
+              "$tasa",
+            ],
+          },
+          2,
+        ],
+      },
+      volumenPagosProveedorBDV: {
+        $round: [
+          {
+            $divide: [
+              "$volumenPagosProveedorBDV",
+              "$tasa",
+            ],
+          },
+          2,
+        ],
+      },
+      beneficiarios: 1,
+    },
+  },
+  {
+    $addFields: {
+      reciprocidadBeneficiario: {
+        $cond: {
+          if: {
+            $eq: ["$volumenPagosProveedor", 0],
+          },
+          then: 0,
+          else: {
+            $round: [
+              {
+                $multiply: [
+                  {
+                    $divide: [
+                      "$volumenPagosProveedorBDV",
+                      "$volumenPagosProveedor",
+                    ],
+                  },
+                  100,
+                ],
+              },
+              2,
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+      whenNotMatched: "discard",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "snb_rif_empresa": {
+            "$exists": true
+          }
+        }, {
+          "$expr": {
+            "$eq": [
+              {
+                "$month": "$snb_fec_valor"
+              }, {
+                "$month": {
+                  "$toDate": "{{$json.fechaProceso}}"
+                }
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$eq": [
+              {
+                "$year": "$snb_fec_valor"
+              }, {
+                "$year": {
+                  "$toDate": "{{$json.fechaProceso}}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_ordenante", 
+      "let": {
+        "rif_empresa": "$snb_rif_empresa", 
+        "id_debito": "$snb_id_debito"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$and": [
+                {
+                  "$eq": [
+                    "$sno_rif_empresa", "$$rif_empresa"
+                  ]
+                }, {
+                  "$eq": [
+                    "$sno_id_debito", "$$id_debito"
+                  ]
+                }, {
+                  "$eq": [
+                    "$sno_tipo_pago", "PROVEEDORE"
+                  ]
+                }
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "sno_rif_empresa": 1, 
+            "sno_tipo_pago": 1, 
+            "sno_num_cuenta": 1, 
+            "sno_medio_envi": 1, 
+            "sno_fec_valor": 1
+          }
+        }
+      ], 
+      "as": "ordenante"
+    }
+  }, {
+    "$unwind": "$ordenante"
+  }, {
+    "$addFields": {
+      "fechaProceso": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$snb_fec_valor"
+              }, 
+              "month": {
+                "$sum": [
+                  {
+                    "$month": "$snb_fec_valor"
+                  }, 1
+                ]
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "tipo_banco": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$substr": [
+                  "$snb_num_cuenta", 0, 4
+                ]
+              }, "0102"
+            ]
+          }, "BDV", "OTROS"
+        ]
+      }
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$snb_rif_empresa", 
+        "fechaProceso": "$fechaProceso"
+      }, 
+      "beneficiarios": {
+        "$addToSet": "$snb_ci_benefic"
+      }, 
+      "volumenPagosProveedor": {
+        "$sum": "$snb_mto_pcorrecto"
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$eq": [
+                "$tipo_banco", "BDV"
+              ]
+            }, 
+            "then": "$snb_mto_pcorrecto", 
+            "else": 0
+          }
+        }
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$ne": [
+                "$tipo_banco", "BDV"
+              ]
+            }, 
+            "then": "$snb_mto_pcorrecto", 
+            "else": 0
+          }
+        }
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "_id.fechaProceso", 
+      "foreignField": "Fecha", 
+      "as": "result"
+    }
+  }, {
+    "$addFields": {
+      "tasa": {
+        "$first": "$result.Tasa_DOL"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "rifCedula": "$_id.rifCedula", 
+      "fechaProceso": "$_id.fechaProceso", 
+      "cantidadBeneficiario": {
+        "$size": "$beneficiarios"
+      }, 
+      "volumenPagosProveedor": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedor", "$tasa"
+            ]
+          }, 2
+        ]
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedorOTRO", "$tasa"
+            ]
+          }, 2
+        ]
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedorBDV", "$tasa"
+            ]
+          }, 2
+        ]
+      }, 
+      "beneficiarios": 1
+    }
+  }, {
+    "$addFields": {
+      "reciprocidadBeneficiario": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$volumenPagosProveedor", 0
+            ]
+          }, 
+          "then": 0, 
+          "else": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$volumenPagosProveedorBDV", "$volumenPagosProveedor"
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ], 
+      "whenNotMatched": "discard"
+    }
+  }
+]

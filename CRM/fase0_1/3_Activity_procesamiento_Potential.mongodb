@@ -1,0 +1,127 @@
+[
+  {
+    $match: {
+      $expr: {
+        $lte: [
+          {
+            $subtract: [
+              {
+                $dateFromString: {
+                  dateString: {
+                    $dateToString: {
+                      format:
+                        "%Y-%m-%dT00:00:00%z",
+                      date: "$$NOW",
+                    },
+                  },
+                },
+              },
+              {
+                $multiply: [1, 86400000],
+              },
+            ],
+          },
+          {
+            $dateFromString: {
+              dateString: {
+                $dateToString: {
+                  format: "%Y-%m-%dT00:00:00%z",
+                  date: "$updatedAt",
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      trained: {
+        $and: [
+          {
+            $eq: ["$type", "booking"],
+          },
+          {
+            $eq: ["$status", "close"],
+          },
+        ],
+      },
+      updatedAt: "$updatedAt",
+      _id: "$clientId",
+    },
+  },
+  {
+    $merge: {
+      into: "Potential",
+      on: "_id",
+      whenMatched: "merge",
+      whenNotMatched: "discard",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$lte": [
+          {
+            "$subtract": [
+              {
+                "$dateFromString": {
+                  "dateString": {
+                    "$dateToString": {
+                      "format": "%Y-%m-%dT00:00:00%z", 
+                      "date": "$$NOW"
+                    }
+                  }
+                }
+              }, {
+                "$multiply": [
+                  1, 86400000
+                ]
+              }
+            ]
+          }, {
+            "$dateFromString": {
+              "dateString": {
+                "$dateToString": {
+                  "format": "%Y-%m-%dT00:00:00%z", 
+                  "date": "$updatedAt"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "trained": {
+        "$and": [
+          {
+            "$eq": [
+              "$type", "booking"
+            ]
+          }, {
+            "$eq": [
+              "$status", "close"
+            ]
+          }
+        ]
+      }, 
+      "updatedAt": "$updatedAt", 
+      "_id": "$clientId"
+    }
+  }, {
+    "$merge": {
+      "into": "Potential", 
+      "on": "_id", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "discard"
+    }
+  }
+]

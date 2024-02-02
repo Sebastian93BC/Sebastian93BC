@@ -1,0 +1,32 @@
+// sidis_cliente_base_segmentacion a Margenmetric
+
+[
+  {
+    $match: {
+      persona: null,
+    },
+  },
+  {
+
+    $addFields: {
+      persona: {
+        $cond: {
+          if: {
+            $in: [
+              "$sidisCliente.cli_segmento",
+              [2, 4, 7, 10, 20],
+            ],
+          },
+          then: "Natural",
+          else: "Jurídica",
+        },
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "sidis_cliente_base_segmentacion",
+      on: "_id",
+    },
+  },
+]

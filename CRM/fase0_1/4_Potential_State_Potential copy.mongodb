@@ -1,0 +1,208 @@
+[
+  {
+    $match: {
+      $expr: {
+        $lte: [
+          {
+            $subtract: [
+              {
+                $toDate: {
+                  $dateFromString: {
+                    dateString: {
+                      $dateToString: {
+                        format:
+                          "%Y-%m-%dT00:00:00%z",
+                        date: {
+                          $toDate: "$$NOW",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $multiply: [1, 86400000],
+              },
+            ],
+          },
+          {
+            $dateFromString: {
+              dateString: {
+                $dateToString: {
+                  format: "%Y-%m-%dT00:00:00%z",
+                  date: "$updatedAt",
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "People",
+      localField: "vat",
+      foreignField: "vat",
+      as: "result",
+    },
+  },
+  {
+    $project: {
+      state: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: [
+                  {
+                    $first: "$result.state",
+                  },
+                  "DEPENDENCIAS FE",
+                ],
+              },
+              then: "DEPENDENCIAS FEDERALES",
+            },
+            {
+              case: {
+                $eq: [
+                  {
+                    $first: "$result.state",
+                  },
+                  "DISTRITO CAPITA",
+                ],
+              },
+              then: "DISTRITO CAPITAL",
+            },
+          ],
+          default: {
+            $first: "$result.state",
+          },
+        },
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_estados",
+      localField: "state",
+      foreignField: "state",
+      as: "result",
+    },
+  },
+  {
+    $project: {
+      codState: {
+        $first: "$result.id",
+      },
+      state: 1,
+    },
+  },
+  {
+    $merge: {
+      into: "Potential",
+      on: "_id",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$lte": [
+          {
+            "$subtract": [
+              {
+                "$toDate": {
+                  "$dateFromString": {
+                    "dateString": {
+                      "$dateToString": {
+                        "format": "%Y-%m-%dT00:00:00%z", 
+                        "date": {
+                          "$toDate": "$$NOW"
+                        }
+                      }
+                    }
+                  }
+                }
+              }, {
+                "$multiply": [
+                  1, 86400000
+                ]
+              }
+            ]
+          }, {
+            "$dateFromString": {
+              "dateString": {
+                "$dateToString": {
+                  "format": "%Y-%m-%dT00:00:00%z", 
+                  "date": "$updatedAt"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "People", 
+      "localField": "vat", 
+      "foreignField": "vat", 
+      "as": "result"
+    }
+  }, {
+    "$project": {
+      "state": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  {
+                    "$first": "$result.state"
+                  }, "DEPENDENCIAS FE"
+                ]
+              }, 
+              "then": "DEPENDENCIAS FEDERALES"
+            }, {
+              "case": {
+                "$eq": [
+                  {
+                    "$first": "$result.state"
+                  }, "DISTRITO CAPITA"
+                ]
+              }, 
+              "then": "DISTRITO CAPITAL"
+            }
+          ], 
+          "default": {
+            "$first": "$result.state"
+          }
+        }
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_estados", 
+      "localField": "state", 
+      "foreignField": "state", 
+      "as": "result"
+    }
+  }, {
+    "$project": {
+      "codState": {
+        "$first": "$result.id"
+      }, 
+      "state": 1
+    }
+  }, {
+    "$merge": {
+      "into": "Potential", 
+      "on": "_id"
+    }
+  }
+]

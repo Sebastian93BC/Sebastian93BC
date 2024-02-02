@@ -1,0 +1,269 @@
+[
+  {
+    $match: {
+      //status_paso_2,3
+      proceso: "webhook_messages_marketing",
+      $expr: {
+        $eq: [
+          "$fechaProceso",
+          {
+            $toDate: "2023-12-18",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      //status_paso_3
+      procesos: {
+        $map: {
+          input: "$procesos",
+          as: "procesos",
+          in: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      "$$procesos.subProceso",
+                      "AcutalizacionPeopleMessages",
+                      //"{{$json.proceso}}"
+                    ],
+                  },
+                ],
+              },
+              {
+                $mergeObjects: [
+                  {
+                    subProceso:
+                      "AcutalizacionPeopleMessages",
+                    // "{{$json.proceso}}"
+                  },
+                  {
+                    descripcion:
+                      "$$procesos.descripcion",
+                  },
+                  {
+                    fechaProceso: "$fechaProceso",
+                  },
+                  {
+                    fuenteEntrada:
+                      "$$procesos.fuenteEntrada",
+                  },
+                  {
+                    fuenteSalida:
+                      "$$procesos.fuenteSalida",
+                  },
+                  {
+                    frecuencia:
+                      "$$procesos.frecuencia",
+                  },
+                  {
+                    fechaInicio:
+                      "$$procesos.fechaInicio",
+                  },
+                  {
+                    fechaFin: "$$NOW",
+                  },
+                  {
+                    status: "Finalizado",
+                  },
+                  {
+                    tiempoEjecucion: {
+                      $round: [
+                        {
+                          $divide: [
+                            {
+                              $subtract: [
+                                "$$NOW",
+                                "$$procesos.fechaInicio",
+                              ],
+                            },
+                            60000,
+                          ],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                ],
+              },
+              "$$procesos",
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      //status_paso_3
+      status: {
+        $cond: [
+          {
+            $or: [
+              {
+                $in: [
+                  "En Proceso",
+                  "$procesos.status",
+                ],
+              },
+              {
+                $in: [
+                  "En espera",
+                  "$procesos.status",
+                ],
+              },
+            ],
+          },
+          "En Proceso",
+          "Finalizado",
+        ],
+      },
+      fechaFin: "$$NOW",
+      tiempoEjecucion: {
+        $round: [
+          {
+            $divide: [
+              {
+                $subtract: [
+                  "$$NOW",
+                  "$fechaInicio",
+                ],
+              },
+              60000,
+            ],
+          },
+          2,
+        ],
+      },
+      updatedAt: "$$NOW",
+    },
+  },
+  {
+    $merge: {
+      into: "sidis_statusProcesos",
+      on: ["proceso", "fechaProceso"],
+    },
+  },
+]
+
+
+// n8n
+
+[
+  {
+    "$match": {
+      "proceso": "webhook_messages_marketing", 
+      "$expr": {
+        "$eq": [
+          "$fechaProceso", {
+            "$toDate": "{{$json.fechaProceso}}"
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "procesos": {
+        "$map": {
+          "input": "$procesos", 
+          "as": "procesos", 
+          "in": {
+            "$cond": [
+              {
+                "$and": [
+                  {
+                    "$eq": [
+                      "$$procesos.subProceso", "{{$json.proceso}}"
+                    ]
+                  }
+                ]
+              }, {
+                "$mergeObjects": [
+                  {
+                    "subProceso": "{{$json.proceso}}"
+                  }, {
+                    "descripcion": "$$procesos.descripcion"
+                  }, {
+                    "fechaProceso": "$fechaProceso"
+                  }, {
+                    "fuenteEntrada": "$$procesos.fuenteEntrada"
+                  }, {
+                    "fuenteSalida": "$$procesos.fuenteSalida"
+                  }, {
+                    "frecuencia": "$$procesos.frecuencia"
+                  }, {
+                    "fechaInicio": "$$procesos.fechaInicio"
+                  }, {
+                    "fechaFin": "$$NOW"
+                  }, {
+                    "status": "Finalizado"
+                  }, {
+                    "tiempoEjecucion": {
+                      "$round": [
+                        {
+                          "$divide": [
+                            {
+                              "$subtract": [
+                                "$$NOW", "$$procesos.fechaInicio"
+                              ]
+                            }, 60000
+                          ]
+                        }, 2
+                      ]
+                    }
+                  }
+                ]
+              }, "$$procesos"
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "status": {
+        "$cond": [
+          {
+            "$or": [
+              {
+                "$in": [
+                  "En Proceso", "$procesos.status"
+                ]
+              }, {
+                "$in": [
+                  "En espera", "$procesos.status"
+                ]
+              }
+            ]
+          }, "En Proceso", "Finalizado"
+        ]
+      }, 
+      "fechaFin": "$$NOW", 
+      "tiempoEjecucion": {
+        "$round": [
+          {
+            "$divide": [
+              {
+                "$subtract": [
+                  "$$NOW", "$fechaInicio"
+                ]
+              }, 60000
+            ]
+          }, 2
+        ]
+      }, 
+      "updatedAt": "$$NOW"
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "proceso", "fechaProceso"
+      ]
+    }
+  }
+]

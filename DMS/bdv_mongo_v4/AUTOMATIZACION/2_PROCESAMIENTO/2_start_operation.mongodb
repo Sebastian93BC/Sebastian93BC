@@ -1,0 +1,513 @@
+[
+  // {
+  //   $limit:
+  //Just for create_operation
+  //     1,
+  // },
+  // {
+  //   $addFields: {
+  //Just for create_operation
+  //     _id: "$$REMOVE",
+  //     lastUpdatedAt: "$$REMOVE",
+  //     proceso: "$$REMOVE",
+  //     currentUpdatedDate: "$$REMOVE",
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for create_operation
+  //     processName: "E2_Procesamiento",
+  //     processDate: {
+  //       $toDate: "2024-01-31",
+  // "{{$json.fechaProceso}}"
+  //     },
+  //     description:
+  //       "Procesamiento de datos, generación de colecciones intemedias; Margenpasivo, Margenactivo e integracion a Margenmetric, ",
+  //     processFrequency: "Mensual",
+  //     fromColletion:
+  //       "sidis_cliente_base_segmentacion, sidis_margen, sidis_beneficiario, sidis_ordenante",
+  //     toColletion: "Margenmetric",
+  //     startDate: "$$NOW",
+  //     endDate: "nda",
+  //     runtimeInMinutes: "nda",
+  //     status: "En Proceso",
+  //     subProcess: [
+  //       {
+  //         processName:
+  //           "PP_1_clienteIntegracion_Margenmetric",
+  //         processDate: "nda",
+  //         description:
+  //           "Integración de la información de clientes en Margenmetric",
+  //         processFrequency: "Mensual",
+  //         fromColletion:
+  //           "sidis_cliente_base_segmentacion",
+  //         toColletion: "Margenmetric",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //       {
+  //         processName:
+  //           "PP_2_sidisMargenActivos_Margenmetricactivo",
+  //         processDate: "nda",
+  //         description:
+  //           "Aplica la consulta de activos en la colección sidis_margen para generar la colección Margenactivo",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "sidis_margen",
+  //         toColletion: "Margenactivo",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //       {
+  //         processName:
+  //           "PP_3_sidisMargenPasivos_Margenmetricpasivo",
+  //         processDate: "nda",
+  //         description:
+  //           "Aplica la consulta de pasivo en la colección sidis_margen para generar la colección Margenpasivo",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "sidis_margen",
+  //         toColletion: "Margenpasivo",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //       {
+  //         processName:
+  //           "PP_4_sidisBeneficiarioIndicador_Margenmetric",
+  //         processDate: "nda",
+  //         description:
+  //           "Genera indicadores de beneficiarios e integra en Margenmetric",
+  //         processFrequency: "Mensual",
+  //         fromColletion:
+  //           "sidis_beneficiario, sidis_ordenante",
+  //         toColletion: "Margenmetric",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //       {
+  //         processName:
+  //           "I_1_margenMetricActivoIndicador_Margenmetric",
+  //         processDate: "nda",
+  //         description:
+  //           "Genera indicadores activos e integra en Margenmetric",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "Margenactivo",
+  //         toColletion: "Margenmetric",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //       {
+  //         processName:
+  //           "I_2_margenMetricPaivosIndicador_Margenmetric",
+  //         processDate: "nda",
+  //         description:
+  //           "Genera indicadores pasivos e integra en Margenmetric",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "Margenpasivo",
+  //         toColletion: "Margenmetric",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //       {
+  //         processName:
+  //           "I_3_margenMetricPasivoConv20_Margenmetric",
+  //         processDate: "nda",
+  //         description:
+  //           "Genera indicadores pasivos convenio 20 e integra en Margenmetric",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "Margenpasivo",
+  //         toColletion: "Margenmetric",
+  //         startDate: "nda",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En espera",
+  //       },
+  //     ],
+  //     processMauroSteps: [
+  //       {
+  //         processName:
+  //           "MS_ProcesamientoTransacciones",
+  //         processDate: "nda",
+  //         description:
+  //           "Procesamiento de transacciones",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "sidis_margen",
+  //         toColletion: "Margenmetric",
+  //         startDate: "$$NOW",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En Proceso",
+  //       },
+  //       {
+  //         processName:
+  //           "MS_ProcesamientoProductosVinculados",
+  //         processDate: "nda",
+  //         description:
+  //           "Procesamiento e ingesta de productos vinculados en la colección Margenmetric",
+  //         processFrequency: "Mensual",
+  //         fromColletion: "desconocido",
+  //         toColletion: "Margenmetric",
+  //         startDate: "$$NOW",
+  //         endDate: "nda",
+  //         runtimeInMinutes: "nda",
+  //         status: "En Proceso",
+  //       },
+  //     ],
+  //   },
+  // },
+  {
+    $match: {
+      //Just for start, updated and check_operations
+      processName: "E2_Procesamiento",
+      $expr: {
+        $eq: [
+          "$processDate",
+          {
+            $toDate: "2024-01-31",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      //Just for start_operation
+      subProcess: {
+        $map: {
+          input: "$subProcess",
+          as: "input",
+          in: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      "$$input.processName",
+                      "PP_1_clienteIntegracion_Margenmetric",
+                      // "{{$json.proceso}}"
+                    ],
+                  },
+                ],
+              },
+              {
+                $mergeObjects: [
+                  {
+                    processName:
+                      "PP_1_clienteIntegracion_Margenmetric",
+                    //  "{{$json.proceso}}"
+                  },
+                  {
+                    processDate: "$processDate",
+                  },
+                  {
+                    description:
+                      "$$input.description",
+                  },
+                  {
+                    processFrequency:
+                      "$$input.processFrequency",
+                  },
+                  {
+                    fromColletion:
+                      "$$input.fromColletion",
+                  },
+                  {
+                    toColletion:
+                      "$$input.toColletion",
+                  },
+                  {
+                    startDate: "$$NOW",
+                  },
+                  {
+                    endDate: "$$input.endDate",
+                  },
+                  {
+                    runtimeInMinutes: "",
+                  },
+                  {
+                    status: "En Proceso",
+                  },
+                ],
+              },
+              "$$input",
+            ],
+          },
+        },
+      },
+    },
+  },
+  // {
+  //   $addFields: {
+  //Just for updated_operation
+  //     subProcess: {
+  //       $map: {
+  //         input: "$subProcess",
+  //         as: "item",
+  //         in: {
+  //           $cond: [
+  //             {
+  //               $and: [
+  //                 {
+  //                   $eq: [
+  //                     "$$item.processName",
+  //                     "PP_1_clienteIntegracion_Margenmetric",
+  //"{{$json.proceso}}",
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               $mergeObjects: [
+  //                 {
+  //                   processName:
+  //                     "PP_1_clienteIntegracion_Margenmetric",
+  // "{{$json.proceso}}"
+  //                 },
+  //                 {
+  //                   processDate:
+  //                     "$$item.processDate",
+  //                 },
+  //                 {
+  //                   description:
+  //                     "$$item.description",
+  //                 },
+  //                 {
+  //                   processFrequency:
+  //                     "$$item.processFrequency",
+  //                 },
+  //                 {
+  //                   fromColletion:
+  //                     "$$item.fromColletion",
+  //                 },
+  //                 {
+  //                   toColletion:
+  //                     "$$item.toColletion",
+  //                 },
+  //                 {
+  //                   startDate: "$$item.startDate",
+  //                 },
+  //                 {
+  //                   endDate: "$$NOW",
+  //                 },
+  //                 {
+  //                   runtimeInMinutes: {
+  //                     $round: [
+  //                       {
+  //                         $divide: [
+  //                           {
+  //                             $subtract: [
+  //                               "$$NOW",
+  //                               "$$item.startDate",
+  //                             ],
+  //                           },
+  //                           60000,
+  //                         ],
+  //                       },
+  //                       2,
+  //                     ],
+  //                   },
+  //                 },
+  //                 {
+  //                   status: "Finalizado",
+  //                 },
+  //               ],
+  //             },
+  //             "$$item",
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for updated and check_operation
+  //     status: {
+  //       $cond: [
+  //         {
+  //           $or: [
+  //             {
+  //               $in: [
+  //                 "En Proceso",
+  //                 "$subProcess.status",
+  //               ],
+  //             },
+  //             {
+  //               $in: [
+  //                 "En espera",
+  //                 "$subProcess.status",
+  //               ],
+  //             },
+  //test status step mauro transacciones
+  //             {
+  //               $eq: [
+  //                 "En Proceso",
+  //                 {
+  //                   $first: {
+  //                     $map: {
+  //                       input: {
+  //                         $filter: {
+  //                           input:
+  //                             "$processMauroSteps",
+  //                           as: "item",
+  //                           cond: {
+  //                             $eq: [
+  //                               "$$item.processName",
+  //                               "MS_ProcesamientoTransacciones",
+  //                             ],
+  //                           },
+  //                         },
+  //                       },
+  //                       as: "item",
+  //                       in: "$$item.status",
+  //                     },
+  //                   },
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               $eq: [
+  //                 "En espera",
+  //                 {
+  //                   $first: {
+  //                     $map: {
+  //                       input: {
+  //                         $filter: {
+  //                           input:
+  //                             "$processMauroSteps",
+  //                           as: "item",
+  //                           cond: {
+  //                             $eq: [
+  //                               "$$item.processName",
+  //                               "MS_ProcesamientoTransacciones",
+  //                             ],
+  //                           },
+  //                         },
+  //                       },
+  //                       as: "item",
+  //                       in: "$$item.status",
+  //                     },
+  //                   },
+  //                 },
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //         "En Proceso",
+  //         "Finalizado",
+  //       ],
+  //     },
+  //     endDate: "$$NOW",
+  //     runtimeInMinutes: {
+  //       $round: [
+  //         {
+  //           $divide: [
+  //             {
+  //               $subtract: ["$$NOW", "$startDate"],
+  //             },
+  //             60000,
+  //           ],
+  //         },
+  //         2,
+  //       ],
+  //     },
+  //   },
+  // },
+  // {
+  //   $project:
+  //     /**
+  //      * Just for check_operation
+  //      */
+  //     {
+  //       status: 1,
+  //     },
+  // },
+  {
+    $merge: {
+      //No for check_operation
+      into: "sidis_statusProcesos",
+      on: ["processName", "processDate"],
+    },
+  },
+]
+
+///////////////////
+
+[
+  {
+    "$match": {
+      "processName": "E2_Procesamiento", 
+      "$expr": {
+        "$eq": [
+          "$processDate", {
+            "$toDate": "{{$json.fechaProceso}}"
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "subProcess": {
+        "$map": {
+          "input": "$subProcess", 
+          "as": "input", 
+          "in": {
+            "$cond": [
+              {
+                "$and": [
+                  {
+                    "$eq": [
+                      "$$input.processName", "{{$json.proceso}}"
+                    ]
+                  }
+                ]
+              }, {
+                "$mergeObjects": [
+                  {
+                    "processName": "{{$json.proceso}}"
+                  }, {
+                    "processDate": "$processDate"
+                  }, {
+                    "description": "$$input.description"
+                  }, {
+                    "processFrequency": "$$input.processFrequency"
+                  }, {
+                    "fromColletion": "$$input.fromColletion"
+                  }, {
+                    "toColletion": "$$input.toColletion"
+                  }, {
+                    "startDate": "$$NOW"
+                  }, {
+                    "endDate": "$$input.endDate"
+                  }, {
+                    "runtimeInMinutes": ""
+                  }, {
+                    "status": "En Proceso"
+                  }
+                ]
+              }, "$$input"
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "processName", "processDate"
+      ]
+    }
+  }
+]

@@ -1,0 +1,469 @@
+//salen de Margenmetric_dolares
+
+//banca
+[
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          banca: "$banca",
+          fechaProceso: "$fechaProceso",
+        },
+        saldoEuro: {
+          $sum: "$saldoEuro",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        banca: "$_id.banca",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricbanca",
+        on: ["banca", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+//segmento
+[
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          segmento: "$segmento",
+          fechaProceso: "$fechaProceso",
+        },
+        saldoEuro: {
+          $sum: "$saldoEuro",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        segmento: "$_id.segmento",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricsegmento",
+        on: ["segmento", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+
+//grupo economico
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        gropoEconomico: {
+          $ne: null,
+        },
+      },
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          grupoEconomico: "$gropoEconomico",
+          fechaProceso: "$fechaProceso",
+        },
+        saldoEuro: {
+          $sum: "$saldoEuro",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        grupoEconomico: "$_id.grupoEconomico",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricgrupo",
+        on: ["grupoEconomico", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+//nse
+[
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          nivelSocioEconomico: "$nivel_socioecon",
+          fechaProceso: "$fechaProceso",
+        },
+        saldoEuro: {
+          $sum: "$saldoEuro",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        nivelSocioEconomico:
+          "$_id.nivelSocioEconomico",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricnse",
+        on: [
+          "nivelSocioEconomico",
+          "fechaProceso",
+        ],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+//saldojuridico
+[
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        subSegmento: 0,
+        segmento: 0,
+        banca: 0,
+        gropoEconomico: 0,
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricjuridico",
+        on: ["fechaProceso", "rifCedula"],
+        whenNotMatched: "discard",
+      },
+  },
+]
+
+//saldo natural
+
+[
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        subSegmento: 0,
+        segmento: 0,
+        banca: 0,
+        grupoEconomico: 0,
+        _id: 0,
+        nivel_socioecon: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricnatural",
+        on: ["fechaProceso", "rifCedula"],
+        whenNotMatched: "discard",
+      },
+  },
+]
+
+//grupo economico
+
+[
+  {
+    $group: {
+      _id: {
+        grupoEconomico: "$grupoEconomico",
+        fechaProceso: "$fechaProceso",
+      },
+      saldoEuro: {
+        $sum: "$saldoEuro",
+      },
+    },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        grupoEconomico: "$_id.grupoEconomico",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricgrupo",
+        on: ["grupoEconomico", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+//nse
+[
+  {
+    $group: {
+      _id: {
+        nivelSocioEconomico: "$nivel_socioecon",
+        fechaProceso: "$fechaProceso",
+      },
+      saldoEuro: {
+        $sum: "$saldoEuro",
+      },
+    },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        nivelSocioEconomico:
+          "$_id.nivelSocioEconomico",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricnse",
+        on: ["grupoEconomico", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+//segmento
+
+[
+  {
+    $group: {
+      _id: {
+        segmento: "$segmento",
+        fechaProceso: "$fechaProceso",
+      },
+      saldoEuro: {
+        $sum: "$saldoEuro",
+      },
+    },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        segmento: "$_id.segmento",
+        fechaProceso: "$_id.fechaProceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricnse",
+        on: ["segmento", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+
+
+

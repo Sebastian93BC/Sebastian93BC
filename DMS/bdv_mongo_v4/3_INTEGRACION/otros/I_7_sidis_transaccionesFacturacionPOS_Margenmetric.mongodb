@@ -1,0 +1,29 @@
+[
+  // {
+  //   $match:
+  //     /**
+  //      * query: The query in MQL.
+  //      */
+  //     {
+  //       rifCedula: "C40975902",
+  //     },
+  // },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["rifCedula", "fechaProceso"],
+      whenMatched: "merge",
+      whenNotMatched: "discard",
+    },
+  },
+]

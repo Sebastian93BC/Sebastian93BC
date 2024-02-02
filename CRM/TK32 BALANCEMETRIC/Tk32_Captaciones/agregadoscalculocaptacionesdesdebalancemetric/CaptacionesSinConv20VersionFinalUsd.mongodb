@@ -1,0 +1,259 @@
+[
+  {
+    "$addFields": {
+      "captaciones.sinConv20.actual": {
+        "$subtract": [
+          "$captaciones.total.actual", "$captaciones.conv20.actual"
+        ]
+      }, 
+      "captaciones.sinConv20.anterior": {
+        "$subtract": [
+          "$captaciones.total.anterior", "$captaciones.conv20.anterior"
+        ]
+      }, 
+      "captaciones.sinConv20.netoActual": {
+        "$subtract": [
+          "$captaciones.total.netoActual", "$captaciones.conv20.netoActual"
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "captacionesBs": 0, 
+      "cobranzaMora": 0, 
+      "cobranzaMoraUVC": 0, 
+      "liquidaciones": 0, 
+      "liquidacionesUVC": 0, 
+      "cobranzaMoraBs": 0, 
+      "cobranzaMoraUVCBs": 0, 
+      "liquidacionesBs": 0, 
+      "liquidacionesUVCBs": 0, 
+      "carteraCredito": 0, 
+      "carteraCreditoBs": 0, 
+      "ingresosComisiones": 0, 
+      "ingresosComisionesBs": 0
+    }
+  }, {
+    "$facet": {
+      "corteMes": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$fecha_valor", "$fechaProceso"
+              ]
+            }
+          }
+        }, {
+          "$addFields": {
+            "captaciones.sinConv20.mensual": "$captaciones.sinConv20.actual"
+          }
+        }, {
+          "$project": {
+            "captaciones.sinConv20.mensual": 1, 
+            "fechaProceso": 1
+          }
+        }
+      ], 
+      "data": []
+    }
+  }, {
+    "$unwind": {
+      "path": "$data"
+    }
+  }, {
+    "$addFields": {
+      "data.captaciones.sinConv20.corteMes": "$corteMes", 
+      "corteMes": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "data.captaciones.sinConv20.mensual": {
+        "$arrayElemAt": [
+          {
+            "$filter": {
+              "input": "$data.captaciones.sinConv20.corteMes", 
+              "as": "fecha", 
+              "cond": {
+                "$eq": [
+                  "$$fecha.fechaProceso", "$data.fechaProceso"
+                ]
+              }
+            }
+          }, 0
+        ]
+      }, 
+      "data.captaciones.sinConv20.captacionesDic": {
+        "$arrayElemAt": [
+          {
+            "$filter": {
+              "input": "$data.captaciones.sinConv20.corteMes", 
+              "as": "fecha", 
+              "cond": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$$fecha.fechaProceso"
+                      }, 12
+                    ]
+                  }, {
+                    "$ne": [
+                      {
+                        "$year": "$data.fechaProces"
+                      }, {
+                        "$year": "$$fecha.fechaProceso"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }, 0
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "data.captaciones.sinConv20.mensual": "$data.captaciones.sinConv20.mensual.captaciones.sinConv20.mensual", 
+      "data.captaciones.sinConv20.corteMes": "$$REMOVE", 
+      "data.captaciones.sinConv20.captacionesDic": "$data.captaciones.sinConv20.captacionesDic.captaciones.sinConv20.mensual", 
+      "data.captaciones.sinConv20.varMensual": {
+        "$subtract": [
+          "$data.captaciones.sinConv20.actual", "$data.captaciones.sinConv20.anterior"
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "data.captaciones.sinConv20.varAnual": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$year": "$data.fechaProceso"
+              }, {
+                "$year": "$$NOW"
+              }
+            ]
+          }, {
+            "$subtract": [
+              "$data.captaciones.sinConv20.actual", "$data.captaciones.sinConv20.captacionesDic"
+            ]
+          }, 0
+        ]
+      }, 
+      "data.captaciones.sinConv20.creAnual": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$year": "$data.fechaProceso"
+              }, {
+                "$year": "$$NOW"
+              }
+            ]
+          }, {
+            "$round": [
+              {
+                "$divide": [
+                  {
+                    "$multiply": [
+                      {
+                        "$subtract": [
+                          "$data.captaciones.sinConv20.actual", "$data.captaciones.sinConv20.captacionesDic"
+                        ]
+                      }, 100
+                    ]
+                  }, "$data.captaciones.sinConv20.captacionesDic"
+                ]
+              }, 4
+            ]
+          }, 0
+        ]
+      }
+    }
+  }, {
+    "$facet": {
+      "data": [
+        {
+          "$match": {
+            "data.captaciones.sinConv20.actual": {
+              "$ne": null
+            }
+          }
+        }
+      ], 
+      "dataNotNull": [
+        {
+          "$match": {
+            "data.captaciones.sinConv20.actual": {
+              "$ne": null
+            }
+          }
+        }, {
+          "$group": {
+            "_id": {
+              "fechaProceso": "$data.fechaProceso", 
+              "fechaValor": "$data.fecha_valor"
+            }, 
+            "maxFechaValor": {
+              "$max": "$data.fecha_valor"
+            }, 
+            "maxMensual": {
+              "$max": "$data.captaciones.sinConv20.actual"
+            }
+          }
+        }, {
+          "$sort": {
+            "_id.fechaValor": -1
+          }
+        }
+      ]
+    }
+  }, {
+    "$addFields": {
+      "ultimoActual": {
+        "$slice": [
+          "$dataNotNull", 1
+        ]
+      }, 
+      "dataNotNull": "$$REMOVE"
+    }
+  }, {
+    "$unwind": {
+      "path": "$ultimoActual"
+    }
+  }, {
+    "$unwind": {
+      "path": "$data"
+    }
+  }, {
+    "$addFields": {
+      "data.data.captaciones.sinConv20.mensual": {
+        "$cond": [
+          {
+            "$eq": [
+              "$data.data.fechaProceso", "$ultimoActual._id.fechaProceso"
+            ]
+          }, "$ultimoActual.maxMensual", "$data.data.captaciones.sinConv20.mensual"
+        ]
+      }, 
+      "ultimoActual": "$$REMOVE"
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": "$data.data"
+    }
+  }, {
+    "$project": {
+      "mensualAnt": 0
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor"
+    }
+  }
+]

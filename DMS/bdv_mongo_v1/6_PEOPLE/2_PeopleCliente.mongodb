@@ -1,0 +1,191 @@
+//de people a people
+
+
+[
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        from: "sidis_clientes_temporal",
+        let: {
+          rif: "$vat",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$$rif", "$cli_rif"],
+              },
+            },
+          },
+        ],
+        as: "result",
+      },
+  },
+  {
+    $addFields: {
+      //vat:{$first: "$result.cli_rif"},
+      billingName:{
+        $first: "$result.cli_nom_cliente",
+      },
+      address: {
+        $first: "$result.cli_direccion",
+      },
+      billingAddress: {
+        $first: "$result.cli_direccion",
+      },
+      city: {
+        $first: "$result.cli_cdef_ciudad",
+      },
+      clientDate: {
+        $first: "$result.cli_cdef_fecha_alta",
+      },
+      dateOfBirth: {
+        $first: "$result.cli_fec_nac",
+      },
+      email: {
+        $first: "$result.cli_cdef_email",
+      },
+      lastName: {
+        $first: "$result.cli_nom_cliente",
+      },
+      phone: {
+        $first: "$result.cli_cdef_telefono1",
+      },
+      secondaryPhone: {
+        $first: "$result.cli_cdef_telefono2",
+      },
+      sex: {
+        $first: "$result.cli_cdef_sexo",
+      },
+      state: {
+        $first: "$result.cli_estado",
+      },
+      codigobanca: {
+        $first: "$result.cli_banca",
+      },
+      nombrebanca: {
+        $first: "$result.cli_nom_banca",
+      },
+      codigogrupoEconomico: {
+        $first: "$result.cli_cod_grupo_econ",
+      },
+      nombregrupoEconomico: {
+        $first: "$result.cli_nom_grupo_econ",
+      },
+      codigosegmento: {
+        $first: "$result.cli_segmento",
+      },
+      nombresegmento: {
+        $first: "$result.cli_nom_subsegmento",
+      },
+      codigosubSegmento: {
+        $first: "$result.cli_subsegmento",
+      },
+      nombresubSegmento: {
+        $first: "$result.cli_nom_subsegmento",
+      },
+      maritalstatus: {
+        $first: "$result.cli_cdef_estadocivil",
+      },
+      codigoejecutivo: {
+        $first: "$result.cli_cod_ejecutivo",
+      },
+      nombreejecutivo: {
+        $first: "$result.cli_nom_ejecut_cuenta",
+      },
+      officeCode: {
+        $first: "$result.cli_cod_ofic_tutora",
+      },
+      officeName: {
+        $first: "$result.cli_nom_ofic_tutora",
+      },
+      ocupation: {
+        $first: "$result.cli_desc_act_econ",
+      },
+      ocupationId: {
+        $first: "$result.cli_actividad_econ",
+      },
+      personNumber:{
+        $first: "$result.cli_num_per",
+      },
+      externalCode: {
+        $first: "$result.cli_num_per",
+      },
+      country:'Venezuela',
+      stage:'Client',
+      //nacionality:'',
+      //'Ingresos mensuales':'',
+      //statusInactive:'',
+    },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        integrationIds: {
+          $mergeObjects: [
+            "$integrationIds",
+            {
+              sidis_cliente: {
+                $first: "$result.cli_rif",
+              },
+            },
+          ],
+        },
+        peopleIds: {
+          $mergeObjects: [
+            "$peopleIds",
+            {
+              sidis_cliente: [
+                {
+                  $first: "$result._id",
+                },
+              ],
+            },
+          ],
+        },
+        updatedAt: new Date(),
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        result: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+
+      {
+        into: "People",
+        on: "_id",
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+
+
+

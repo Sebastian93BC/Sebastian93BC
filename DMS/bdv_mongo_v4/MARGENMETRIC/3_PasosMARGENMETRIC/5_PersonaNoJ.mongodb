@@ -1,0 +1,40 @@
+//Margenmetric  >>> Margenmetric
+
+[
+  // {
+  //   $match: /**
+  //  * query: The query in MQL.
+  //  */
+  // {
+  //   fechaProceso: {
+  //     $gte: ISODate("2022-01-01T00:00:00.000+00:00"),
+  //   },
+  // }
+  // },
+  {
+    $addFields: {
+      persona: {
+        $cond: {
+          if: {
+            $in: ["$segmento", [2, 4, 7, 10, 20]],
+          },
+          then: "Natural",
+          else: "Jurídica",
+        },
+      },
+    },
+  },
+  {
+    /**
+     * into: The target collection.
+     * on: Fields to  identify.
+     * let: Defined variables.
+     * whenMatched: Action for matching docs.
+     * whenNotMatched: Action for non-matching docs.
+     */
+    $merge: {
+      into: "Margenmetric",
+      on: "_id",
+    },
+  },
+]

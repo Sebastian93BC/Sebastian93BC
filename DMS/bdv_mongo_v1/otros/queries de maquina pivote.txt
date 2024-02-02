@@ -1,0 +1,6127 @@
+Ajuste fechas tasa conversion
+///----------------inicio--------------///
+[
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      Fecha: {
+        $dateFromString: {
+          dateString: {
+            $dateToString: {
+              format: "%Y-%m-%dT00:00:00%z",
+              date: "$Fecha",
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    /**
+     * into: The target collection.
+     * on: Fields to  identify.
+     * let: Defined variables.
+     * whenMatched: Action for matching docs.
+     * whenNotMatched: Action for non-matching docs.
+     */
+    $merge: {
+      into: "sidis_tasaconversion",
+      on: "_id",
+    },
+  },
+]
+///----------------fin----------------///
+
+Consulta de  Activos Version Sebastian
+///----------------inicio--------------///
+[
+  {
+    $match: {
+      $and: [
+        {
+          mcl_fecha_proceso: {
+            $lt: ISODate("2023-01-01T00:00:00.000+00:00"),
+          },
+        },
+        {
+          mcl_fecha_proceso: {
+            $gte: ISODate("2022-12-01T00:00:00.000+00:00"),
+          },
+        },
+      ],
+    },
+  },
+  {
+    $addFields: {
+      mcl_cuenta_contable1_indicador: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+      mcl_fecha_proceso_trunc: {
+        $dateTrunc: {
+          date: "$mcl_fecha_proceso",
+          unit: "month",
+          binSize: 2,
+          timezone: "-0430",
+          startOfWeek: "Monday",
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      mcl_naturaleza_producto: {
+        $in: [1],
+      },
+      mcl_banca: {
+        $nin: [5, 4],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon: "$mcl_nivel_socioecon",
+        mcl_grupo_economico: "$mcl_grupo_economico",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+        mcl_cuenta_contable1_indicador:
+          "$mcl_cuenta_contable1_indicador",
+      },
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+      intereses: {
+        $sum: "$mcl_intereses",
+      },
+      abono_liq: {
+        $sum: {
+          $cond: {
+            if: {
+              $and: [
+                {
+                  $gte: [
+                    "$mcl_fecha_liq_operacion",
+                    "$mcl_fecha_proceso_trunc",
+                  ],
+                },
+                {
+                  $lt: [
+                    "$mcl_fecha_liq_operacion",
+                    "$mcl_fecha_proceso",
+                  ],
+                },
+              ],
+            },
+            then: "$mcl_monto_apertura",
+            else: 0,
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      mcl_segmento: "$_id.mcl_segmento",
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      mcl_nombre_cliente: "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon: "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico: "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair: "$_id.mcl_producto_altair",
+      mcl_subproducto_altair: "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1: "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+      mcl_cuenta_contable1_indicador:
+        "$_id.mcl_cuenta_contable1_indicador",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: ["$result.prd_nombre_producto", 0],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      result: 0,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      resultSize: {
+        $size: "$result",
+      },
+    },
+  },
+  {
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "BOLIVARES",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.denominacion", 0],
+              },
+            },
+          ],
+        },
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.condicion", 0],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      resultSize: 0,
+      result: 0,
+    },
+  },
+  {
+    $sort: {
+      mcl_fecha_proceso: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "mcl_fecha_proceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      tasa_dolar: {
+        $arrayElemAt: ["$result.Tasa_DOL", 0],
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldo_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$condicion", ""],
+          },
+          then: {
+            $round: [
+              {
+                $divide: ["$saldo", "$tasa_dolar"],
+              },
+              4,
+            ],
+          },
+          else: null,
+        },
+      },
+      promedio_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$condicion", ""],
+          },
+          then: {
+            $round: [
+              {
+                $divide: ["$promedio", "$tasa_dolar"],
+              },
+              4,
+            ],
+          },
+          else: null,
+        },
+      },
+      monto_debitos_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$condicion", ""],
+          },
+          then: {
+            $round: [
+              {
+                $divide: ["$monto_debitos", "$tasa_dolar"],
+              },
+              4,
+            ],
+          },
+          else: null,
+        },
+      },
+      monto_creditos_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$condicion", ""],
+          },
+          then: {
+            $round: [
+              {
+                $divide: ["$monto_creditos", "$tasa_dolar"],
+              },
+              4,
+            ],
+          },
+          else: null,
+        },
+      },
+      abono_liq_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$condicion", ""],
+          },
+          then: {
+            $round: [
+              {
+                $divide: ["$abono_liq", "$tasa_dolar"],
+              },
+              4,
+            ],
+          },
+          else: null,
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldo_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$saldo_dolares", null],
+          },
+          then: "$$REMOVE",
+          else: "$saldo_dolares",
+        },
+      },
+      promedio_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$promedio_dolares", null],
+          },
+          then: "$$REMOVE",
+          else: "$promedio_dolares",
+        },
+      },
+      monto_debitos_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$monto_debitos_dolares", null],
+          },
+          then: "$$REMOVE",
+          else: "$monto_debitos_dolares",
+        },
+      },
+      monto_creditos_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$monto_creditos_dolares", null],
+          },
+          then: "$$REMOVE",
+          else: "$monto_creditos_dolares",
+        },
+      },
+      abono_liq_dolares: {
+        $cond: {
+          if: {
+            $eq: ["$abono_liq_dolares", null],
+          },
+          then: "$$REMOVE",
+          else: "$abono_liq_dolares",
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      result: 0,
+      mcl_banca: 0,
+      mcl_subsegmento: 0,
+      mcl_nivel_socioecon: 0,
+      mcl_estatus: 0,
+      condicion: 0,
+    },
+  },
+]
+///----------------fin----------------///
+
+Consulta de Activos
+///----------------inicio--------------///
+[
+  {
+    $addFields: {
+      mcl_cuenta_contable1_substr: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+    },
+  },
+  {
+    $match: {
+      mcl_naturaleza_producto: {
+        $nin: [2, 6],
+      },
+      mcl_producto: {
+        $nin: [196, 197, 198, 808, 809],
+      },
+      mcl_banca: {
+        $nin: [5, 4],
+      },
+      mcl_cuenta_contable1_substr: {
+        $nin: ["231", "241", "611", "819"],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon: "$mcl_nivel_socioecon",
+        mcl_grupo_economico: "$mcl_grupo_economico",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+      },
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+      intereses: {
+        $sum: "$mcl_intereses",
+      },
+    },
+  },
+  {
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      mcl_segmento: "$_id.mcl_segmento",
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      mcl_nombre_cliente: "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon: "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico: "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair: "$_id.mcl_producto_altair",
+      mcl_subproducto_altair: "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1: "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: ["$result.prd_nombre_producto", 0],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      result: 0,
+    },
+  },
+]
+///----------------fin----------------///
+
+Consulta de Activos*
+///----------------inicio--------------///
+[
+  {
+    $addFields: {
+      mcl_cuenta_contable1_indicador: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+      mcl_fecha_proceso_trunc: {
+        $dateTrunc: {
+          date: "$mcl_fecha_proceso",
+          unit: "month",
+          binSize: 2,
+          timezone: "-0430",
+          startOfWeek: "Monday",
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      mcl_naturaleza_producto: {
+        $in: [1],
+      },
+      mcl_banca: {
+        $nin: [5, 4],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon: "$mcl_nivel_socioecon",
+        mcl_grupo_economico: "$mcl_grupo_economico",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+        mcl_cuenta_contable1_indicador:
+          "$mcl_cuenta_contable1_indicador",
+      },
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+      intereses: {
+        $sum: "$mcl_intereses",
+      },
+      abono_liq: {
+        $sum: {
+          $cond: {
+            if: {
+              $and: [
+                {
+                  $gte: [
+                    "$mcl_fecha_liq_operacion",
+                    "$mcl_fecha_proceso_trunc",
+                  ],
+                },
+                {
+                  $lt: [
+                    "$mcl_fecha_liq_operacion",
+                    "$mcl_fecha_proceso",
+                  ],
+                },
+              ],
+            },
+            then: "$mcl_monto_apertura",
+            else: 0,
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      mcl_segmento: "$_id.mcl_segmento",
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      mcl_nombre_cliente: "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon: "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico: "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair: "$_id.mcl_producto_altair",
+      mcl_subproducto_altair: "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1: "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+      mcl_cuenta_contable1_indicador:
+        "$_id.mcl_cuenta_contable1_indicador",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: ["$result.prd_nombre_producto", 0],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      result: 0,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      resultSize: {
+        $size: "$result",
+      },
+    },
+  },
+  {
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "BOLIVARES",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.denominacion", 0],
+              },
+            },
+          ],
+        },
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.condicion", 0],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      resultSize: 0,
+      result: 0,
+    },
+  },
+  {
+    $sort: {
+      mcl_fecha_proceso: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "mcl_fecha_proceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      tasa_dolar: {
+        $arrayElemAt: ["$result.Tasa_DOL", 0],
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$saldo",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$saldo", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      promedio: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$promedio",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$promedio", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      monto_debitos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$monto_debitos",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_debitos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      monto_creditos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$monto_creditos",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_creditos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      result: 0,
+      mcl_banca: 0,
+      mcl_subsegmento: 0,
+      mcl_nivel_socioecon: 0,
+      mcl_estatus: 0,
+      condicion: 0,
+    },
+  },
+]
+///----------------fin----------------///
+
+Consulta de Pasivos
+///----------------inicio--------------///
+[
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      mcl_cuenta_contable1_substr: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+    },
+  },
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      mcl_naturaleza_producto: { $in: [2, 6] },
+      mcl_producto: { $nin: [196, 197, 198, 808, 809] },
+      mcl_banca: { $nin: [5, 4] },
+      mcl_cuenta_contable1_substr: {
+        $nin: ["231", "241", "611", "819"],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    /**
+     * _id: The id of the group.
+     * fieldN: The first field name.
+     */
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon: "$mcl_nivel_socioecon",
+        mcl_grupo_economico: "$mcl_grupo_economico",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+      },
+
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+      intereses: {
+        $sum: "$mcl_intereses",
+      },
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      mcl_segmento: "$_id.mcl_segmento",
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      mcl_nombre_cliente: "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon: "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico: "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair: "$_id.mcl_producto_altair",
+      mcl_subproducto_altair: "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1: "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+    },
+  },
+  {
+    /**
+     * from: The target collection.
+     * localField: The local join field.
+     * foreignField: The target join field.
+     * as: The name for the results.
+     * pipeline: Optional pipeline to run on the foreign collection.
+     * let: Optional variables to use in the pipeline field stages.
+     */
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: ["$result.prd_nombre_producto", 0],
+      },
+    },
+  },
+  {
+    /**
+     * specifications: The fields to
+     *   include or exclude.
+     */
+    $project: {
+      _id: 0,
+      result: 0,
+    },
+  },
+  {
+    /**
+     * from: The target collection.
+     * localField: The local join field.
+     * foreignField: The target join field.
+     * as: The name for the results.
+     * pipeline: Optional pipeline to run on the foreign collection.
+     * let: Optional variables to use in the pipeline field stages.
+     */
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      resultSize: { $size: "$result" },
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "BOLIVARES",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.denominacion", 0],
+              },
+            },
+          ],
+        },
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.condicion", 0],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    /**
+     * specifications: The fields to
+     *   include or exclude.
+     */
+    $project: {
+      resultSize: 0,
+      result: 0,
+    },
+  },
+  {
+    /**
+     * Provide any number of field/order pairs.
+     */
+    $sort: {
+      mcl_fecha_proceso: 1,
+    },
+  },
+  {
+    /**
+     * from: The target collection.
+     * localField: The local join field.
+     * foreignField: The target join field.
+     * as: The name for the results.
+     * pipeline: Optional pipeline to run on the foreign collection.
+     * let: Optional variables to use in the pipeline field stages.
+     */
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "mcl_fecha_proceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      tasa_dolar: { $arrayElemAt: ["$result.Tasa_DOL", 0] },
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      saldo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$saldo",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  { $divide: ["$saldo", "$tasa_dolar"] },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      promedio: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$promedio",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  { $divide: ["$promedio", "$tasa_dolar"] },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      monto_debitos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$monto_debitos",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_debitos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      monto_creditos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $ne: ["$condicion", ""],
+              },
+              then: "$monto_creditos",
+            },
+            {
+              case: {
+                $eq: ["$condicion", ""],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_creditos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    /**
+     * specifications: The fields to
+     *   include or exclude.
+     */
+    $project: {
+      result: 0,
+      mcl_banca: 0,
+      mcl_subsegmento: 0,
+      mcl_nivel_socioecon: 0,
+      mcl_estatus: 0,
+      condicion: 0,
+    },
+  },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_margen_pasivos_testing",
+  },
+]
+///----------------fin----------------///
+
+formateo data
+///----------------inicio--------------///
+[
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      mcl_banca: {
+        $convert: {
+          input: "$mcl_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_segmento: {
+        $convert: {
+          input: "$mcl_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_subsegmento: {
+        $convert: {
+          input: "$mcl_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_grupo_economico: {
+        $convert: {
+          input: "$mcl_grupo_economico",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_oficina_tutora: {
+        $convert: {
+          input: "$mcl_oficina_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_territorio: {
+        $convert: {
+          input: "$mcl_territorio",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_naturaleza_producto: {
+        $convert: {
+          input: "$mcl_naturaleza_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_producto: {
+        $convert: {
+          input: "$mcl_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_oficina_contrato: {
+        $convert: {
+          input: "$mcl_oficina_contrato",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_territorio_contrato: {
+        $convert: {
+          input: "$mcl_territorio_contrato",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_entidad_banco: {
+        $convert: {
+          input: "$mcl_entidad_banco",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_dias: {
+        $convert: {
+          input: "$mcl_dias",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_tipo_producto: {
+        $convert: {
+          input: "$mcl_tipo_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_origen: {
+        $convert: {
+          input: "$mcl_origen",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_total_ctas_asoc: {
+        $convert: {
+          input: "$mcl_total_ctas_asoc",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_generica: {
+        $convert: {
+          input: "$mcl_provision_generica",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_especifica: {
+        $convert: {
+          input: "$mcl_provision_especifica",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_dudosidad: {
+        $convert: {
+          input: "$mcl_provision_dudosidad",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_rendimiento: {
+        $convert: {
+          input: "$mcl_provision_rendimiento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_convenios: {
+        $convert: {
+          input: "$mcl_convenios",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_producto_altair: {
+        $convert: {
+          input: "$mcl_producto_altair",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_subproducto_altair: {
+        $convert: {
+          input: "$mcl_subproducto_altair",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_saldo: {
+        $convert: {
+          input: "$mcl_saldo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_promedio: {
+        $convert: {
+          input: "$mcl_promedio",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_comisiones: {
+        $convert: {
+          input: "$mcl_comisiones",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_intereses: {
+        $convert: {
+          input: "$mcl_intereses",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_egresos_operativos: {
+        $convert: {
+          input: "$mcl_egresos_operativos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_provision: {
+        $convert: {
+          input: "$mcl_provision",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_tasa_pool: {
+        $convert: {
+          input: "$mcl_tasa_pool",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_pool: {
+        $convert: {
+          input: "$mcl_monto_pool",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_numero_debitos: {
+        $convert: {
+          input: "$mcl_numero_debitos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_debitos: {
+        $convert: {
+          input: "$mcl_monto_debitos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_numero_creditos: {
+        $convert: {
+          input: "$mcl_numero_creditos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_creditos: {
+        $convert: {
+          input: "$mcl_monto_creditos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_rendimiento: {
+        $convert: {
+          input: "$mcl_rendimiento",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_contable1: {
+        $convert: {
+          input: "$mcl_monto_contable1",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_contable2: {
+        $convert: {
+          input: "$mcl_monto_contable2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_costo_efectivo: {
+        $convert: {
+          input: "$mcl_costo_efectivo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_margen_bruto: {
+        $convert: {
+          input: "$mcl_monto_margen_bruto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_margen_neto: {
+        $convert: {
+          input: "$mcl_monto_margen_neto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_saldo_minimo: {
+        $convert: {
+          input: "$mcl_saldo_minimo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_saldo_disponible: {
+        $convert: {
+          input: "$mcl_saldo_disponible",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_apertura: {
+        $convert: {
+          input: "$mcl_monto_apertura",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_limite_credito: {
+        $convert: {
+          input: "$mcl_limite_credito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_bloqueado: {
+        $convert: {
+          input: "$mcl_monto_bloqueado",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_diferido: {
+        $convert: {
+          input: "$mcl_monto_diferido",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_interes_cta_flexible: {
+        $convert: {
+          input: "$mcl_interes_cta_flexible",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_interes_devengado: {
+        $convert: {
+          input: "$mcl_interes_devengado",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_tasa_pool_2: {
+        $convert: {
+          input: "$mcl_tasa_pool_2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_pool_2: {
+        $convert: {
+          input: "$mcl_monto_pool_2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_saldo_prom_contable: {
+        $convert: {
+          input: "$mcl_saldo_prom_contable",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_porc_margen_bruto: {
+        $convert: {
+          input: "$mcl_porc_margen_bruto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_porc_margen_neto: {
+        $convert: {
+          input: "$mcl_porc_margen_neto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_fecha_apertura_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_apertura_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_canc_venci_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_canc_venci_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_revision_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_revision_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_ult_tran_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_ult_tran_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_prox_reprice: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_prox_reprice",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      mcl_fecha_proceso: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_proceso",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      mcl_fecha_reprice: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_reprice",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_fin_promocion: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_fin_promocion",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_liq_operacion: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_liq_operacion",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      mcl_rif_cedula: {
+        $trim: { input: "$mcl_rif_cedula" },
+      },
+      mcl_nombre_cliente: {
+        $trim: { input: "$mcl_nombre_cliente" },
+      },
+      mcl_nivel_socioecon: {
+        $trim: { input: "$mcl_nivel_socioecon" },
+      },
+      mcl_fecha_apertura: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_apertura",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_canc_venci: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_canc_venci",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_revision: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_revision",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_ult_tran: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_ult_tran",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+    },
+  },
+  {
+    /**
+     * Provide the number of documents to limit.
+     */
+    $limit: 500000,
+  },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_margen_testing",
+  },
+]
+///----------------fin----------------///
+
+formateo data pase a coleccion nueva
+///----------------inicio--------------///
+[
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      mcl_banca: {
+        $convert: {
+          input: "$mcl_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_segmento: {
+        $convert: {
+          input: "$mcl_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_subsegmento: {
+        $convert: {
+          input: "$mcl_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_grupo_economico: {
+        $convert: {
+          input: "$mcl_grupo_economico",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_oficina_tutora: {
+        $convert: {
+          input: "$mcl_oficina_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_territorio: {
+        $convert: {
+          input: "$mcl_territorio",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_naturaleza_producto: {
+        $convert: {
+          input: "$mcl_naturaleza_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_producto: {
+        $convert: {
+          input: "$mcl_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_oficina_contrato: {
+        $convert: {
+          input: "$mcl_oficina_contrato",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_territorio_contrato: {
+        $convert: {
+          input: "$mcl_territorio_contrato",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_entidad_banco: {
+        $convert: {
+          input: "$mcl_entidad_banco",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_dias: {
+        $convert: {
+          input: "$mcl_dias",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_tipo_producto: {
+        $convert: {
+          input: "$mcl_tipo_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_origen: {
+        $convert: {
+          input: "$mcl_origen",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_total_ctas_asoc: {
+        $convert: {
+          input: "$mcl_total_ctas_asoc",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_generica: {
+        $convert: {
+          input: "$mcl_provision_generica",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_especifica: {
+        $convert: {
+          input: "$mcl_provision_especifica",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_dudosidad: {
+        $convert: {
+          input: "$mcl_provision_dudosidad",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_provision_rendimiento: {
+        $convert: {
+          input: "$mcl_provision_rendimiento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_convenios: {
+        $convert: {
+          input: "$mcl_convenios",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_producto_altair: {
+        $convert: {
+          input: "$mcl_producto_altair",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_subproducto_altair: {
+        $convert: {
+          input: "$mcl_subproducto_altair",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_saldo: {
+        $convert: {
+          input: "$mcl_saldo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_promedio: {
+        $convert: {
+          input: "$mcl_promedio",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_comisiones: {
+        $convert: {
+          input: "$mcl_comisiones",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_intereses: {
+        $convert: {
+          input: "$mcl_intereses",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_egresos_operativos: {
+        $convert: {
+          input: "$mcl_egresos_operativos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_provision: {
+        $convert: {
+          input: "$mcl_provision",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_tasa_pool: {
+        $convert: {
+          input: "$mcl_tasa_pool",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_pool: {
+        $convert: {
+          input: "$mcl_monto_pool",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_numero_debitos: {
+        $convert: {
+          input: "$mcl_numero_debitos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_debitos: {
+        $convert: {
+          input: "$mcl_monto_debitos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_numero_creditos: {
+        $convert: {
+          input: "$mcl_numero_creditos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_creditos: {
+        $convert: {
+          input: "$mcl_monto_creditos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_rendimiento: {
+        $convert: {
+          input: "$mcl_rendimiento",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_monto_contable1: {
+        $convert: {
+          input: "$mcl_monto_contable1",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_contable2: {
+        $convert: {
+          input: "$mcl_monto_contable2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_costo_efectivo: {
+        $convert: {
+          input: "$mcl_costo_efectivo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_margen_bruto: {
+        $convert: {
+          input: "$mcl_monto_margen_bruto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_margen_neto: {
+        $convert: {
+          input: "$mcl_monto_margen_neto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_saldo_minimo: {
+        $convert: {
+          input: "$mcl_saldo_minimo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_saldo_disponible: {
+        $convert: {
+          input: "$mcl_saldo_disponible",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_apertura: {
+        $convert: {
+          input: "$mcl_monto_apertura",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_limite_credito: {
+        $convert: {
+          input: "$mcl_limite_credito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_bloqueado: {
+        $convert: {
+          input: "$mcl_monto_bloqueado",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_diferido: {
+        $convert: {
+          input: "$mcl_monto_diferido",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_interes_cta_flexible: {
+        $convert: {
+          input: "$mcl_interes_cta_flexible",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_interes_devengado: {
+        $convert: {
+          input: "$mcl_interes_devengado",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_tasa_pool_2: {
+        $convert: {
+          input: "$mcl_tasa_pool_2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_monto_pool_2: {
+        $convert: {
+          input: "$mcl_monto_pool_2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_saldo_prom_contable: {
+        $convert: {
+          input: "$mcl_saldo_prom_contable",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_porc_margen_bruto: {
+        $convert: {
+          input: "$mcl_porc_margen_bruto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      mcl_porc_margen_neto: {
+        $convert: {
+          input: "$mcl_porc_margen_neto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      mcl_fecha_apertura_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_apertura_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_canc_venci_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_canc_venci_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_revision_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_revision_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_ult_tran_d: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_ult_tran_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_prox_reprice: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_prox_reprice",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      mcl_fecha_proceso: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_proceso",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      mcl_fecha_reprice: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_reprice",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_fin_promocion: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_fin_promocion",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_liq_operacion: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_liq_operacion",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      mcl_rif_cedula: {
+        $trim: { input: "$mcl_rif_cedula" },
+      },
+      mcl_nombre_cliente: {
+        $trim: { input: "$mcl_nombre_cliente" },
+      },
+      mcl_nivel_socioecon: {
+        $trim: { input: "$mcl_nivel_socioecon" },
+      },
+      mcl_fecha_apertura: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_apertura",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_canc_venci: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_canc_venci",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_revision: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_revision",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      mcl_fecha_ult_tran: {
+        $dateFromString: {
+          dateString: "$mcl_fecha_ult_tran",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+    },
+  },
+  // {
+  //   $limit: /**
+  //  * Provide the number of documents to limit.
+  //  */
+  // 500000
+  // },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_margen",
+  },
+]
+///----------------fin----------------///
+
+Formateo de datos
+///----------------inicio--------------///
+[
+  {
+    $addFields: {
+      tra_oficina_operante: {
+        $convert: {
+          input: "$tra_oficina_operante",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_oficina_origen: {
+        $convert: {
+          input: "$tra_oficina_origen",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_oficina_destino: {
+        $convert: {
+          input: "$mcl_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_desc_oficina: {
+        $convert: {
+          input: "$tra_desc_oficina",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_canal: {
+        $convert: {
+          input: "$tra_canal",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_cod_op: {
+        $convert: {
+          input: "$tra_cod_op",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_nro_mov: {
+        $convert: {
+          input: "$tra_nro_mov",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_producto: {
+        $convert: {
+          input: "$tra_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_banca: {
+        $convert: {
+          input: "$tra_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_segmento: {
+        $convert: {
+          input: "$tra_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_monto_debe: {
+        $convert: {
+          input: "$tra_monto_debe",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_monto_haber: {
+        $convert: {
+          input: "$tra_monto_haber",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_tasa2: {
+        $convert: {
+          input: "$tra_tasa2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_monto_comision: {
+        $convert: {
+          input: "$tra_monto_comision",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_fecha_hora: {
+        $dateFromString: {
+          dateString: "$tra_fecha_hora",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      tra_fecha_contable: {
+        $dateFromString: {
+          dateString: "$tra_fecha_contable",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      tra_fecha_operacion: {
+        $dateFromString: {
+          dateString: "$tra_fecha_operacion",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      tra_entidad: {
+        $trim: {
+          input: "$tra_entidad",
+        },
+      },
+      tra_desc_oficina: {
+        $trim: {
+          input: "$tra_desc_oficina",
+        },
+      },
+      tra_desc_canal: {
+        $trim: {
+          input: "$tra_desc_canal",
+        },
+      },
+      tra_usuario: {
+        $trim: {
+          input: "$tra_usuario",
+        },
+      },
+      tra_cargo: {
+        $trim: {
+          input: "$tra_cargo",
+        },
+      },
+      tra_transaccion: {
+        $trim: {
+          input: "$tra_transaccion",
+        },
+      },
+      tra_desc_transaccion: {
+        $trim: {
+          input: "$tra_desc_transaccion",
+        },
+      },
+      tra_cuenta_contrato: {
+        $trim: {
+          input: "$tra_cuenta_contrato",
+        },
+      },
+      tra_oper_valida: {
+        $trim: {
+          input: "$tra_oper_valida",
+        },
+      },
+      tra_terminal: {
+        $trim: {
+          input: "$tra_terminal",
+        },
+      },
+      tra_desc_cod_op: {
+        $trim: {
+          input: "$tra_desc_cod_op",
+        },
+      },
+      tra_ind_cre_deb: {
+        $trim: {
+          input: "$tra_ind_cre_deb",
+        },
+      },
+      tra_aplicacion_origen: {
+        $trim: {
+          input: "$tra_aplicacion_origen",
+        },
+      },
+      tra_aplicacion_destino: {
+        $trim: {
+          input: "$tra_aplicacion_destino",
+        },
+      },
+      tra_cod_interfa: {
+        $trim: {
+          input: "$tra_cod_interfa",
+        },
+      },
+      tra_ristra_contable: {
+        $trim: {
+          input: "$tra_ristra_contable",
+        },
+      },
+      tra_cuenta_contable: {
+        $trim: {
+          input: "$tra_cuenta_contable",
+        },
+      },
+      tra_serial_de_operacion: {
+        $trim: {
+          input: "$tra_serial_de_operacion",
+        },
+      },
+      tra_desc_sector_economico: {
+        $trim: {
+          input: "$tra_desc_sector_economico",
+        },
+      },
+      tra_ind_juridico_fisico: {
+        $trim: {
+          input: "$tra_ind_juridico_fisico",
+        },
+      },
+      tra_tipo_taquilla: {
+        $trim: {
+          input: "$tra_tipo_taquilla",
+        },
+      },
+      tra_terminal_fisico: {
+        $trim: {
+          input: "$tra_terminal_fisico",
+        },
+      },
+      tra_cuenta_contable2: {
+        $trim: {
+          input: "$tra_cuenta_contable2",
+        },
+      },
+      tra_rif: {
+        $trim: {
+          input: "$tra_rif",
+        },
+      },
+    },
+  },
+  {
+    $limit: 50000,
+  },
+  {
+    $out: "sidis_transacciones_testing",
+  },
+]
+///----------------fin----------------///
+
+Formateo de datos pase a coleccion sidis_transacciones
+///----------------inicio--------------///
+[
+  {
+    $addFields: {
+      tra_oficina_operante: {
+        $convert: {
+          input: "$tra_oficina_operante",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_oficina_origen: {
+        $convert: {
+          input: "$tra_oficina_origen",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_oficina_destino: {
+        $convert: {
+          input: "$mcl_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_desc_oficina: {
+        $convert: {
+          input: "$tra_desc_oficina",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_canal: {
+        $convert: {
+          input: "$tra_canal",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_cod_op: {
+        $convert: {
+          input: "$tra_cod_op",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_nro_mov: {
+        $convert: {
+          input: "$tra_nro_mov",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_producto: {
+        $convert: {
+          input: "$tra_producto",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_banca: {
+        $convert: {
+          input: "$tra_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_segmento: {
+        $convert: {
+          input: "$tra_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_monto_debe: {
+        $convert: {
+          input: "$tra_monto_debe",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_monto_haber: {
+        $convert: {
+          input: "$tra_monto_haber",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_tasa2: {
+        $convert: {
+          input: "$tra_tasa2",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_monto_comision: {
+        $convert: {
+          input: "$tra_monto_comision",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      tra_fecha_hora: {
+        $dateFromString: {
+          dateString: "$tra_fecha_hora",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      tra_fecha_contable: {
+        $dateFromString: {
+          dateString: "$tra_fecha_contable",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      tra_fecha_operacion: {
+        $dateFromString: {
+          dateString: "$tra_fecha_operacion",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      tra_entidad: {
+        $trim: {
+          input: "$tra_entidad",
+        },
+      },
+      tra_desc_oficina: {
+        $trim: {
+          input: "$tra_desc_oficina",
+        },
+      },
+      tra_desc_canal: {
+        $trim: {
+          input: "$tra_desc_canal",
+        },
+      },
+      tra_usuario: {
+        $trim: {
+          input: "$tra_usuario",
+        },
+      },
+      tra_cargo: {
+        $trim: {
+          input: "$tra_cargo",
+        },
+      },
+      tra_transaccion: {
+        $trim: {
+          input: "$tra_transaccion",
+        },
+      },
+      tra_desc_transaccion: {
+        $trim: {
+          input: "$tra_desc_transaccion",
+        },
+      },
+      tra_cuenta_contrato: {
+        $trim: {
+          input: "$tra_cuenta_contrato",
+        },
+      },
+      tra_oper_valida: {
+        $trim: {
+          input: "$tra_oper_valida",
+        },
+      },
+      tra_terminal: {
+        $trim: {
+          input: "$tra_terminal",
+        },
+      },
+      tra_desc_cod_op: {
+        $trim: {
+          input: "$tra_desc_cod_op",
+        },
+      },
+      tra_ind_cre_deb: {
+        $trim: {
+          input: "$tra_ind_cre_deb",
+        },
+      },
+      tra_aplicacion_origen: {
+        $trim: {
+          input: "$tra_aplicacion_origen",
+        },
+      },
+      tra_aplicacion_destino: {
+        $trim: {
+          input: "$tra_aplicacion_destino",
+        },
+      },
+      tra_cod_interfa: {
+        $trim: {
+          input: "$tra_cod_interfa",
+        },
+      },
+      tra_ristra_contable: {
+        $trim: {
+          input: "$tra_ristra_contable",
+        },
+      },
+      tra_cuenta_contable: {
+        $trim: {
+          input: "$tra_cuenta_contable",
+        },
+      },
+      tra_serial_de_operacion: {
+        $trim: {
+          input: "$tra_serial_de_operacion",
+        },
+      },
+      tra_desc_sector_economico: {
+        $trim: {
+          input: "$tra_desc_sector_economico",
+        },
+      },
+      tra_ind_juridico_fisico: {
+        $trim: {
+          input: "$tra_ind_juridico_fisico",
+        },
+      },
+      tra_tipo_taquilla: {
+        $trim: {
+          input: "$tra_tipo_taquilla",
+        },
+      },
+      tra_terminal_fisico: {
+        $trim: {
+          input: "$tra_terminal_fisico",
+        },
+      },
+      tra_cuenta_contable2: {
+        $trim: {
+          input: "$tra_cuenta_contable2",
+        },
+      },
+      tra_rif: {
+        $trim: {
+          input: "$tra_rif",
+        },
+      },
+    },
+  },
+  // {
+  //   $limit: 500000
+  // },
+  {
+    $out: "sidis_transacciones",
+  },
+]
+///----------------fin----------------///
+
+Formato de datos segment_ant
+///----------------inicio--------------///
+[
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      seg_banca: { $ne: 5 },
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      seg_rif_cedula: {
+        $trim: {
+          input: "$seg_rif_cedula",
+        },
+      },
+      seg_nombre_banca: {
+        $trim: {
+          input: "$seg_nombre_banca",
+        },
+      },
+      seg_nombre_segmento: {
+        $trim: {
+          input: "$seg_nombre_segmento",
+        },
+      },
+      seg_nombre_territorio: {
+        $trim: {
+          input: "$seg_nombre_territorio",
+        },
+      },
+      seg_nombre_oficina: {
+        $trim: {
+          input: "$seg_nombre_oficina",
+        },
+      },
+      seg_estatus: {
+        $trim: {
+          input: "$seg_estatus",
+        },
+      },
+      seg_nivel_socioecon_real: {
+        $trim: {
+          input: "$seg_nivel_socioecon_real",
+        },
+      },
+      seg_nivel_socioecon_sn: {
+        $trim: {
+          input: "$seg_nivel_socioecon_sn",
+        },
+      },
+      seg_nivel_socioecon_lc: {
+        $trim: {
+          input: "$seg_nivel_socioecon_lc",
+        },
+      },
+      seg_nivel_socioecon_prom: {
+        $trim: {
+          input: "$seg_nivel_socioecon_prom",
+        },
+      },
+      seg_nivel_socioecon_est: {
+        $trim: {
+          input: "$seg_nivel_socioecon_est",
+        },
+      },
+      seg_tipo_cliente: {
+        $trim: {
+          input: "$seg_tipo_cliente",
+        },
+      },
+      seg_tipo_cliente_per_ant: {
+        $trim: {
+          input: "$seg_tipo_cliente_per_ant",
+        },
+      },
+      seg_tipo_cliente_trim: {
+        $trim: {
+          input: "$seg_tipo_cliente_trim",
+        },
+      },
+      seg_tipo_cliente_acum: {
+        $trim: {
+          input: "$seg_tipo_cliente_acum",
+        },
+      },
+      seg_tipo_cliente_per_ant_acum: {
+        $trim: {
+          input: "$seg_tipo_cliente_per_ant_acum",
+        },
+      },
+      seg_nombre_subsegmento: {
+        $trim: {
+          input: "$seg_nombre_subsegmento",
+        },
+      },
+      seg_banca: {
+        $convert: {
+          input: "$seg_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_segmento: {
+        $convert: {
+          input: "$seg_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_territorio: {
+        $convert: {
+          input: "$seg_territorio",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_oficina_tutora: {
+        $convert: {
+          input: "$seg_oficina_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cnt_contratos: {
+        $convert: {
+          input: "$seg_cnt_contratos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cnt_productos: {
+        $convert: {
+          input: "$seg_cnt_productos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_num_debitos: {
+        $convert: {
+          input: "$seg_sum_num_debitos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_num_creditos: {
+        $convert: {
+          input: "$seg_sum_num_creditos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cnt_producto_fam: {
+        $convert: {
+          input: "$seg_cnt_producto_fam",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_deb_ult_3m: {
+        $convert: {
+          input: "$seg_deb_ult_3m",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cre_ult_3m: {
+        $convert: {
+          input: "$seg_cre_ult_3m",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cant_cta_transac: {
+        $convert: {
+          input: "$seg_cant_cta_transac",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cant_tarj_deb: {
+        $convert: {
+          input: "$seg_cant_tarj_deb",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cant_prod: {
+        $convert: {
+          input: "$seg_cant_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_subsegmento: {
+        $convert: {
+          input: "$seg_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_saldo: {
+        $convert: {
+          input: "$seg_sum_saldo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_limite_credito: {
+        $convert: {
+          input: "$seg_sum_limite_credito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_promedio: {
+        $convert: {
+          input: "$seg_sum_promedio",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_monto_debitos: {
+        $convert: {
+          input: "$seg_sum_monto_debitos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_monto_creditos: {
+        $convert: {
+          input: "$seg_sum_monto_creditos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_producto_fam: {
+        $convert: {
+          input: "$seg_sum_producto_fam",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cierre_activo: {
+        $convert: {
+          input: "$seg_cierre_activo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_saldo_prom_ult_3m: {
+        $convert: {
+          input: "$seg_saldo_prom_ult_3m",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_margen_basico_bruto: {
+        $convert: {
+          input: "$seg_margen_basico_bruto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_ratio: {
+        $convert: {
+          input: "$seg_ratio",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_fecha_proceso: {
+        $dateFromString: {
+          dateString: "$seg_fecha_proceso",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_alta: {
+        $dateFromString: {
+          dateString: "$seg_fecha_alta",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_canc_venci_d: {
+        $dateFromString: {
+          dateString: "$seg_fecha_canc_venci_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_apertura_d: {
+        $dateFromString: {
+          dateString: "$seg_fecha_apertura_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_nac: {
+        $dateFromString: {
+          dateString: "$seg_fecha_nac",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_cliente_gestionable: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_gestionable"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_gestionable"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_gestionable"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_vinculado: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_vinculado"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_vinculado"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_vinculado"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_nomina: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_nomina"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_nomina"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_nomina"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_universidades: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_universidades"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_universidades"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_universidades"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_todos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_todos"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_todos"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_todos"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_part: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_part"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_part"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_part"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_jur: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_jur"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_jur"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_jur"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_todos_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_todos_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_todos_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_todos_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_part_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_part_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_part_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_part_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_jur_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_jur_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_jur_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_jur_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_todos_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_todos_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_todos_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_todos_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_part_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_part_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_part_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_part_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_jur_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_jur_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_jur_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_jur_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_segmentacion",
+  },
+]
+///----------------fin----------------///
+
+Formato y exportacion tabla sidis
+///----------------inicio--------------///
+[
+  {
+    $addFields: {
+      cli_rif: {
+        $trim: {
+          input: "$cli_rif",
+        },
+      },
+      cli_nom_cliente: {
+        $trim: {
+          input: "$cli_nom_cliente",
+        },
+      },
+      cli_cod_ejecutivo: {
+        $trim: {
+          input: "$cli_cod_ejecutivo",
+        },
+      },
+      cli_sect_econ: {
+        $trim: {
+          input: "$cli_sect_econ",
+        },
+      },
+      cli_nom_banca: {
+        $trim: {
+          input: "$cli_nom_banca",
+        },
+      },
+      cli_nom_segmento: {
+        $trim: {
+          input: "$cli_nom_segmento",
+        },
+      },
+      cli_nom_subsegmento: {
+        $trim: {
+          input: "$cli_nom_subsegmento",
+        },
+      },
+      cli_nom_grupo_econ: {
+        $trim: {
+          input: "$cli_nom_grupo_econ",
+        },
+      },
+      cli_nom_ejecut_cuenta: {
+        $trim: {
+          input: "$cli_nom_ejecut_cuenta",
+        },
+      },
+      cli_nom_ofic_tutora: {
+        $trim: {
+          input: "$cli_nom_ofic_tutora",
+        },
+      },
+      cli_direccion: {
+        $trim: {
+          input: "$cli_direccion",
+        },
+      },
+      cli_cdef_ciudad: {
+        $trim: {
+          input: "$cli_cdef_ciudad",
+        },
+      },
+      cli_estado: {
+        $trim: {
+          input: "$cli_estado",
+        },
+      },
+      cli_cdef_cod_postal: {
+        $trim: {
+          input: "$cli_cdef_cod_postal",
+        },
+      },
+      cli_cdef_telefono1: {
+        $trim: {
+          input: "$cli_cdef_telefono1",
+        },
+      },
+      cli_cdef_telefono2: {
+        $trim: {
+          input: "$cli_cdef_telefono2",
+        },
+      },
+      cli_cdef_fax: {
+        $trim: {
+          input: "$cli_cdef_fax",
+        },
+      },
+      cli_cdef_email: {
+        $trim: {
+          input: "$cli_cdef_email",
+        },
+      },
+      cli_cdef_sexo: {
+        $trim: {
+          input: "$cli_cdef_sexo",
+        },
+      },
+      cli_cdef_niv_estudios: {
+        $trim: {
+          input: "$cli_cdef_niv_estudios",
+        },
+      },
+      cli_cdef_estadocivil: {
+        $trim: {
+          input: "$cli_cdef_estadocivil",
+        },
+      },
+      cli_serv_clave: {
+        $trim: {
+          input: "$cli_serv_clave",
+        },
+      },
+      cli_sector: {
+        $trim: {
+          input: "$cli_sector",
+        },
+      },
+      cli_marca_cliente: {
+        $trim: {
+          input: "$cli_marca_cliente",
+        },
+      },
+      cli_actividad_econ: {
+        $trim: {
+          input: "$cli_actividad_econ",
+        },
+      },
+      cli_desc_act_econ: {
+        $trim: {
+          input: "$cli_desc_act_econ",
+        },
+      },
+      cli_num_per: {
+        $trim: {
+          input: "$cli_num_per",
+        },
+      },
+      cli_marca_itf: {
+        $trim: {
+          input: "$cli_marca_itf",
+        },
+      },
+      cli_fec_nac: {
+        $dateFromString: {
+          dateString: "$cli_fec_nac",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_cdef_fecha_alta: {
+        $dateFromString: {
+          dateString: "$cli_cdef_fecha_alta",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_fecha_carga: {
+        $dateFromString: {
+          dateString: "$cli_fecha_carga",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_fecha_apertura: {
+        $dateFromString: {
+          dateString: "$cli_fecha_apertura",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_banca: {
+        $convert: {
+          input: "$cli_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_segmento: {
+        $convert: {
+          input: "$cli_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_subsegmento: {
+        $convert: {
+          input: "$cli_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cod_grupo_econ: {
+        $convert: {
+          input: "$cli_cod_grupo_econ",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cod_ofic_tutora: {
+        $convert: {
+          input: "$cli_cod_ofic_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_entidad: {
+        $convert: {
+          input: "$cli_entidad",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cdef_dependientes: {
+        $convert: {
+          input: "$cli_cdef_dependientes",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_activo_cont: {
+        $convert: {
+          input: "$cli_cross_activo_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_activo_prod: {
+        $convert: {
+          input: "$cli_cross_activo_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_pasivo_cont: {
+        $convert: {
+          input: "$cli_cross_pasivo_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_pasivo_prod: {
+        $convert: {
+          input: "$cli_cross_pasivo_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_coloca_cont: {
+        $convert: {
+          input: "$cli_cross_coloca_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_coloca_prod: {
+        $convert: {
+          input: "$cli_cross_coloca_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_capta_cont: {
+        $convert: {
+          input: "$cli_cross_capta_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_capta_prod: {
+        $convert: {
+          input: "$cli_cross_capta_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cdef_facturacion: {
+        $convert: {
+          input: "$cli_cdef_facturacion",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_ingre_econ: {
+        $convert: {
+          input: "$cli_ingre_econ",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+    },
+  },
+  // {
+  //   $limit: /**
+  //  * Provide the number of documents to limit.
+  //  */
+  // 500000
+  // },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_clientes",
+  },
+]
+///----------------fin----------------///
+
+Formato y exportacion tabla testing
+///----------------inicio--------------///
+[
+  {
+    $addFields: {
+      cli_rif: {
+        $trim: {
+          input: "$cli_rif",
+        },
+      },
+      cli_nom_cliente: {
+        $trim: {
+          input: "$cli_nom_cliente",
+        },
+      },
+      cli_cod_ejecutivo: {
+        $trim: {
+          input: "$cli_cod_ejecutivo",
+        },
+      },
+      cli_sect_econ: {
+        $trim: {
+          input: "$cli_sect_econ",
+        },
+      },
+      cli_nom_banca: {
+        $trim: {
+          input: "$cli_nom_banca",
+        },
+      },
+      cli_nom_segmento: {
+        $trim: {
+          input: "$cli_nom_segmento",
+        },
+      },
+      cli_nom_subsegmento: {
+        $trim: {
+          input: "$cli_nom_subsegmento",
+        },
+      },
+      cli_nom_grupo_econ: {
+        $trim: {
+          input: "$cli_nom_grupo_econ",
+        },
+      },
+      cli_nom_ejecut_cuenta: {
+        $trim: {
+          input: "$cli_nom_ejecut_cuenta",
+        },
+      },
+      cli_nom_ofic_tutora: {
+        $trim: {
+          input: "$cli_nom_ofic_tutora",
+        },
+      },
+      cli_direccion: {
+        $trim: {
+          input: "$cli_direccion",
+        },
+      },
+      cli_cdef_ciudad: {
+        $trim: {
+          input: "$cli_cdef_ciudad",
+        },
+      },
+      cli_estado: {
+        $trim: {
+          input: "$cli_estado",
+        },
+      },
+      cli_cdef_cod_postal: {
+        $trim: {
+          input: "$cli_cdef_cod_postal",
+        },
+      },
+      cli_cdef_telefono1: {
+        $trim: {
+          input: "$cli_cdef_telefono1",
+        },
+      },
+      cli_cdef_telefono2: {
+        $trim: {
+          input: "$cli_cdef_telefono2",
+        },
+      },
+      cli_cdef_fax: {
+        $trim: {
+          input: "$cli_cdef_fax",
+        },
+      },
+      cli_cdef_email: {
+        $trim: {
+          input: "$cli_cdef_email",
+        },
+      },
+      cli_cdef_sexo: {
+        $trim: {
+          input: "$cli_cdef_sexo",
+        },
+      },
+      cli_cdef_niv_estudios: {
+        $trim: {
+          input: "$cli_cdef_niv_estudios",
+        },
+      },
+      cli_cdef_estadocivil: {
+        $trim: {
+          input: "$cli_cdef_estadocivil",
+        },
+      },
+      cli_serv_clave: {
+        $trim: {
+          input: "$cli_serv_clave",
+        },
+      },
+      cli_sector: {
+        $trim: {
+          input: "$cli_sector",
+        },
+      },
+      cli_marca_cliente: {
+        $trim: {
+          input: "$cli_marca_cliente",
+        },
+      },
+      cli_actividad_econ: {
+        $trim: {
+          input: "$cli_actividad_econ",
+        },
+      },
+      cli_desc_act_econ: {
+        $trim: {
+          input: "$cli_desc_act_econ",
+        },
+      },
+      cli_num_per: {
+        $trim: {
+          input: "$cli_num_per",
+        },
+      },
+      cli_marca_itf: {
+        $trim: {
+          input: "$cli_marca_itf",
+        },
+      },
+      cli_fec_nac: {
+        $dateFromString: {
+          dateString: "$cli_fec_nac",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_cdef_fecha_alta: {
+        $dateFromString: {
+          dateString: "$cli_cdef_fecha_alta",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_fecha_carga: {
+        $dateFromString: {
+          dateString: "$cli_fecha_carga",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_fecha_apertura: {
+        $dateFromString: {
+          dateString: "$cli_fecha_apertura",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_banca: {
+        $convert: {
+          input: "$cli_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_segmento: {
+        $convert: {
+          input: "$cli_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_subsegmento: {
+        $convert: {
+          input: "$cli_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cod_grupo_econ: {
+        $convert: {
+          input: "$cli_cod_grupo_econ",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cod_ofic_tutora: {
+        $convert: {
+          input: "$cli_cod_ofic_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_entidad: {
+        $convert: {
+          input: "$cli_entidad",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cdef_dependientes: {
+        $convert: {
+          input: "$cli_cdef_dependientes",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_activo_cont: {
+        $convert: {
+          input: "$cli_cross_activo_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_activo_prod: {
+        $convert: {
+          input: "$cli_cross_activo_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_pasivo_cont: {
+        $convert: {
+          input: "$cli_cross_pasivo_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_pasivo_prod: {
+        $convert: {
+          input: "$cli_cross_pasivo_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_coloca_cont: {
+        $convert: {
+          input: "$cli_cross_coloca_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_coloca_prod: {
+        $convert: {
+          input: "$cli_cross_coloca_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_capta_cont: {
+        $convert: {
+          input: "$cli_cross_capta_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_capta_prod: {
+        $convert: {
+          input: "$cli_cross_capta_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cdef_facturacion: {
+        $convert: {
+          input: "$cli_cdef_facturacion",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_ingre_econ: {
+        $convert: {
+          input: "$cli_ingre_econ",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+    },
+  },
+  {
+    /**
+     * Provide the number of documents to limit.
+     */
+    $limit: 500000,
+  },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_clientes_testing",
+  },
+]
+///----------------fin----------------///
+
+Formato y exportacion tabla testing ultima carga
+///----------------inicio--------------///
+[
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      cli_rif: "J50019975",
+    },
+  },
+  {
+    /**
+     * Provide any number of field/order pairs.
+     */
+    $sort: {
+      cli_fecha_carga: -1,
+    },
+  },
+  {
+    /**
+     * Provide the number of documents to limit.
+     */
+    $limit: 1,
+  },
+  {
+    $addFields: {
+      cli_rif: {
+        $trim: {
+          input: "$cli_rif",
+        },
+      },
+      cli_nom_cliente: {
+        $trim: {
+          input: "$cli_nom_cliente",
+        },
+      },
+      cli_cod_ejecutivo: {
+        $trim: {
+          input: "$cli_cod_ejecutivo",
+        },
+      },
+      cli_sect_econ: {
+        $trim: {
+          input: "$cli_sect_econ",
+        },
+      },
+      cli_nom_banca: {
+        $trim: {
+          input: "$cli_nom_banca",
+        },
+      },
+      cli_nom_segmento: {
+        $trim: {
+          input: "$cli_nom_segmento",
+        },
+      },
+      cli_nom_subsegmento: {
+        $trim: {
+          input: "$cli_nom_subsegmento",
+        },
+      },
+      cli_nom_grupo_econ: {
+        $trim: {
+          input: "$cli_nom_grupo_econ",
+        },
+      },
+      cli_nom_ejecut_cuenta: {
+        $trim: {
+          input: "$cli_nom_ejecut_cuenta",
+        },
+      },
+      cli_nom_ofic_tutora: {
+        $trim: {
+          input: "$cli_nom_ofic_tutora",
+        },
+      },
+      cli_direccion: {
+        $trim: {
+          input: "$cli_direccion",
+        },
+      },
+      cli_cdef_ciudad: {
+        $trim: {
+          input: "$cli_cdef_ciudad",
+        },
+      },
+      cli_estado: {
+        $trim: {
+          input: "$cli_estado",
+        },
+      },
+      cli_cdef_cod_postal: {
+        $trim: {
+          input: "$cli_cdef_cod_postal",
+        },
+      },
+      cli_cdef_telefono1: {
+        $trim: {
+          input: "$cli_cdef_telefono1",
+        },
+      },
+      cli_cdef_telefono2: {
+        $trim: {
+          input: "$cli_cdef_telefono2",
+        },
+      },
+      cli_cdef_fax: {
+        $trim: {
+          input: "$cli_cdef_fax",
+        },
+      },
+      cli_cdef_email: {
+        $trim: {
+          input: "$cli_cdef_email",
+        },
+      },
+      cli_cdef_sexo: {
+        $trim: {
+          input: "$cli_cdef_sexo",
+        },
+      },
+      cli_cdef_niv_estudios: {
+        $trim: {
+          input: "$cli_cdef_niv_estudios",
+        },
+      },
+      cli_cdef_estadocivil: {
+        $trim: {
+          input: "$cli_cdef_estadocivil",
+        },
+      },
+      cli_serv_clave: {
+        $trim: {
+          input: "$cli_serv_clave",
+        },
+      },
+      cli_sector: {
+        $trim: {
+          input: "$cli_sector",
+        },
+      },
+      cli_marca_cliente: {
+        $trim: {
+          input: "$cli_marca_cliente",
+        },
+      },
+      cli_actividad_econ: {
+        $trim: {
+          input: "$cli_actividad_econ",
+        },
+      },
+      cli_desc_act_econ: {
+        $trim: {
+          input: "$cli_desc_act_econ",
+        },
+      },
+      cli_num_per: {
+        $trim: {
+          input: "$cli_num_per",
+        },
+      },
+      cli_marca_itf: {
+        $trim: {
+          input: "$cli_marca_itf",
+        },
+      },
+      cli_fec_nac: {
+        $dateFromString: {
+          dateString: "$cli_fec_nac",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_cdef_fecha_alta: {
+        $dateFromString: {
+          dateString: "$cli_cdef_fecha_alta",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_fecha_carga: {
+        $dateFromString: {
+          dateString: "$cli_fecha_carga",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_fecha_apertura: {
+        $dateFromString: {
+          dateString: "$cli_fecha_apertura",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900-01-01T00:00:00.000Z"),
+          onError: new Date("1900-01-01T00:00:00.000Z"),
+        },
+      },
+      cli_banca: {
+        $convert: {
+          input: "$cli_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_segmento: {
+        $convert: {
+          input: "$cli_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_subsegmento: {
+        $convert: {
+          input: "$cli_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cod_grupo_econ: {
+        $convert: {
+          input: "$cli_cod_grupo_econ",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cod_ofic_tutora: {
+        $convert: {
+          input: "$cli_cod_ofic_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_entidad: {
+        $convert: {
+          input: "$cli_entidad",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cdef_dependientes: {
+        $convert: {
+          input: "$cli_cdef_dependientes",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_activo_cont: {
+        $convert: {
+          input: "$cli_cross_activo_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_activo_prod: {
+        $convert: {
+          input: "$cli_cross_activo_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_pasivo_cont: {
+        $convert: {
+          input: "$cli_cross_pasivo_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_pasivo_prod: {
+        $convert: {
+          input: "$cli_cross_pasivo_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_coloca_cont: {
+        $convert: {
+          input: "$cli_cross_coloca_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_coloca_prod: {
+        $convert: {
+          input: "$cli_cross_coloca_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_capta_cont: {
+        $convert: {
+          input: "$cli_cross_capta_cont",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cross_capta_prod: {
+        $convert: {
+          input: "$cli_cross_capta_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_cdef_facturacion: {
+        $convert: {
+          input: "$cli_cdef_facturacion",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      cli_ingre_econ: {
+        $convert: {
+          input: "$cli_ingre_econ",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+    },
+  },
+  // {
+  //   $limit: 500000
+  // },
+  {
+    $out: "sidis_clientes_testing",
+  },
+]
+///----------------fin----------------///
+
+Formato y salida a coleccion intermedia
+///----------------inicio--------------///
+[
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      sno_ind_cobcomi: {
+        $convert: {
+          input: "$sno_ind_cobcomi",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_num_negoc: {
+        $convert: {
+          input: "$sno_num_negoc",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_id_debito: {
+        $convert: {
+          input: "$sno_id_debito",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_mto_debito: {
+        $convert: {
+          input: "$sno_mto_debito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_mto_actuali: {
+        $convert: {
+          input: "$sno_mto_actuali",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_mto_cobcomi: {
+        $convert: {
+          input: "$sno_mto_cobcomi",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_fec_valor: {
+        $dateFromString: {
+          dateString: "$sno_fec_valor",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      sno_fec_inineg: {
+        $dateFromString: {
+          dateString: "$sno_fec_inineg",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      sno_fec_recarch: {
+        $dateFromString: {
+          dateString: "$sno_fec_recarch",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      sno_num_cuenta: {
+        $trim: {
+          input: "$sno_num_cuenta",
+        },
+      },
+
+      sno_id_reflote: {
+        $trim: {
+          input: "$sno_id_reflote",
+        },
+      },
+      sno_rif_empresa: {
+        $trim: {
+          input: "$sno_rif_empresa",
+        },
+      },
+
+      sno_medio_envi: {
+        $trim: {
+          input: "$sno_medio_envi",
+        },
+      },
+
+      sno_tipo_pago: {
+        $trim: {
+          input: "$sno_tipo_pago",
+        },
+      },
+
+      sno_neg_priabon: {
+        $trim: {
+          input: "$sno_neg_priabon",
+        },
+      },
+
+      sno_neg_sinabon: {
+        $trim: {
+          input: "$sno_neg_sinabon",
+        },
+      },
+
+      sno_cta_cobcomi: {
+        $trim: {
+          input: "$sno_cta_cobcomi",
+        },
+      },
+
+      sno_tipo_sobreg: {
+        $trim: {
+          input: "$sno_tipo_sobreg",
+        },
+      },
+
+      sno_serial_nego: {
+        $trim: {
+          input: "$sno_serial_nego",
+        },
+      },
+
+      sno_regla_negoc: {
+        $trim: {
+          input: "$sno_regla_negoc",
+        },
+      },
+
+      sno_id_perfil: {
+        $trim: {
+          input: "$sno_id_perfil",
+        },
+      },
+
+      sno_tipo_registro: {
+        $trim: {
+          input: "$sno_tipo_registro",
+        },
+      },
+
+      sno_interfaz: {
+        $trim: {
+          input: "$sno_interfaz",
+        },
+      },
+    },
+  },
+  // {
+  //   $limit: /**
+  //  * Provide the number of documents to limit.
+  //  */
+  // 500000
+  // },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_ordenante",
+  },
+]
+///----------------fin----------------///
+
+Formato y salida a testing
+///----------------inicio--------------///
+[
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      sno_ind_cobcomi: {
+        $convert: {
+          input: "$sno_ind_cobcomi",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_num_negoc: {
+        $convert: {
+          input: "$sno_num_negoc",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_id_debito: {
+        $convert: {
+          input: "$sno_id_debito",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_mto_debito: {
+        $convert: {
+          input: "$sno_mto_debito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_mto_actuali: {
+        $convert: {
+          input: "$sno_mto_actuali",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_mto_cobcomi: {
+        $convert: {
+          input: "$sno_mto_cobcomi",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+
+      sno_fec_valor: {
+        $dateFromString: {
+          dateString: "$sno_fec_valor",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      sno_fec_inineg: {
+        $dateFromString: {
+          dateString: "$sno_fec_inineg",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      sno_fec_recarch: {
+        $dateFromString: {
+          dateString: "$sno_fec_recarch",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+
+      sno_num_cuenta: {
+        $trim: {
+          input: "$sno_num_cuenta",
+        },
+      },
+
+      sno_id_reflote: {
+        $trim: {
+          input: "$sno_id_reflote",
+        },
+      },
+      sno_rif_empresa: {
+        $trim: {
+          input: "$sno_rif_empresa",
+        },
+      },
+
+      sno_medio_envi: {
+        $trim: {
+          input: "$sno_medio_envi",
+        },
+      },
+
+      sno_tipo_pago: {
+        $trim: {
+          input: "$sno_tipo_pago",
+        },
+      },
+
+      sno_neg_priabon: {
+        $trim: {
+          input: "$sno_neg_priabon",
+        },
+      },
+
+      sno_neg_sinabon: {
+        $trim: {
+          input: "$sno_neg_sinabon",
+        },
+      },
+
+      sno_cta_cobcomi: {
+        $trim: {
+          input: "$sno_cta_cobcomi",
+        },
+      },
+
+      sno_tipo_sobreg: {
+        $trim: {
+          input: "$sno_tipo_sobreg",
+        },
+      },
+
+      sno_serial_nego: {
+        $trim: {
+          input: "$sno_serial_nego",
+        },
+      },
+
+      sno_regla_negoc: {
+        $trim: {
+          input: "$sno_regla_negoc",
+        },
+      },
+
+      sno_id_perfil: {
+        $trim: {
+          input: "$sno_id_perfil",
+        },
+      },
+
+      sno_tipo_registro: {
+        $trim: {
+          input: "$sno_tipo_registro",
+        },
+      },
+
+      sno_interfaz: {
+        $trim: {
+          input: "$sno_interfaz",
+        },
+      },
+    },
+  },
+  {
+    /**
+     * Provide the number of documents to limit.
+     */
+    $limit: 500000,
+  },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_ordenante_testing",
+  },
+]
+///----------------fin----------------///
+
+Transformacion base_cliente a sidis_base_cliente
+///----------------inicio--------------///
+[
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      mbc_cod_banca: { $ne: 5 },
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      mbc_vista: { $toBool: "$mbc_vista" },
+      mbc_ahorro: { $toBool: "$mbc_ahorro" },
+      mbc_plazo: { $toBool: "$mbc_plazo" },
+      mbc_tarjeta_clv_prepag: {
+        $toBool: "$mbc_tarjeta_clv_prepag",
+      },
+      mbc_tdd: { $toBool: "$mbc_tdd" },
+      mbc_consumo: { $toBool: "$mbc_consumo" },
+      mbc_crediauto: { $toBool: "$mbc_crediauto" },
+      mbc_credipersonal: { $toBool: "$mbc_credipersonal" },
+      mbc_credinomina: { $toBool: "$mbc_credinomina" },
+      mbc_credi_mcbe: { $toBool: "$mbc_credi_mcbe" },
+      mbc_tdc: { $toBool: "$mbc_tdc" },
+      mbc_ced_buen_vivir: {
+        $toBool: "$mbc_ced_buen_vivir",
+      },
+      mbc_emprendedores: { $toBool: "$mbc_emprendedores" },
+      mbc_tarjeta_turismo: {
+        $toBool: "$mbc_tarjeta_turismo",
+      },
+      mbc_creditos_dirig: {
+        $toBool: "$mbc_creditos_dirig",
+      },
+      mbc_turismo: { $toBool: "$mbc_turismo" },
+      mbc_hip_vivienda: { $toBool: "$mbc_hip_vivienda" },
+      mbc_hip_constructor: {
+        $toBool: "$mbc_hip_constructor",
+      },
+      mbc_manufactura: { $toBool: "$mbc_manufactura" },
+      mbc_microcredito: { $toBool: "$mbc_microcredito" },
+      mbc_microcred_social: {
+        $toBool: "$mbc_microcred_social",
+      },
+      mbc_agropecuario: { $toBool: "$mbc_agropecuario" },
+      mbc_pagare: { $toBool: "$mbc_pagare" },
+      mbc_prestamo: { $toBool: "$mbc_prestamo" },
+      mbc_arrendamiento: { $toBool: "$mbc_arrendamiento" },
+      mbc_cartas_credito: {
+        $toBool: "$mbc_cartas_credito",
+      },
+      mbc_plan_mayor: { $toBool: "$mbc_plan_mayor" },
+      mbc_descuento: { $toBool: "$mbc_descuento" },
+      mbc_factori: { $toBool: "$mbc_factori" },
+      mbc_credito_cta_cte: {
+        $toBool: "$mbc_credito_cta_cte",
+      },
+      mbc_seguro: { $toBool: "$mbc_seguro" },
+      mbc_cash: { $toBool: "$mbc_cash" },
+      mbc_domiciliaciones: {
+        $toBool: "$mbc_domiciliaciones",
+      },
+      mbc_fidecomiso: { $toBool: "$mbc_fidecomiso" },
+      mbc_cadivi: { $toBool: "$mbc_cadivi" },
+      mbc_operaciones_fx: {
+        $toBool: "$mbc_operaciones_fx",
+      },
+      mbc_comex: { $toBool: "$mbc_comex" },
+      mbc_sitme: { $toBool: "$mbc_sitme" },
+      mbc_pos: { $toBool: "$mbc_pos" },
+      mbc_tbcom: { $toBool: "$mbc_tbcom" },
+      mbc_pensionado_jubilado: {
+        $toBool: "$mbc_pensionado_jubilado",
+      },
+      mbc_nomina: { $toBool: "$mbc_nomina" },
+      mbc_internet: { $toBool: "$mbc_internet" },
+      mbc_clavemovil: { $toBool: "$mbc_clavemovil" },
+      mbc_clave_personal: {
+        $toBool: "$mbc_clave_personal",
+      },
+      mbc_clave_empresarial: {
+        $toBool: "$mbc_clave_empresarial",
+      },
+      mbc_banca_movil: { $toBool: "$mbc_banca_movil" },
+      mbc_cliente_activo: {
+        $toBool: "$mbc_cliente_activo",
+      },
+      mbc_cliente_gestionable: {
+        $toBool: "$mbc_cliente_gestionable",
+      },
+      mbc_cliente_vinculado: {
+        $toBool: "$mbc_cliente_vinculado",
+      },
+      mbc_feve: { $toBool: "$mbc_feve" },
+      mbc_uai: { $toBool: "$mbc_uai" },
+      mbc_cuenta_dolares: {
+        $toBool: "$mbc_cuenta_dolares",
+      },
+      mbc_cta_cte_social: {
+        $toBool: "$mbc_cta_cte_social",
+      },
+      mbc_cta_digital_somos: {
+        $toBool: "$mbc_cta_digital_somos",
+      },
+      mbc_cta_ahorro_digital: {
+        $toBool: "$mbc_cta_ahorro_digital",
+      },
+    },
+  },
+  {
+    /**
+     * Provide the name of the output collection.
+     */
+    $out: "sidis_base_cliente",
+  },
+]
+///----------------fin----------------///
+
+Marginmetricsactivo nuevo
+///----------------inicio--------------///
+[
+  {
+    $match: {
+      $and: [
+        {
+          mcl_fecha_proceso: {
+            $lt: new Date("Sun, 01 Jan 2023 00:00:00 GMT"),
+          },
+        },
+        {
+          mcl_fecha_proceso: {
+            $gte: new Date("Sat, 01 Jan 2022 00:00:00 GMT"),
+          },
+        },
+      ],
+    },
+  },
+  {
+    $addFields: {
+      mcl_cuenta_contable1_indicador: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+    },
+  },
+  {
+    $match: {
+      mcl_naturaleza_producto: {
+        $in: [1],
+      },
+      mcl_banca: {
+        $nin: [5, 4],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon: "$mcl_nivel_socioecon",
+        mcl_grupo_economico: "$mcl_grupo_economico",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+        mcl_cuenta_contable1_indicador:
+          "$mcl_cuenta_contable1_indicador",
+      },
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+      intereses: {
+        $sum: "$mcl_intereses",
+      },
+      abono_liq: {
+        $sum: {
+          $cond: [
+            {
+              $and: [
+                {
+                  $gte: [
+                    "$mcl_fecha_liq_operacion",
+                    {
+                      $dateTrunc: {
+                        date: "$mcl_fecha_proceso",
+                        unit: "month",
+                      },
+                    },
+                  ],
+                },
+                {
+                  $lte: [
+                    "$mcl_fecha_liq_operacion",
+                    "$mcl_fecha_proceso",
+                  ],
+                },
+              ],
+            },
+            "$mcl_monto_apertura",
+            0,
+          ],
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      mcl_segmento: "$_id.mcl_segmento",
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      mcl_nombre_cliente: "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon: "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico: "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair: "$_id.mcl_producto_altair",
+      mcl_subproducto_altair: "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1: "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+      mcl_cuenta_contable1_indicador:
+        "$_id.mcl_cuenta_contable1_indicador",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: ["$result.prd_nombre_producto", 0],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      result: 0,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      resultSize: {
+        $size: "$result",
+      },
+      moneda_base: "BOLIVARES",
+    },
+  },
+  {
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "$moneda_base",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.denominacion", 0],
+              },
+            },
+          ],
+        },
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.condicion", 0],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      resultSize: 0,
+      result: 0,
+    },
+  },
+  {
+    $sort: {
+      mcl_fecha_proceso: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "mcl_fecha_proceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      tasa_dolar: {
+        $arrayElemAt: ["$result.Tasa_DOL", 0],
+      },
+      relacion_eur: {
+        $divide: [
+          {
+            $arrayElemAt: ["$result.Tasa_EUR", 0],
+          },
+          {
+            $arrayElemAt: ["$result.Tasa_DOL", 0],
+          },
+        ],
+      },
+      saldo_divisa_origen: "$saldo",
+      promedio_divisa_origen: "$promedio",
+      monto_debitos_divisa_origen: "$monto_debitos",
+      monto_creditos_divisa_origen: "$monto_creditos",
+      intereses_divisa_origen: "$intereses",
+      abono_liq_divisa_origen: "$abono_liq",
+    },
+  },
+  {
+    $addFields: {
+      saldo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$saldo", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: ["$saldo", "$relacion_eur"],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      promedio: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$promedio", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$promedio",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      monto_debitos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_debitos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$monto_debitos",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      monto_creditos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_creditos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$monto_creditos",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      intereses: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$intereses", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$intereses",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+      abono_liq: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$abono_liq", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$abono_liq",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      divisa_origen: "$denominacion",
+    },
+  },
+  {
+    $project: {
+      result: 0,
+      mcl_estatus: 0,
+      condicion: 0,
+      denominacion: 0,
+      moneda_base: 0,
+    },
+  },
+  {
+    $out: "Margenmetricsactivo",
+  },
+]
+///----------------fin----------------///
+
+
+Marginmetricspasivo nuevo
+///----------------inicio--------------///
+[
+  {
+    $match: {
+      $and: [
+        {
+          mcl_fecha_proceso: {
+            $lt: new Date("Sun, 01 Jan 2023 00:00:00 GMT"),
+          },
+        },
+        {
+          mcl_fecha_proceso: {
+            $gte: new Date("Sat, 01 Jan 2022 00:00:00 GMT"),
+          },
+        },
+      ],
+    },
+  },
+  {
+    $addFields: {
+      mcl_cuenta_contable1_substr: {
+        $substr: ["$mcl_cuenta_contable1", 1, 3],
+      },
+    },
+  },
+  {
+    $match: {
+      mcl_naturaleza_producto: {
+        $in: [2, 6],
+      },
+      mcl_producto: {
+        $nin: [196, 197, 198, 808, 809],
+      },
+      mcl_banca: {
+        $nin: [5, 4],
+      },
+      mcl_cuenta_contable1_substr: {
+        $nin: ["231", "241", "611", "819"],
+      },
+      mcl_estatus: "A",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        mcl_fecha_proceso: "$mcl_fecha_proceso",
+        mcl_rif_cedula: "$mcl_rif_cedula",
+        mcl_banca: "$mcl_banca",
+        mcl_segmento: "$mcl_segmento",
+        mcl_subsegmento: "$mcl_subsegmento",
+        mcl_nombre_cliente: "$mcl_nombre_cliente",
+        mcl_nivel_socioecon: "$mcl_nivel_socioecon",
+        mcl_grupo_economico: "$mcl_grupo_economico",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+        mcl_estatus: "$mcl_estatus",
+      },
+      fecha_ult_trans: {
+        $first: "$mcl_fecha_ult_tran_d",
+      },
+      numero_contratos: {
+        $sum: 1,
+      },
+      saldo: {
+        $sum: "$mcl_saldo",
+      },
+      promedio: {
+        $sum: "$mcl_promedio",
+      },
+      num_debitos: {
+        $sum: "$mcl_numero_debitos",
+      },
+      monto_debitos: {
+        $sum: "$mcl_monto_debitos",
+      },
+      num_creditos: {
+        $sum: "$mcl_numero_creditos",
+      },
+      monto_creditos: {
+        $sum: "$mcl_monto_creditos",
+      },
+    },
+  },
+  {
+    $addFields: {
+      mcl_fecha_proceso: "$_id.mcl_fecha_proceso",
+      mcl_rif_cedula: "$_id.mcl_rif_cedula",
+      mcl_banca: "$_id.mcl_banca",
+      mcl_segmento: "$_id.mcl_segmento",
+      mcl_subsegmento: "$_id.mcl_subsegmento",
+      mcl_nombre_cliente: "$_id.mcl_nombre_cliente",
+      mcl_nivel_socioecon: "$_id.mcl_nivel_socioecon",
+      mcl_grupo_economico: "$_id.mcl_grupo_economico",
+      mcl_naturaleza_producto:
+        "$_id.mcl_naturaleza_producto",
+      mcl_producto: "$_id.mcl_producto",
+      mcl_producto_altair: "$_id.mcl_producto_altair",
+      mcl_subproducto_altair: "$_id.mcl_subproducto_altair",
+      mcl_cuenta_contable1: "$_id.mcl_cuenta_contable1",
+      mcl_estatus: "$_id.mcl_estatus",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_productos",
+      localField: "mcl_producto",
+      foreignField: "prd_codigo_producto",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      prd_nombre_producto: {
+        $arrayElemAt: ["$result.prd_nombre_producto", 0],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      result: 0,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      resultSize: {
+        $size: "$result",
+      },
+      moneda_base: "BOLIVARES",
+    },
+  },
+  {
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "$moneda_base",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.denominacion", 0],
+              },
+            },
+          ],
+        },
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: {
+                $arrayElemAt: ["$result.condicion", 0],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      resultSize: 0,
+      result: 0,
+    },
+  },
+  {
+    $sort: {
+      mcl_fecha_proceso: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "mcl_fecha_proceso",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      tasa_dolar: {
+        $arrayElemAt: ["$result.Tasa_DOL", 0],
+      },
+      relacion_eur: {
+        $divide: [
+          {
+            $arrayElemAt: ["$result.Tasa_EUR", 0],
+          },
+          {
+            $arrayElemAt: ["$result.Tasa_DOL", 0],
+          },
+        ],
+      },
+      saldo_divisa_origen: "$saldo",
+      promedio_divisa_origen: "$promedio",
+      monto_debitos_divisa_origen: "$monto_debitos",
+      monto_creditos_divisa_origen: "$monto_creditos",
+    },
+  },
+  {
+    $addFields: {
+      saldo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$saldo", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: ["$saldo", "$relacion_eur"],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$saldo",
+        },
+      },
+      promedio: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: ["$promedio", "$tasa_dolar"],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$promedio",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$promedio",
+        },
+      },
+      monto_debitos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_debitos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$monto_debitos",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$monto_debitos",
+        },
+      },
+      monto_creditos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$monto_creditos",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$monto_creditos",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$monto_creditos",
+        },
+      },
+      divisa_origen: "$denominacion",
+    },
+  },
+  {
+    $project: {
+      result: 0,
+      mcl_estatus: 0,
+      condicion: 0,
+      denominacion: 0,
+      moneda_base: 0,
+    },
+  },
+  {
+    $out: "Margenmetricspasivo",
+  },
+]
+///----------------fin----------------///

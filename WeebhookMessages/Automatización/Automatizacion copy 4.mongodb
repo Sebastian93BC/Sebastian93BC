@@ -1,0 +1,312 @@
+[
+  {
+    $limit:
+      //only for star operation
+      1,
+  },
+  {
+    $match: {
+      //only for updates
+      proceso: "webhook_messages_marketing",
+      $expr: {
+        $eq: [
+          "$fechaProceso",
+          {
+            $toDate: "2023-12-18",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      //only for star operation
+      _id: "$$REMOVE",
+      proceso: "webhook_messages_marketing",
+      //"{{$json.proceso}}",
+      fechaProceso: {
+        $toDate: "2023-12-18",
+        //"{{$json.fechaProceso}}"
+      },
+
+      descripcion:
+        "Preprocesamiento webhook Messages",
+      status: "En Proceso",
+      fechaInicio: "$$NOW",
+      fechaFin: "nda",
+      tiempoEjecucion: "nda",
+      tipoOperación: "4 sub-procesos",
+      frecuencia: "Cada 2 horas",
+      updatedAt: "$$NOW",
+      procesos: [
+        {
+          subProceso:
+            "AcutalizacionWebhookMessageRecipients",
+          descripcion:
+            "Actualización message, webhook",
+          fechaProceso: {
+            $toDate: "2023-12-18",
+            //"{{$json.fechaProceso}}"
+          },
+
+          fuenteEntrada:
+            "webhook/webhook messages",
+          fuenteSalida: "message",
+          frecuencia: "Diaria",
+          fechaInicio: "$$NOW",
+          fechaFin: "nda",
+          tiempoEjecucion: "nda",
+          status: "En Proceso",
+        },
+        {
+          subProceso:
+            "AcutalizacionPeopleMessages",
+          descripcion:
+            "Actualización campaingStatus y emailResult",
+          fechaProceso: "$fechaProceso",
+          fuenteEntrada: "messages",
+          fuenteSalida: "People",
+          frecuencia: "Diaria",
+          fechaInicio: "nda",
+          fechaFin: "nda",
+          tiempoEjecucion: "nda",
+          status: "En espera",
+        },
+        {
+          subProceso:
+            "AcutalizacionCompanyMessages",
+          descripcion:
+            "Actualización campaingStatus y emailResult",
+          fechaProceso: "$fechaProceso",
+          fuenteEntrada: "messages",
+          fuenteSalida: "Company",
+          frecuencia: "Diaria",
+          fechaInicio: "nda",
+          fechaFin: "nda",
+          tiempoEjecucion: "nda",
+          status: "En espera",
+        },
+        {
+          subProceso:
+            "AcutalizacionExternalpotentialMessages",
+          descripcion:
+            "Actualización campaingStatus y emailResult",
+          fechaProceso: "$fechaProceso",
+          fuenteEntrada: "messages",
+          fuenteSalida: "Externalpotential",
+          frecuencia: "Diaria",
+          fechaInicio: "nda",
+          fechaFin: "nda",
+          tiempoEjecucion: "nda",
+          status: "En espera",
+        },
+      ],
+    },
+  },
+  {
+    $addFields: {
+      //only for star_2 operations
+      procesos: {
+        $map: {
+          input: "$procesos",
+          as: "procesos",
+          in: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      "$$procesos.subProceso",
+                      "AcutalizacionPeopleMessages",
+                      //"{{$json.proceso}}"
+                    ],
+                  },
+                ],
+              },
+              {
+                $mergeObjects: [
+                  {
+                    subProceso:
+                      "AcutalizacionPeopleMessages",
+                    //"{{$json.proceso}}",
+                  },
+                  {
+                    descripcion:
+                      "$$procesos.descripcion",
+                  },
+                  {
+                    fechaProceso: "$fechaProceso",
+                  },
+                  {
+                    fuenteEntrada:
+                      "$$procesos.fuenteEntrada",
+                  },
+                  {
+                    fuenteSalida:
+                      "$$procesos.fuenteSalida",
+                  },
+                  {
+                    frecuencia:
+                      "$$procesos.frecuencia",
+                  },
+                  {
+                    fechaInicio: "$$NOW",
+                  },
+                  {
+                    fechaFin:
+                      "$$procesos.fechaFin",
+                  },
+                  {
+                    status: "En Proceso",
+                  },
+                  {
+                    tiempoEjecucion:
+                      "$$procesos.tiempoEjecucion",
+                  },
+                ],
+              },
+              "$$procesos",
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      //only for updated operations
+      procesos: {
+        $map: {
+          input: "$procesos",
+          as: "procesos",
+          in: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      "$$procesos.subProceso",
+                      "AcutalizacionPeopleMessages",
+                      //"{{$json.proceso}}"
+                    ],
+                  },
+                ],
+              },
+              {
+                $mergeObjects: [
+                  {
+                    subProceso:
+                      "AcutalizacionPeopleMessages",
+                    // "{{$json.proceso}}"
+                  },
+                  {
+                    descripcion:
+                      "$$procesos.descripcion",
+                  },
+                  {
+                    fechaProceso: "$fechaProceso",
+                  },
+                  {
+                    fuenteEntrada:
+                      "$$procesos.fuenteEntrada",
+                  },
+                  {
+                    fuenteSalida:
+                      "$$procesos.fuenteSalida",
+                  },
+                  {
+                    frecuencia:
+                      "$$procesos.frecuencia",
+                  },
+                  {
+                    fechaInicio:
+                      "$$procesos.fechaInicio",
+                  },
+                  {
+                    fechaFin: "$$NOW",
+                  },
+                  {
+                    status: "Finalizado",
+                  },
+                  {
+                    tiempoEjecucion: {
+                      $round: [
+                        {
+                          $divide: [
+                            {
+                              $subtract: [
+                                "$$NOW",
+                                "$$procesos.fechaInicio",
+                              ],
+                            },
+                            60000,
+                          ],
+                        },
+                        2,
+                      ],
+                    },
+                  },
+                ],
+              },
+              "$$procesos",
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      //only for updates operation
+      status: {
+        $cond: [
+          {
+            $or: [
+              {
+                $in: [
+                  "En Proceso",
+                  "$procesos.status",
+                ],
+              },
+              {
+                $in: [
+                  "En espera",
+                  "$procesos.status",
+                ],
+              },
+            ],
+          },
+          "En Proceso",
+          "Finalizado",
+        ],
+      },
+      fechaFin: "$$NOW",
+      tiempoEjecucion: {
+        $round: [
+          {
+            $divide: [
+              {
+                $subtract: [
+                  "$$NOW",
+                  "$fechaInicio",
+                ],
+              },
+              60000,
+            ],
+          },
+          2,
+        ],
+      },
+      updatedAt: "$$NOW",
+    },
+  },
+  {
+    $merge: {
+      into: "sidis_statusProcesos",
+      on: ["proceso", "fechaProceso"],
+    },
+  },
+]
+
+

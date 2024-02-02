@@ -1,0 +1,256 @@
+[
+  // {
+  //   $match:
+  //     /**
+  //      * query: The query in MQL.
+  //      */
+  //     {
+  //       rifCedula: "J50019975",
+  //     },
+  // },
+  {
+    $addFields: {
+      //Editar
+      fechaSuperior: {
+        $dateFromParts: {
+          year: {
+            $year: {
+              $toDate:
+                "2023-06-30T00:00:00.000+00:00",
+              //"$toDate": "{{$json.offSet}}"
+            },
+          },
+
+          month: {
+            $month: {
+              $toDate:
+                "2023-06-30T00:00:00.000+00:00",
+              //"$toDate": "{{$json.offSet}}"
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      fechaProcesoAct: {
+        $dateFromParts: {
+          year: {
+            $year: "$fechaProceso",
+          },
+          month: {
+            $month: "$fechaProceso",
+          },
+        },
+      },
+      fechaInferior: {
+        $dateSubtract: {
+          startDate: {
+            $dateFromParts: {
+              year: {
+                $year: "$fechaSuperior",
+              },
+              month: {
+                $month: "$fechaSuperior",
+              },
+            },
+          },
+          unit: "month",
+          amount: 5,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProcesoAct",
+              "$fechaInferior",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProcesoAct",
+              "$fechaSuperior",
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$rifCedula",
+      },
+      rifCedula: {
+        $first: "$rifCedula",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      saldoDolar6m: {
+        $sum: "$saldoDolar",
+      },
+      saldoEuro6m: {
+        $sum: "$saldoEuro",
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldoDolarProm6m: {
+        $round: [
+          {
+            $divide: ["$saldoDolar6m", 6],
+          },
+          4,
+        ],
+      },
+      saldoEuroProm6m: {
+        $round: [
+          {
+            $divide: ["$saldoEuro6m", 6],
+          },
+          4,
+        ],
+      },
+      rifCedula: "$rifCedula",
+      _id: "$$REMOVE",
+      saldoDolar6m: "$$REMOVE",
+      saldoEuro6m: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$addFields": {
+      "fechaSuperior": {
+        "$dateFromParts": {
+          "year": {
+            "$year": {
+              "$toDate": "{{$json.offSet}}"
+            }
+          }, 
+          "month": {
+            "$month": {
+              "$toDate": "{{$json.offSet}}"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProcesoAct": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaProceso"
+          }, 
+          "month": {
+            "$month": "$fechaProceso"
+          }
+        }
+      }, 
+      "fechaInferior": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$fechaSuperior"
+              }, 
+              "month": {
+                "$month": "$fechaSuperior"
+              }
+            }
+          }, 
+          "unit": "month", 
+          "amount": 5
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProcesoAct", "$fechaInferior"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProcesoAct", "$fechaSuperior"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$rifCedula"
+      }, 
+      "rifCedula": {
+        "$first": "$rifCedula"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "saldoDolar6m": {
+        "$sum": "$saldoDolar"
+      }, 
+      "saldoEuro6m": {
+        "$sum": "$saldoEuro"
+      }
+    }
+  }, {
+    "$addFields": {
+      "saldoDolarProm6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$saldoDolar6m", 6
+            ]
+          }, 4
+        ]
+      }, 
+      "saldoEuroProm6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$saldoEuro6m", 6
+            ]
+          }, 4
+        ]
+      }, 
+      "rifCedula": "$rifCedula", 
+      "_id": "$$REMOVE", 
+      "saldoDolar6m": "$$REMOVE", 
+      "saldoEuro6m": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ]
+    }
+  }
+]

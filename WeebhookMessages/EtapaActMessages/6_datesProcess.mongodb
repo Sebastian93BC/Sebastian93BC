@@ -1,0 +1,78 @@
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        proceso: "messageDateLastAct",
+      },
+  },
+  {
+    $project: {
+      _id: 0,
+      lastUpdatedAt: {
+        $toString: "$lastUpdatedAt",
+      },
+      currentUpdatedDate: {
+        $toString: "$currentUpdatedDate",
+      },
+      fechaProceso: {
+        $toString: {
+          $toDate: "2023-12-22",
+          //"{{$json.fechaProceso}}"
+        },
+      },
+      batchNumber: [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+      ],
+    },
+  },
+  {
+    $unwind: {
+      path: "$batchNumber",
+    },
+  },
+]
+
+
+/////
+
+[
+  {
+    "$match": {
+      "proceso": "messageDateLastAct"
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "lastUpdatedAt": {
+        "$toString": "$lastUpdatedAt"
+      }, 
+      "currentUpdatedDate": {
+        "$toString": "$currentUpdatedDate"
+      }, 
+      "fechaProceso": {
+        "$toString": {
+          "$toDate": "{{$json.fechaProceso}}"
+        }
+      }, 
+      "batchNumber": [
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+      ]
+    }
+  }, {
+    "$unwind": {
+      "path": "$batchNumber"
+    }
+  }
+]

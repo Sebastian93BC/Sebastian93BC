@@ -1,0 +1,123 @@
+//Desde margemetricJuridicoa margemetricJuridico
+[
+    {
+      $addFields: {
+        //Editar
+        fechaSuperior: {
+          $dateFromParts: {
+            year: 2023,
+            month: 03,
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        fechaProcesoAct: {
+          $dateFromParts: {
+            year: {
+              $year: "$fechaProceso",
+            },
+            month: {
+              $month: "$fechaProceso",
+            },
+          },
+        },
+        fechaInferior: {
+          $dateSubtract: {
+            startDate: {
+              $dateFromParts: {
+                year: {
+                  $year: "$fechaSuperior",
+                },
+                month: {
+                  $month: "$fechaSuperior",
+                },
+              },
+            },
+            unit: "month",
+            amount: 5,
+          },
+        },
+      },
+    },
+    {
+      $match: {
+        $and: [
+          {
+            $expr: {
+              $gte: ["$fechaProcesoAct", "$fechaInferior"],
+            },
+          },
+          {
+            $expr: {
+              $lte: ["$fechaProcesoAct", "$fechaSuperior"],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $group: {
+        _id: {
+          rifCedula: "$rifCedula",
+        },
+        fechaProceso: {
+          $max: "$fechaProceso",
+        },
+        saldoDolar6m: {
+          $sum: "$saldoDolar",
+        },
+        saldoEuro6m: {
+          $sum: "$saldoEuro",
+        },
+        abonoLiqActivo6m: {
+          $sum: "$abonoLiqActivo",
+        },
+      },
+    },
+    {
+      $addFields: {
+        saldoDolar6m: {
+          $round: [
+            {
+              $divide: ["$saldoDolar6m", 6],
+            },
+            2,
+          ],
+        },
+        saldoEuro6m: {
+          $round: [
+            {
+              $divide: ["$saldoEuro6m", 6],
+            },
+            2,
+          ],
+        },
+        abonoLiqActivo6m: {
+          $round: [
+            {
+              $divide: ["$abonoLiqActivo6m", 6],
+            },
+            2,
+          ],
+        },
+      },
+    },
+    {
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      $addFields: {
+        rifCedula: "$rifCedula",
+        _id: "$$REMOVE",
+      },
+    },
+    {
+      $merge: {
+        into: "Margenmetricjuridico_1",
+        on: ["fechaProceso", "rifCedula"],
+      },
+    },
+  ]

@@ -1,0 +1,123 @@
+// sidis_cliente_base_segmentacion a Margenmetric
+
+[
+  {
+    $match: {
+      rifCedula: "J50019975",
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          fechaProceso: {
+            $gte: ISODate("2022-12-01T00:00:00.000+00:00"),
+          },
+        },
+        {
+          fechaProceso: {
+            $lt: ISODate("2023-04-01T00:00:00.000+00:00"),
+          },
+        },
+      ],
+    },
+  },
+  {
+    $addFields: {
+      nombreBanca: "$sidisSegmentacion.seg_nombre_banca",
+      codigoBanca: "$sidisSegmentacion.seg_banca",
+      nombreSegmento:
+        "$sidisSegmentacion.seg_nombre_segmento",
+      codigoSegmento: "$sidisSegmentacion.seg_segmento",
+      nombreSubsegmento:
+        "$sidisSegmentacion.seg_nombre_subsegmento",
+      codigoSubsegmento:
+        "$sidisSegmentacion.seg_subsegmento",
+      nombreGrupoeconomico:
+        "$sidisCliente.cli_nom_grupo_econ",
+      codigoGrupoeconomico:
+        "$sidisCliente.cli_cod_grupo_econ",
+      nombreNSE:
+        "$sidisSegmentacion.seg_nivel_socioecon_real",
+    },
+  },
+  {
+    $addFields: {
+      nombreBanca: {
+        $cond: [
+          { $lte: ["$nombreBanca", null] },
+          "$sidisCliente.cli_nom_banca",
+          "$nombreBanca",
+        ],
+      },
+      codigoBanca: {
+        $cond: [
+          { $lte: ["$codigoBanca", null] },
+          "$sidisCliente.cli_banca",
+          "$codigoBanca",
+        ],
+      },
+      nombreSegmento: {
+        $cond: [
+          { $lte: ["$nombreSegmento", null] },
+          "$sidisCliente.cli_nom_subsegmento",
+          "$nombreSegmento",
+        ],
+      },
+      codigoSegmento: {
+        $cond: [
+          { $lte: ["$codigoSegmento", null] },
+          "$sidisCliente.cli_segmento",
+          "$codigoSegmento",
+        ],
+      },
+      nombreSubsegmento: {
+        $cond: [
+          { $lte: ["$nombreSubsegmento", null] },
+          "$sidisCliente.cli_nom_subsegmento",
+          "$nombreSubsegmento",
+        ],
+      },
+      codigoSubsegmento: {
+        $cond: [
+          { $lte: ["$codigoSubsegmento", null] },
+          "$sidisCliente.cli_subsegmento",
+          "$codigoSubsegmento",
+        ],
+      },
+      nombreGrupoeconomico: {
+        $cond: [
+          { $lte: ["$nombreGrupoeconomico", null] },
+          "$sidisCliente.cli_nom_grupo_econ",
+          "$nombreGrupoeconomico",
+        ],
+      },
+      codigoGrupoeconomico: {
+        $cond: [
+          { $lte: ["$codigoGrupoeconomico", null] },
+          "$sidisCliente.cli_cod_grupo_econ",
+          "$codigoGrupoeconomico",
+        ],
+      },
+      nombreNSE: {
+        $cond: [
+          { $lte: ["$nombreNSE", null] },
+          "$sidisSegmentacion.seg_nivel_socioecon_real",
+          "$nombreNSE",
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+      whenNotMatched: "insert",
+    },
+  },
+]

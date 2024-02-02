@@ -1,0 +1,1489 @@
+[
+  {
+    $match: {
+      $expr: {
+        $eq: [
+          "$fecha_valor",
+          {
+            $subtract: [
+              {
+                $toDate: {
+                  $dateFromString: {
+                    dateString: {
+                      $dateToString: {
+                        format:
+                          "%Y-%m-%dT00:00:00%z",
+                        date: {
+                          $toDate: "$$NOW",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $multiply: [
+                  {
+                    $toInt: "496",
+                    //"{{$json.offSet}}"
+                  },
+                  86400000,
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "Balancemetric",
+      localField: "fecha_valor",
+      foreignField: "fecha_valor",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      liquidaciones: {
+        $first: "$result.liquidaciones",
+      },
+      liquidacionesBs: {
+        $first: "$result.liquidacionesBs",
+      },
+      result: "$$REMOVE",
+    },
+  },
+  {
+    $addFields: {
+      _id: "$$REMOVE",
+      montoLiqProdVigente: "$$REMOVE",
+      numLiqProdVigente: "$$REMOVE",
+      montoLiqProdVigente45d: "$$REMOVE",
+      montoLiqProdVigente6m: "$$REMOVE",
+      montoLiqProdVigente9m: "$$REMOVE",
+      montoLiqProdVigente1a: "$$REMOVE",
+      montoLiqProdVigenteMas1a: "$$REMOVE",
+      comercialmontoLiqProdVigente: "$$REMOVE",
+      comercialnumLiqProdVigente: "$$REMOVE",
+      comercialmontoLiqProdVigente45d: "$$REMOVE",
+      comercialmontoLiqProdVigente6m: "$$REMOVE",
+      comercialmontoLiqProdVigente9m: "$$REMOVE",
+      comercialmontoLiqProdVigente1a: "$$REMOVE",
+      comercialmontoLiqProdVigenteMas1a:
+        "$$REMOVE",
+      productivomontoLiqProdVigente: "$$REMOVE",
+      productivonumLiqProdVigente: "$$REMOVE",
+      productivomontoLiqProdVigente45d:
+        "$$REMOVE",
+      productivomontoLiqProdVigente6m: "$$REMOVE",
+      productivomontoLiqProdVigente9m: "$$REMOVE",
+      productivomontoLiqProdVigente1a: "$$REMOVE",
+      productivomontoLiqProdVigenteMas1a:
+        "$$REMOVE",
+      hipotecariomontoLiqProdVigente: "$$REMOVE",
+      hipotecarionumLiqProdVigente: "$$REMOVE",
+      hipotecariomontoLiqProdVigente45d:
+        "$$REMOVE",
+      hipotecariomontoLiqProdVigente6m:
+        "$$REMOVE",
+      hipotecariomontoLiqProdVigente9m:
+        "$$REMOVE",
+      hipotecariomontoLiqProdVigente1a:
+        "$$REMOVE",
+      hipotecariomontoLiqProdVigenteMas1a:
+        "$$REMOVE",
+      emprendeBdvmontoLiqProdVigente: "$$REMOVE",
+      emprendeBdvnumLiqProdVigente: "$$REMOVE",
+      emprendeBdvmontoLiqProdVigente45d:
+        "$$REMOVE",
+      emprendeBdvmontoLiqProdVigente6m:
+        "$$REMOVE",
+      emprendeBdvmontoLiqProdVigente9m:
+        "$$REMOVE",
+      emprendeBdvmontoLiqProdVigente1a:
+        "$$REMOVE",
+      emprendeBdvmontoLiqProdVigenteMas1a:
+        "$$REMOVE",
+      microCredmontoLiqProdVigente: "$$REMOVE",
+      microCrednumLiqProdVigente: "$$REMOVE",
+      microCredmontoLiqProdVigente45d: "$$REMOVE",
+      microCredmontoLiqProdVigente6m: "$$REMOVE",
+      microCredmontoLiqProdVigente9m: "$$REMOVE",
+      microCredmontoLiqProdVigente1a: "$$REMOVE",
+      microCredmontoLiqProdVigenteMas1a:
+        "$$REMOVE",
+      "liquidaciones.montoLiqProd.totalBdv.actual":
+        "$montoLiqProdVigente",
+      "liquidaciones.numLiqProd.totalBdv.actual":
+        "$numLiqProdVigente",
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia45d":
+        "$montoLiqProdVigente45d",
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia6m":
+        "$montoLiqProdVigente6m",
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia9m":
+        "$montoLiqProdVigente9m",
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia1a":
+        "$montoLiqProdVigente1a",
+      "liquidaciones.montLiquidadoPlazo.totalBdv.diaMas1a":
+        "$montoLiqProdVigenteMas1a",
+      "liquidaciones.montoLiqProd.comercial.actual":
+        "$comercialmontoLiqProdVigente",
+      "liquidaciones.numLiqProd.comercial.actual":
+        "$comercialnumLiqProdVigente",
+      "liquidaciones.montLiquidadoPlazo.comercial.dia45d":
+        "$comercialmontoLiqProdVigente45d",
+      "liquidaciones.montLiquidadoPlazo.comercial.dia6m":
+        "$comercialmontoLiqProdVigente6m",
+      "liquidaciones.montLiquidadoPlazo.comercial.dia9m":
+        "$comercialmontoLiqProdVigente9m",
+      "liquidaciones.montLiquidadoPlazo.comercial.dia1a":
+        "$comercialmontoLiqProdVigente1a",
+      "liquidaciones.montLiquidadoPlazo.comercial.diaMas1a":
+        "$comercialmontoLiqProdVigenteMas1a",
+      "liquidaciones.montoLiqProd.productivo.actual":
+        "$productivomontoLiqProdVigente",
+      "liquidaciones.numLiqProd.productivo.actual":
+        "$productivonumLiqProdVigente",
+      "liquidaciones.montLiquidadoPlazo.productivo.dia45d":
+        "$productivomontoLiqProdVigente45d",
+      "liquidaciones.montLiquidadoPlazo.productivo.dia6m":
+        "$productivomontoLiqProdVigente6m",
+      "liquidaciones.montLiquidadoPlazo.productivo.dia9m":
+        "$productivomontoLiqProdVigente9m",
+      "liquidaciones.montLiquidadoPlazo.productivo.dia1a":
+        "$productivomontoLiqProdVigente1a",
+      "liquidaciones.montLiquidadoPlazo.productivo.diaMas1a":
+        "$productivomontoLiqProdVigenteMas1a",
+      "liquidaciones.montoLiqProd.hipotecario.actual":
+        "$hipotecariomontoLiqProdVigente",
+      "liquidaciones.numLiqProd.hipotecario.actual":
+        "$hipotecarionumLiqProdVigente",
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia45d":
+        "$hipotecariomontoLiqProdVigente45d",
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia6m":
+        "$hipotecariomontoLiqProdVigente6m",
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia9m":
+        "$hipotecariomontoLiqProdVigente9m",
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia1a":
+        "$hipotecariomontoLiqProdVigente1a",
+      "liquidaciones.montLiquidadoPlazo.hipotecario.diaMas1a":
+        "$hipotecariomontoLiqProdVigenteMas1a",
+      "liquidaciones.montoLiqProd.emprendeBdv.actual":
+        "$emprendeBdvmontoLiqProdVigente",
+      "liquidaciones.numLiqProd.emprendeBdv.actual":
+        "$emprendeBdvnumLiqProdVigente",
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia45d":
+        "$emprendeBdvmontoLiqProdVigente45d",
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia6m":
+        "$emprendeBdvmontoLiqProdVigente6m",
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia9m":
+        "$emprendeBdvmontoLiqProdVigente9m",
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia1a":
+        "$emprendeBdvmontoLiqProdVigente1a",
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.diaMas1a":
+        "$emprendeBdvmontoLiqProdVigenteMas1a",
+      "liquidaciones.montoLiqProd.microCred.actual":
+        "$microCredmontoLiqProdVigente",
+      "liquidaciones.numLiqProd.microCred.actual":
+        "$microCrednumLiqProdVigente",
+      "liquidaciones.montLiquidadoPlazo.microCred.dia45d":
+        "$microCredmontoLiqProdVigente45d",
+      "liquidaciones.montLiquidadoPlazo.microCred.dia6m":
+        "$microCredmontoLiqProdVigente6m",
+      "liquidaciones.montLiquidadoPlazo.microCred.dia9m":
+        "$microCredmontoLiqProdVigente9m",
+      "liquidaciones.montLiquidadoPlazo.microCred.dia1a":
+        "$microCredmontoLiqProdVigente1a",
+      "liquidaciones.montLiquidadoPlazo.microCred.diaMas1a":
+        "$microCredmontoLiqProdVigenteMas1a",
+      "liquidacionesBs.montoLiqProd.totalBdv.actual":
+        "$montoLiqProdVigente",
+      "liquidacionesBs.numLiqProd.totalBdv.actual":
+        "$numLiqProdVigente",
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia45d":
+        "$montoLiqProdVigente45d",
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia6m":
+        "$montoLiqProdVigente6m",
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia9m":
+        "$montoLiqProdVigente9m",
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia1a":
+        "$montoLiqProdVigente1a",
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.diaMas1a":
+        "$montoLiqProdVigenteMas1a",
+      "liquidacionesBs.montoLiqProd.comercial.actual":
+        "$comercialmontoLiqProdVigente",
+      "liquidacionesBs.numLiqProd.comercial.actual":
+        "$comercialnumLiqProdVigente",
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia45d":
+        "$comercialmontoLiqProdVigente45d",
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia6m":
+        "$comercialmontoLiqProdVigente6m",
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia9m":
+        "$comercialmontoLiqProdVigente9m",
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia1a":
+        "$comercialmontoLiqProdVigente1a",
+      "liquidacionesBs.montLiquidadoPlazo.comercial.diaMas1a":
+        "$comercialmontoLiqProdVigenteMas1a",
+      "liquidacionesBs.montoLiqProd.productivo.actual":
+        "$productivomontoLiqProdVigente",
+      "liquidacionesBs.numLiqProd.productivo.actual":
+        "$productivonumLiqProdVigente",
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia45d":
+        "$productivomontoLiqProdVigente45d",
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia6m":
+        "$productivomontoLiqProdVigente6m",
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia9m":
+        "$productivomontoLiqProdVigente9m",
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia1a":
+        "$productivomontoLiqProdVigente1a",
+      "liquidacionesBs.montLiquidadoPlazo.productivo.diaMas1a":
+        "$productivomontoLiqProdVigenteMas1a",
+      "liquidacionesBs.montoLiqProd.hipotecario.actual":
+        "$hipotecariomontoLiqProdVigente",
+      "liquidacionesBs.numLiqProd.hipotecario.actual":
+        "$hipotecarionumLiqProdVigente",
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia45d":
+        "$hipotecariomontoLiqProdVigente45d",
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia6m":
+        "$hipotecariomontoLiqProdVigente6m",
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia9m":
+        "$hipotecariomontoLiqProdVigente9m",
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia1a":
+        "$hipotecariomontoLiqProdVigente1a",
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.diaMas1a":
+        "$hipotecariomontoLiqProdVigenteMas1a",
+      "liquidacionesBs.montoLiqProd.emprendeBdv.actual":
+        "$emprendeBdvmontoLiqProdVigente",
+      "liquidacionesBs.numLiqProd.emprendeBdv.actual":
+        "$emprendeBdvnumLiqProdVigente",
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia45d":
+        "$emprendeBdvmontoLiqProdVigente45d",
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia6m":
+        "$emprendeBdvmontoLiqProdVigente6m",
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia9m":
+        "$emprendeBdvmontoLiqProdVigente9m",
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia1a":
+        "$emprendeBdvmontoLiqProdVigente1a",
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.diaMas1a":
+        "$emprendeBdvmontoLiqProdVigenteMas1a",
+      "liquidacionesBs.montoLiqProd.microCred.actual":
+        "$microCredmontoLiqProdVigente",
+      "liquidacionesBs.numLiqProd.microCred.actual":
+        "$microCrednumLiqProdVigente",
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia45d":
+        "$microCredmontoLiqProdVigente45d",
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia6m":
+        "$microCredmontoLiqProdVigente6m",
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia9m":
+        "$microCredmontoLiqProdVigente9m",
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia1a":
+        "$microCredmontoLiqProdVigente1a",
+      "liquidacionesBs.montLiquidadoPlazo.microCred.diaMas1a":
+        "$microCredmontoLiqProdVigenteMas1a",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "fecha_valor",
+      foreignField: "Fecha",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      result: "$$REMOVE",
+      "liquidaciones.montoLiqProd.totalBdv.actual":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montoLiqProd.totalBdv.actual",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia45d":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.totalBdv.dia45d",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia6m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.totalBdv.dia6m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia9m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.totalBdv.dia9m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.totalBdv.dia1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.totalBdv.diaMas1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.totalBdv.diaMas1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montoLiqProd.comercial.actual":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montoLiqProd.comercial.actual",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.comercial.dia45d":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.comercial.dia45d",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.comercial.dia6m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.comercial.dia6m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.comercial.dia9m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.comercial.dia9m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.comercial.dia1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.comercial.dia1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.comercial.diaMas1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.comercial.diaMas1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montoLiqProd.productivo.actual":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montoLiqProd.productivo.actual",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.productivo.dia45d":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.productivo.dia45d",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.productivo.dia6m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.productivo.dia6m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.productivo.dia9m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.productivo.dia9m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.productivo.dia1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.productivo.dia1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.productivo.diaMas1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.productivo.diaMas1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montoLiqProd.hipotecario.actual":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montoLiqProd.hipotecario.actual",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia45d":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.hipotecario.dia45d",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia6m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.hipotecario.dia6m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia9m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.hipotecario.dia9m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.hipotecario.dia1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.hipotecario.diaMas1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.hipotecario.diaMas1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montoLiqProd.emprendeBdv.actual":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montoLiqProd.emprendeBdv.actual",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia45d":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia45d",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia6m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia6m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia9m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia9m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.diaMas1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.emprendeBdv.diaMas1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montoLiqProd.microCred.actual":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montoLiqProd.microCred.actual",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.microCred.dia45d":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.microCred.dia45d",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.microCred.dia6m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.microCred.dia6m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.microCred.dia9m":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.microCred.dia9m",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.microCred.dia1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.microCred.dia1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "liquidaciones.montLiquidadoPlazo.microCred.diaMas1a":
+        {
+          $round: [
+            {
+              $divide: [
+                "$liquidaciones.montLiquidadoPlazo.microCred.diaMas1a",
+                {
+                  $first: "$result.Tasa_DOL",
+                },
+              ],
+            },
+            4,
+          ],
+        },
+    },
+  },
+  {
+    $addFields: {
+      "liquidaciones.montoLiqProd.totalBdv.nombre":
+        "Total",
+      "liquidaciones.montoLiqProd.comercial.nombre":
+        "Comercial",
+      "liquidaciones.montoLiqProd.productivo.nombre":
+        "Productivo",
+      "liquidaciones.montoLiqProd.hipotecario.nombre":
+        "Hipotecario",
+      "liquidaciones.montoLiqProd.emprendeBdv.nombre":
+        "Emprende BDV",
+      "liquidaciones.montoLiqProd.microCred.nombre":
+        "Microcrédito",
+      "liquidaciones.numLiqProd.totalBdv.nombre":
+        "Total",
+      "liquidaciones.numLiqProd.comercial.nombre":
+        "Comercial",
+      "liquidaciones.numLiqProd.productivo.nombre":
+        "Productivo",
+      "liquidaciones.numLiqProd.hipotecario.nombre":
+        "Hipotecario",
+      "liquidaciones.numLiqProd.emprendeBdv.nombre":
+        "Emprende BDV",
+      "liquidaciones.numLiqProd.microCred.nombre":
+        "Microcrédito",
+      "liquidacionesBs.montoLiqProd.totalBdv.nombre":
+        "Total",
+      "liquidacionesBs.montoLiqProd.comercial.nombre":
+        "Comercial",
+      "liquidacionesBs.montoLiqProd.productivo.nombre":
+        "Productivo",
+      "liquidacionesBs.montoLiqProd.hipotecario.nombre":
+        "Hipotecario",
+      "liquidacionesBs.montoLiqProd.emprendeBdv.nombre":
+        "Emprende BDV",
+      "liquidacionesBs.montoLiqProd.microCred.nombre":
+        "Microcrédito",
+      "liquidacionesBs.numLiqProd.totalBdv.nombre":
+        "Total",
+      "liquidacionesBs.numLiqProd.comercial.nombre":
+        "Comercial",
+      "liquidacionesBs.numLiqProd.productivo.nombre":
+        "Productivo",
+      "liquidacionesBs.numLiqProd.hipotecario.nombre":
+        "Hipotecario",
+      "liquidacionesBs.numLiqProd.emprendeBdv.nombre":
+        "Emprende BDV",
+      "liquidacionesBs.numLiqProd.microCred.nombre":
+        "Microcrédito",
+    },
+  },
+  {
+    $merge: {
+      into: "Balancemetric",
+      on: "fecha_valor",
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fecha_valor", {
+            "$subtract": [
+              {
+                "$toDate": {
+                  "$dateFromString": {
+                    "dateString": {
+                      "$dateToString": {
+                        "format": "%Y-%m-%dT00:00:00%z", 
+                        "date": {
+                          "$toDate": "$$NOW"
+                        }
+                      }
+                    }
+                  }
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Balancemetric", 
+      "localField": "fecha_valor", 
+      "foreignField": "fecha_valor", 
+      "as": "result"
+    }
+  }, {
+    "$addFields": {
+      "liquidaciones": {
+        "$first": "$result.liquidaciones"
+      }, 
+      "liquidacionesBs": {
+        "$first": "$result.liquidacionesBs"
+      }, 
+      "result": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "montoLiqProdVigente": "$$REMOVE", 
+      "numLiqProdVigente": "$$REMOVE", 
+      "montoLiqProdVigente45d": "$$REMOVE", 
+      "montoLiqProdVigente6m": "$$REMOVE", 
+      "montoLiqProdVigente9m": "$$REMOVE", 
+      "montoLiqProdVigente1a": "$$REMOVE", 
+      "montoLiqProdVigenteMas1a": "$$REMOVE", 
+      "comercialmontoLiqProdVigente": "$$REMOVE", 
+      "comercialnumLiqProdVigente": "$$REMOVE", 
+      "comercialmontoLiqProdVigente45d": "$$REMOVE", 
+      "comercialmontoLiqProdVigente6m": "$$REMOVE", 
+      "comercialmontoLiqProdVigente9m": "$$REMOVE", 
+      "comercialmontoLiqProdVigente1a": "$$REMOVE", 
+      "comercialmontoLiqProdVigenteMas1a": "$$REMOVE", 
+      "productivomontoLiqProdVigente": "$$REMOVE", 
+      "productivonumLiqProdVigente": "$$REMOVE", 
+      "productivomontoLiqProdVigente45d": "$$REMOVE", 
+      "productivomontoLiqProdVigente6m": "$$REMOVE", 
+      "productivomontoLiqProdVigente9m": "$$REMOVE", 
+      "productivomontoLiqProdVigente1a": "$$REMOVE", 
+      "productivomontoLiqProdVigenteMas1a": "$$REMOVE", 
+      "hipotecariomontoLiqProdVigente": "$$REMOVE", 
+      "hipotecarionumLiqProdVigente": "$$REMOVE", 
+      "hipotecariomontoLiqProdVigente45d": "$$REMOVE", 
+      "hipotecariomontoLiqProdVigente6m": "$$REMOVE", 
+      "hipotecariomontoLiqProdVigente9m": "$$REMOVE", 
+      "hipotecariomontoLiqProdVigente1a": "$$REMOVE", 
+      "hipotecariomontoLiqProdVigenteMas1a": "$$REMOVE", 
+      "emprendeBdvmontoLiqProdVigente": "$$REMOVE", 
+      "emprendeBdvnumLiqProdVigente": "$$REMOVE", 
+      "emprendeBdvmontoLiqProdVigente45d": "$$REMOVE", 
+      "emprendeBdvmontoLiqProdVigente6m": "$$REMOVE", 
+      "emprendeBdvmontoLiqProdVigente9m": "$$REMOVE", 
+      "emprendeBdvmontoLiqProdVigente1a": "$$REMOVE", 
+      "emprendeBdvmontoLiqProdVigenteMas1a": "$$REMOVE", 
+      "microCredmontoLiqProdVigente": "$$REMOVE", 
+      "microCrednumLiqProdVigente": "$$REMOVE", 
+      "microCredmontoLiqProdVigente45d": "$$REMOVE", 
+      "microCredmontoLiqProdVigente6m": "$$REMOVE", 
+      "microCredmontoLiqProdVigente9m": "$$REMOVE", 
+      "microCredmontoLiqProdVigente1a": "$$REMOVE", 
+      "microCredmontoLiqProdVigenteMas1a": "$$REMOVE", 
+      "liquidaciones.montoLiqProd.totalBdv.actual": "$montoLiqProdVigente", 
+      "liquidaciones.numLiqProd.totalBdv.actual": "$numLiqProdVigente", 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia45d": "$montoLiqProdVigente45d", 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia6m": "$montoLiqProdVigente6m", 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia9m": "$montoLiqProdVigente9m", 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia1a": "$montoLiqProdVigente1a", 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.diaMas1a": "$montoLiqProdVigenteMas1a", 
+      "liquidaciones.montoLiqProd.comercial.actual": "$comercialmontoLiqProdVigente", 
+      "liquidaciones.numLiqProd.comercial.actual": "$comercialnumLiqProdVigente", 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia45d": "$comercialmontoLiqProdVigente45d", 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia6m": "$comercialmontoLiqProdVigente6m", 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia9m": "$comercialmontoLiqProdVigente9m", 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia1a": "$comercialmontoLiqProdVigente1a", 
+      "liquidaciones.montLiquidadoPlazo.comercial.diaMas1a": "$comercialmontoLiqProdVigenteMas1a", 
+      "liquidaciones.montoLiqProd.productivo.actual": "$productivomontoLiqProdVigente", 
+      "liquidaciones.numLiqProd.productivo.actual": "$productivonumLiqProdVigente", 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia45d": "$productivomontoLiqProdVigente45d", 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia6m": "$productivomontoLiqProdVigente6m", 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia9m": "$productivomontoLiqProdVigente9m", 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia1a": "$productivomontoLiqProdVigente1a", 
+      "liquidaciones.montLiquidadoPlazo.productivo.diaMas1a": "$productivomontoLiqProdVigenteMas1a", 
+      "liquidaciones.montoLiqProd.hipotecario.actual": "$hipotecariomontoLiqProdVigente", 
+      "liquidaciones.numLiqProd.hipotecario.actual": "$hipotecarionumLiqProdVigente", 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia45d": "$hipotecariomontoLiqProdVigente45d", 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia6m": "$hipotecariomontoLiqProdVigente6m", 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia9m": "$hipotecariomontoLiqProdVigente9m", 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia1a": "$hipotecariomontoLiqProdVigente1a", 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.diaMas1a": "$hipotecariomontoLiqProdVigenteMas1a", 
+      "liquidaciones.montoLiqProd.emprendeBdv.actual": "$emprendeBdvmontoLiqProdVigente", 
+      "liquidaciones.numLiqProd.emprendeBdv.actual": "$emprendeBdvnumLiqProdVigente", 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia45d": "$emprendeBdvmontoLiqProdVigente45d", 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia6m": "$emprendeBdvmontoLiqProdVigente6m", 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia9m": "$emprendeBdvmontoLiqProdVigente9m", 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia1a": "$emprendeBdvmontoLiqProdVigente1a", 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.diaMas1a": "$emprendeBdvmontoLiqProdVigenteMas1a", 
+      "liquidaciones.montoLiqProd.microCred.actual": "$microCredmontoLiqProdVigente", 
+      "liquidaciones.numLiqProd.microCred.actual": "$microCrednumLiqProdVigente", 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia45d": "$microCredmontoLiqProdVigente45d", 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia6m": "$microCredmontoLiqProdVigente6m", 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia9m": "$microCredmontoLiqProdVigente9m", 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia1a": "$microCredmontoLiqProdVigente1a", 
+      "liquidaciones.montLiquidadoPlazo.microCred.diaMas1a": "$microCredmontoLiqProdVigenteMas1a", 
+      "liquidacionesBs.montoLiqProd.totalBdv.actual": "$montoLiqProdVigente", 
+      "liquidacionesBs.numLiqProd.totalBdv.actual": "$numLiqProdVigente", 
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia45d": "$montoLiqProdVigente45d", 
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia6m": "$montoLiqProdVigente6m", 
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia9m": "$montoLiqProdVigente9m", 
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.dia1a": "$montoLiqProdVigente1a", 
+      "liquidacionesBs.montLiquidadoPlazo.totalBdv.diaMas1a": "$montoLiqProdVigenteMas1a", 
+      "liquidacionesBs.montoLiqProd.comercial.actual": "$comercialmontoLiqProdVigente", 
+      "liquidacionesBs.numLiqProd.comercial.actual": "$comercialnumLiqProdVigente", 
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia45d": "$comercialmontoLiqProdVigente45d", 
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia6m": "$comercialmontoLiqProdVigente6m", 
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia9m": "$comercialmontoLiqProdVigente9m", 
+      "liquidacionesBs.montLiquidadoPlazo.comercial.dia1a": "$comercialmontoLiqProdVigente1a", 
+      "liquidacionesBs.montLiquidadoPlazo.comercial.diaMas1a": "$comercialmontoLiqProdVigenteMas1a", 
+      "liquidacionesBs.montoLiqProd.productivo.actual": "$productivomontoLiqProdVigente", 
+      "liquidacionesBs.numLiqProd.productivo.actual": "$productivonumLiqProdVigente", 
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia45d": "$productivomontoLiqProdVigente45d", 
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia6m": "$productivomontoLiqProdVigente6m", 
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia9m": "$productivomontoLiqProdVigente9m", 
+      "liquidacionesBs.montLiquidadoPlazo.productivo.dia1a": "$productivomontoLiqProdVigente1a", 
+      "liquidacionesBs.montLiquidadoPlazo.productivo.diaMas1a": "$productivomontoLiqProdVigenteMas1a", 
+      "liquidacionesBs.montoLiqProd.hipotecario.actual": "$hipotecariomontoLiqProdVigente", 
+      "liquidacionesBs.numLiqProd.hipotecario.actual": "$hipotecarionumLiqProdVigente", 
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia45d": "$hipotecariomontoLiqProdVigente45d", 
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia6m": "$hipotecariomontoLiqProdVigente6m", 
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia9m": "$hipotecariomontoLiqProdVigente9m", 
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.dia1a": "$hipotecariomontoLiqProdVigente1a", 
+      "liquidacionesBs.montLiquidadoPlazo.hipotecario.diaMas1a": "$hipotecariomontoLiqProdVigenteMas1a", 
+      "liquidacionesBs.montoLiqProd.emprendeBdv.actual": "$emprendeBdvmontoLiqProdVigente", 
+      "liquidacionesBs.numLiqProd.emprendeBdv.actual": "$emprendeBdvnumLiqProdVigente", 
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia45d": "$emprendeBdvmontoLiqProdVigente45d", 
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia6m": "$emprendeBdvmontoLiqProdVigente6m", 
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia9m": "$emprendeBdvmontoLiqProdVigente9m", 
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.dia1a": "$emprendeBdvmontoLiqProdVigente1a", 
+      "liquidacionesBs.montLiquidadoPlazo.emprendeBdv.diaMas1a": "$emprendeBdvmontoLiqProdVigenteMas1a", 
+      "liquidacionesBs.montoLiqProd.microCred.actual": "$microCredmontoLiqProdVigente", 
+      "liquidacionesBs.numLiqProd.microCred.actual": "$microCrednumLiqProdVigente", 
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia45d": "$microCredmontoLiqProdVigente45d", 
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia6m": "$microCredmontoLiqProdVigente6m", 
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia9m": "$microCredmontoLiqProdVigente9m", 
+      "liquidacionesBs.montLiquidadoPlazo.microCred.dia1a": "$microCredmontoLiqProdVigente1a", 
+      "liquidacionesBs.montLiquidadoPlazo.microCred.diaMas1a": "$microCredmontoLiqProdVigenteMas1a"
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "fecha_valor", 
+      "foreignField": "Fecha", 
+      "as": "result"
+    }
+  }, {
+    "$addFields": {
+      "result": "$$REMOVE", 
+      "liquidaciones.montoLiqProd.totalBdv.actual": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montoLiqProd.totalBdv.actual", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia45d": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.totalBdv.dia45d", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.totalBdv.dia6m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia9m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.totalBdv.dia9m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.dia1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.totalBdv.dia1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.totalBdv.diaMas1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.totalBdv.diaMas1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montoLiqProd.comercial.actual": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montoLiqProd.comercial.actual", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia45d": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.comercial.dia45d", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.comercial.dia6m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia9m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.comercial.dia9m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.comercial.dia1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.comercial.dia1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.comercial.diaMas1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.comercial.diaMas1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montoLiqProd.productivo.actual": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montoLiqProd.productivo.actual", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia45d": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.productivo.dia45d", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.productivo.dia6m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia9m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.productivo.dia9m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.productivo.dia1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.productivo.dia1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.productivo.diaMas1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.productivo.diaMas1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montoLiqProd.hipotecario.actual": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montoLiqProd.hipotecario.actual", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia45d": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.hipotecario.dia45d", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.hipotecario.dia6m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia9m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.hipotecario.dia9m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.dia1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.hipotecario.dia1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.hipotecario.diaMas1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.hipotecario.diaMas1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montoLiqProd.emprendeBdv.actual": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montoLiqProd.emprendeBdv.actual", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia45d": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia45d", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia6m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia9m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia9m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.dia1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.emprendeBdv.dia1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.emprendeBdv.diaMas1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.emprendeBdv.diaMas1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montoLiqProd.microCred.actual": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montoLiqProd.microCred.actual", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia45d": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.microCred.dia45d", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia6m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.microCred.dia6m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia9m": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.microCred.dia9m", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.microCred.dia1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.microCred.dia1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "liquidaciones.montLiquidadoPlazo.microCred.diaMas1a": {
+        "$round": [
+          {
+            "$divide": [
+              "$liquidaciones.montLiquidadoPlazo.microCred.diaMas1a", {
+                "$first": "$result.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "liquidaciones.montoLiqProd.totalBdv.nombre": "Total", 
+      "liquidaciones.montoLiqProd.comercial.nombre": "Comercial", 
+      "liquidaciones.montoLiqProd.productivo.nombre": "Productivo", 
+      "liquidaciones.montoLiqProd.hipotecario.nombre": "Hipotecario", 
+      "liquidaciones.montoLiqProd.emprendeBdv.nombre": "Emprende BDV", 
+      "liquidaciones.montoLiqProd.microCred.nombre": "Microcrédito", 
+      "liquidaciones.numLiqProd.totalBdv.nombre": "Total", 
+      "liquidaciones.numLiqProd.comercial.nombre": "Comercial", 
+      "liquidaciones.numLiqProd.productivo.nombre": "Productivo", 
+      "liquidaciones.numLiqProd.hipotecario.nombre": "Hipotecario", 
+      "liquidaciones.numLiqProd.emprendeBdv.nombre": "Emprende BDV", 
+      "liquidaciones.numLiqProd.microCred.nombre": "Microcrédito", 
+      "liquidacionesBs.montoLiqProd.totalBdv.nombre": "Total", 
+      "liquidacionesBs.montoLiqProd.comercial.nombre": "Comercial", 
+      "liquidacionesBs.montoLiqProd.productivo.nombre": "Productivo", 
+      "liquidacionesBs.montoLiqProd.hipotecario.nombre": "Hipotecario", 
+      "liquidacionesBs.montoLiqProd.emprendeBdv.nombre": "Emprende BDV", 
+      "liquidacionesBs.montoLiqProd.microCred.nombre": "Microcrédito", 
+      "liquidacionesBs.numLiqProd.totalBdv.nombre": "Total", 
+      "liquidacionesBs.numLiqProd.comercial.nombre": "Comercial", 
+      "liquidacionesBs.numLiqProd.productivo.nombre": "Productivo", 
+      "liquidacionesBs.numLiqProd.hipotecario.nombre": "Hipotecario", 
+      "liquidacionesBs.numLiqProd.emprendeBdv.nombre": "Emprende BDV", 
+      "liquidacionesBs.numLiqProd.microCred.nombre": "Microcrédito"
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

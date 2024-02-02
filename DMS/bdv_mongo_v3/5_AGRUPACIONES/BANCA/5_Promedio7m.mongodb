@@ -1,0 +1,216 @@
+[
+  {
+    $addFields: {
+      //Editar
+      fechaSuperior: {
+        $dateFromParts: {
+          year: {
+            $year: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+
+          month: {
+            $month: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      fechaProcesoAct: {
+        $dateFromParts: {
+          year: {
+            $year: "$fechaProceso",
+          },
+          month: {
+            $month: "$fechaProceso",
+          },
+        },
+      },
+      fechaInferior: {
+        $dateSubtract: {
+          startDate: {
+            $dateFromParts: {
+              year: {
+                $year: "$fechaSuperior",
+              },
+              month: {
+                $month: "$fechaSuperior",
+              },
+            },
+          },
+          unit: "month",
+          amount: 6,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProcesoAct",
+              "$fechaInferior",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProcesoAct",
+              "$fechaSuperior",
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        codigoBanca: "$codigoBanca",
+      },
+      codigoBanca: {
+        $first: "$codigoBanca",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      nameField7m: {
+        $sum: "$nameField7m",
+      },
+    },
+  },
+  {
+    $addFields: {
+      nameFieldProm7m: {
+        $round: [
+          {
+            $divide: ["$nameField7m", 7],
+          },
+          4,
+        ],
+      },
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricbanca",
+      on: ["fechaProceso", "codigoBanca"],
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$addFields": {
+      "fechaSuperior": {
+        "$dateFromParts": {
+          "year": {
+            "$year": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }, 
+          "month": {
+            "$month": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProcesoAct": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaProceso"
+          }, 
+          "month": {
+            "$month": "$fechaProceso"
+          }
+        }
+      }, 
+      "fechaInferior": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$fechaSuperior"
+              }, 
+              "month": {
+                "$month": "$fechaSuperior"
+              }
+            }
+          }, 
+          "unit": "month", 
+          "amount": 6
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProcesoAct", "$fechaInferior"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProcesoAct", "$fechaSuperior"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "codigoBanca": "$codigoBanca"
+      }, 
+      "codigoBanca": {
+        "$first": "$codigoBanca"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "nameField7m": {
+        "$sum": "$nameField7m"
+      }
+    }
+  }, {
+    "$addFields": {
+      "nameFieldProm7m": {
+        "$round": [
+          {
+            "$divide": [
+              "$nameField7m", 7
+            ]
+          }, 4
+        ]
+      }, 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricbanca", 
+      "on": [
+        "fechaProceso", "codigoBanca"
+      ]
+    }
+  }
+]

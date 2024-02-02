@@ -1,0 +1,232 @@
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        $expr: {
+          $eq: [
+            "$fechaProceso",
+            {
+              $toDate:
+                "2023-06-30T00:00:00.000+00:00",
+              //"$toDate": "{{$json.offSet}}"
+            },
+          ],
+        },
+
+        persona: "Jurídica",
+        origenSegmentacion: true,
+      },
+  },
+  {
+    $group: {
+      _id: {
+        banca: "$nombreBanca",
+        segmento: "$nombreSegmento",
+        subsegmento: "$nombreSubsegmento",
+        //nivel_socioecon: "$nombreNSE",
+        //generacion: "$generacion",
+        //sexo: "$sexo",
+        state: "$state",
+        nombreRegion: "$regionName",
+      },
+      fechaProceso: {
+        $first: "$fechaProceso",
+      },
+      cantidadClientes: {
+        $sum: 1,
+      },
+      cantidadClientesActivos: {
+        $sum: {
+          $cond: [
+            {
+              $eq: ["$clienteActivo", true],
+            },
+            1,
+            0,
+          ],
+        },
+      },
+    },
+  },
+  {
+    $replaceRoot: {
+      newRoot: {
+        $mergeObjects: ["$_id", "$$ROOT"],
+      },
+    },
+  },
+  {
+    $addFields: {
+      integrationIds: {
+        margen: "$_id",
+      },
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          banca: {
+            $ne: "",
+          },
+        },
+        {
+          banca: {
+            $ne: null,
+          },
+        },
+        {
+          banca: {
+            $ne: 0,
+          },
+        },
+        {
+          segmento: {
+            $ne: 0,
+          },
+        },
+        {
+          segmento: {
+            $ne: "",
+          },
+        },
+        {
+          segmento: {
+            $ne: null,
+          },
+        },
+        {
+          subsegmento: {
+            $ne: null,
+          },
+        },
+        {
+          subsegmento: {
+            $ne: "NDA",
+          },
+        },
+        {
+          subsegmento: {
+            $ne: "",
+          },
+        },
+      ],
+    },
+  },
+  {
+    $out:
+      /**
+       * Provide the name of the output collection.
+       */
+      "Margenmetricsegmentjuridico",
+  },
+]
+
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fechaProceso", {
+            "$toDate": "{{$json.offSet}}"
+          }
+        ]
+      }, 
+      "persona": "Jurídica", 
+      "origenSegmentacion": true
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "banca": "$nombreBanca", 
+        "segmento": "$nombreSegmento", 
+        "subsegmento": "$nombreSubsegmento", 
+        "state": "$state", 
+        "nombreRegion": "$regionName"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "cantidadClientes": {
+        "$sum": 1
+      }, 
+      "cantidadClientesActivos": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$clienteActivo", true
+              ]
+            }, 1, 0
+          ]
+        }
+      }
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": {
+        "$mergeObjects": [
+          "$_id", "$$ROOT"
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "integrationIds": {
+        "margen": "$_id"
+      }, 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "banca": {
+            "$ne": ""
+          }
+        }, {
+          "banca": {
+            "$ne": null
+          }
+        }, {
+          "banca": {
+            "$ne": 0
+          }
+        }, {
+          "segmento": {
+            "$ne": 0
+          }
+        }, {
+          "segmento": {
+            "$ne": ""
+          }
+        }, {
+          "segmento": {
+            "$ne": null
+          }
+        }, {
+          "subsegmento": {
+            "$ne": null
+          }
+        }, {
+          "subsegmento": {
+            "$ne": "NDA"
+          }
+        }, {
+          "subsegmento": {
+            "$ne": ""
+          }
+        }
+      ]
+    }
+  }, {
+    "$out": "Margenmetricsegmentjuridico"
+  }
+]

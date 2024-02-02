@@ -1,0 +1,3406 @@
+[
+  {
+    $limit: 1,
+  },
+  {
+    $lookup: {
+      from: "Parametricingresocomisiones",
+      pipeline: [
+        {
+          $project: {
+            cuentaContable: 1,
+            productoControlGestion: 1,
+            _id: 0,
+          },
+        },
+      ],
+      as: "Parametricingresocomisiones",
+    },
+  },
+  {
+    $project: {
+      Parametricingresocomisiones: 1,
+      cuentasContable:
+        "$Parametricingresocomisiones.cuentaContable",
+      //Generamos un nuevo con la fecha de hoy
+      todayDate: {
+        $subtract: [
+          {
+            $toDate: {
+              $dateFromString: {
+                dateString: {
+                  $dateToString: {
+                    format: "%Y-%m-%dT00:00:00%z",
+                    date: {
+                      $toDate: "$$NOW",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            $multiply: [
+              {
+                $toInt: "302",
+                //"{{$json.offSet}}"
+              },
+              86400000,
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      //Traemos los documenos de la fecja hoy
+      from: "sidis_brm",
+      let: {
+        todayDate: "$todayDate",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: [
+                "$$todayDate",
+                "$fecha_odate",
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            nucta: 1,
+            sal_act: {
+              $multiply: ["$sal_act", -1],
+            },
+            sal_ant: {
+              $multiply: ["$sal_ant", -1],
+            },
+            sal_net_act: {
+              $multiply: ["$sal_net_act", -1],
+            },
+          },
+        },
+      ],
+      as: "sidis_brm",
+    },
+  },
+  {
+    $addFields: {
+      avaiableData: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $size: "$sidis_brm",
+              },
+              0,
+            ],
+          },
+          true,
+          false,
+        ],
+      },
+      firstDayMonth: {
+        $eq: [
+          {
+            $dayOfMonth: "$todayDate",
+          },
+          1,
+        ],
+      },
+      firstDayYear: {
+        $and: [
+          {
+            $eq: [
+              {
+                $dayOfMonth: "$todayDate",
+              },
+              1,
+            ],
+          },
+          {
+            $eq: [
+              {
+                $month: "$todayDate",
+              },
+              1,
+            ],
+          },
+        ],
+      },
+      //Filtra los documentos correspondientes a ingresos por comisión
+      sidis_brm: {
+        $filter: {
+          input: "$sidis_brm",
+          as: "brm",
+          cond: {
+            $in: [
+              "$$brm.nucta",
+              "$cuentasContable",
+            ],
+          },
+        },
+      },
+      cuentasContable: "$$REMOVE",
+      yesterdayDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "day",
+          amount: -1,
+        },
+      },
+      tomorrowDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "day",
+          amount: 1,
+        },
+      },
+      previusMonthDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "month",
+          amount: -1,
+        },
+      },
+      PreviusMonthlastDate: {
+        $subtract: [
+          {
+            $dateFromParts: {
+              year: {
+                $year: "$todayDate",
+              },
+              month: {
+                $month: "$todayDate",
+              },
+            },
+          },
+          86400000,
+        ],
+      },
+      previusYearDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "year",
+          amount: -1,
+        },
+      },
+      PreviusYearlastDate: {
+        $subtract: [
+          {
+            $dateFromParts: {
+              year: {
+                $year: "$todayDate",
+              },
+            },
+          },
+          86400000,
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      //add procuct
+      sidis_brm: {
+        $map: {
+          input: "$sidis_brm",
+          as: "brm",
+          in: {
+            $mergeObjects: [
+              "$$brm",
+              {
+                producto: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: {
+                          $map: {
+                            input:
+                              "$Parametricingresocomisiones",
+                            as: "liquidaciones",
+                            in: {
+                              $cond: [
+                                {
+                                  $eq: [
+                                    "$$liquidaciones.cuentaContable",
+                                    "$$brm.nucta",
+                                  ],
+                                },
+                                "$$liquidaciones.productoControlGestion",
+                                null,
+                              ],
+                            },
+                          },
+                        },
+                        as: "filtered",
+                        cond: {
+                          $ne: [
+                            "$$filtered",
+                            null,
+                          ],
+                        },
+                      },
+                    },
+                    0,
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      _id: "$$REMOVE",
+      Parametricingresocomisiones: "$$REMOVE",
+      sidis_brm: "$REMOVE",
+      //Calcula los valores totales y por producto
+      sal_actTotalBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: "$$brm.sal_act",
+          },
+        },
+      },
+      sal_antTotalBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: "$$brm.sal_ant",
+          },
+        },
+      },
+      sal_net_actTotalBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: "$$brm.sal_net_act",
+          },
+        },
+      },
+      sal_actPOSBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: ["$$brm.producto", "POS"],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antPOSBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: ["$$brm.producto", "POS"],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actPOSBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: ["$$brm.producto", "POS"],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actOperacionesCambiariasBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Operaciones Cambiarias",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antOperacionesCambiariasBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Operaciones Cambiarias",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actOperacionesCambiariasBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Operaciones Cambiarias",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actMediosdePagoBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Medios de Pago",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antMediosdePagoBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Medios de Pago",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actMediosdePagoBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Medios de Pago",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actPagoProveedoresBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Pago Proveedores",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antPagoProveedoresBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Pago Proveedores",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actPagoProveedoresBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Pago Proveedores",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actConsultadeSaldoBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Consulta de Saldo",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antConsultadeSaldoBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Consulta de Saldo",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actConsultadeSaldoBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Consulta de Saldo",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actRecaudacionBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Recaudación",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antRecaudacionBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Recaudación",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actRecaudacionBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Recaudación",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actNominaBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Nómina",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antNominaBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Nómina",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actNominaBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Nómina",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actPagoMovilBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Pago Móvil",
+                  ],
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antPagoMovilBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Pago Móvil",
+                  ],
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actPagoMovilBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $eq: [
+                    "$$brm.producto",
+                    "Pago Móvil",
+                  ],
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_actOtrosBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $not: {
+                    $in: [
+                      "$$brm.producto",
+                      [
+                        "POS",
+                        "Operaciones Cambiarias",
+                        "Medios de Pago",
+                        "Pago Proveedores",
+                        "Consulta de Saldo",
+                        "Recaudación",
+                        "Nómina",
+                        "Pago Móvil",
+                      ],
+                    ],
+                  },
+                },
+                "$$brm.sal_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_antOtrosBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $not: {
+                    $in: [
+                      "$$brm.producto",
+                      [
+                        "POS",
+                        "Operaciones Cambiarias",
+                        "Medios de Pago",
+                        "Pago Proveedores",
+                        "Consulta de Saldo",
+                        "Recaudación",
+                        "Nómina",
+                        "Pago Móvil",
+                      ],
+                    ],
+                  },
+                },
+                "$$brm.sal_ant",
+                0,
+              ],
+            },
+          },
+        },
+      },
+      sal_net_actOtrosBs: {
+        $sum: {
+          $map: {
+            input: "$sidis_brm",
+            as: "brm",
+            in: {
+              $cond: [
+                {
+                  $not: {
+                    $in: [
+                      "$$brm.producto",
+                      [
+                        "POS",
+                        "Operaciones Cambiarias",
+                        "Medios de Pago",
+                        "Pago Proveedores",
+                        "Consulta de Saldo",
+                        "Recaudación",
+                        "Nómina",
+                        "Pago Móvil",
+                      ],
+                    ],
+                  },
+                },
+                "$$brm.sal_net_act",
+                0,
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "IngresosComisionesMetric",
+      localField: "yesterdayDate",
+      foreignField: "fecha_valor",
+      as: "IngresosComisionesMetricYesterday",
+    },
+  },
+  {
+    $lookup: {
+      from: "IngresosComisionesMetric",
+      localField: "PreviusMonthlastDate",
+      foreignField: "fecha_valor",
+      as: "IngresosComisionesMetricPreviusMonthlastDate",
+    },
+  },
+  {
+    $addFields: {
+      fecha_valor: "$todayDate",
+      todayDate: "$$REMOVE",
+      //Si no hay documentos en la fecha, añade valores por defecto
+
+      sal_actTotalBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actTotalBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actTotalBs",
+          },
+        ],
+      },
+      sal_antTotalBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antTotalBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antTotalBs",
+          },
+        ],
+      },
+      sal_net_actTotalBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actTotalBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actTotalBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antTotalBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actPOSBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actPOSBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actPOSBs",
+          },
+        ],
+      },
+      sal_antPOSBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antPOSBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPOSBs",
+          },
+        ],
+      },
+      sal_net_actPOSBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actPOSBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actPOSBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPOSBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actOperacionesCambiariasBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actOperacionesCambiariasBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actOperacionesCambiariasBs",
+          },
+        ],
+      },
+      sal_antOperacionesCambiariasBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antOperacionesCambiariasBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOperacionesCambiariasBs",
+          },
+        ],
+      },
+      sal_net_actOperacionesCambiariasBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actOperacionesCambiariasBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actOperacionesCambiariasBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOperacionesCambiariasBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actMediosdePagoBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actMediosdePagoBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actMediosdePagoBs",
+          },
+        ],
+      },
+      sal_antMediosdePagoBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antMediosdePagoBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antMediosdePagoBs",
+          },
+        ],
+      },
+      sal_net_actMediosdePagoBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actMediosdePagoBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actMediosdePagoBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antMediosdePagoBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actPagoProveedoresBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actPagoProveedoresBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actPagoProveedoresBs",
+          },
+        ],
+      },
+      sal_antPagoProveedoresBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antPagoProveedoresBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoProveedoresBs",
+          },
+        ],
+      },
+      sal_net_actPagoProveedoresBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actPagoProveedoresBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actPagoProveedoresBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoProveedoresBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actConsultadeSaldoBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actConsultadeSaldoBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actConsultadeSaldoBs",
+          },
+        ],
+      },
+      sal_antConsultadeSaldoBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antConsultadeSaldoBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antConsultadeSaldoBs",
+          },
+        ],
+      },
+      sal_net_actConsultadeSaldoBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actConsultadeSaldoBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actConsultadeSaldoBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antConsultadeSaldoBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actRecaudacionBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actRecaudacionBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actRecaudacionBs",
+          },
+        ],
+      },
+      sal_antRecaudacionBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antRecaudacionBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antRecaudacionBs",
+          },
+        ],
+      },
+      sal_net_actRecaudacionBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actRecaudacionBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actRecaudacionBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antRecaudacionBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actNominaBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actNominaBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actNominaBs",
+          },
+        ],
+      },
+      sal_antNominaBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antNominaBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antNominaBs",
+          },
+        ],
+      },
+      sal_net_actNominaBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actNominaBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actNominaBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antNominaBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actPagoMovilBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actPagoMovilBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actPagoMovilBs",
+          },
+        ],
+      },
+      sal_antPagoMovilBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antPagoMovilBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoMovilBs",
+          },
+        ],
+      },
+      sal_net_actPagoMovilBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actPagoMovilBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actPagoMovilBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoMovilBs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_actOtrosBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_actOtrosBs",
+          {
+            $first:
+              "$IngresosComisionesMetricYesterday.sal_actOtrosBs",
+          },
+        ],
+      },
+      sal_antOtrosBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_antOtrosBs",
+          {
+            $first:
+              "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOtrosBs",
+          },
+        ],
+      },
+      sal_net_actOtrosBs: {
+        $cond: [
+          "$avaiableData",
+          "$sal_net_actOtrosBs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$IngresosComisionesMetricYesterday.sal_actOtrosBs",
+              },
+              {
+                $first:
+                  "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOtrosBs",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "fecha_valor",
+      foreignField: "Fecha",
+      as: "sidis_tasaconversion",
+    },
+  },
+  {
+    $addFields: {
+      sidis_tasaconversion: "$$REMOVE",
+      //converión a dolares
+      sal_actTotal: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actTotalBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antTotal: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antTotalBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actTotal: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actTotalBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actPOS: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actPOSBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antPOS: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antPOSBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actPOS: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actPOSBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actOperacionesCambiarias: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actOperacionesCambiariasBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antOperacionesCambiarias: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antOperacionesCambiariasBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actOperacionesCambiarias: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actOperacionesCambiariasBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actMediosdePago: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actMediosdePagoBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antMediosdePago: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antMediosdePagoBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actMediosdePago: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actMediosdePagoBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actPagoProveedores: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actPagoProveedoresBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antPagoProveedores: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antPagoProveedoresBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actPagoProveedores: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actPagoProveedoresBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actConsultadeSaldo: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actConsultadeSaldoBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antConsultadeSaldo: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antConsultadeSaldoBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actConsultadeSaldo: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actConsultadeSaldoBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actRecaudacion: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actRecaudacionBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antRecaudacion: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antRecaudacionBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actRecaudacion: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actRecaudacionBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actNomina: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actNominaBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antNomina: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antNominaBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actNomina: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actNominaBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actPagoMovil: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actPagoMovilBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antPagoMovil: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antPagoMovilBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actPagoMovil: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actPagoMovilBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_actOtros: {
+        $round: [
+          {
+            $divide: [
+              "$sal_actOtrosBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_antOtros: {
+        $round: [
+          {
+            $divide: [
+              "$sal_antOtrosBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_actOtros: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_actOtrosBs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      IngresosComisionesMetricYesterday:
+        "$$REMOVE",
+      IngresosComisionesMetricPreviusMonthlastDate:
+        "$$REMOVE",
+      sidis_tasaconversion: "$$REMOVE",
+      adjustmentCond: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $and: [
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$IngresosComisionesMetricYesterday.adjustmentCond",
+                      },
+                      true,
+                    ],
+                  },
+                  {
+                    $in: [
+                      {
+                        $month: "$fecha_valor",
+                      },
+                      [7, 8, 9, 10, 11, 12],
+                    ],
+                  },
+                ],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $or: [
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$IngresosComisionesMetricYesterday.adjustmentCond",
+                      },
+                      false,
+                    ],
+                  },
+                  {
+                    $lte: [
+                      {
+                        $first:
+                          "$IngresosComisionesMetricYesterday.adjustmentCond",
+                      },
+                      null,
+                    ],
+                  },
+                ],
+              },
+              then: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          {
+                            $ifNull: [
+                              {
+                                $divide: [
+                                  "$sal_actTotal",
+                                  {
+                                    $first:
+                                      "$IngresosComisionesMetricYesterday.sal_actTotal",
+                                  },
+                                ],
+                              },
+                              1,
+                            ],
+                          },
+                          0.5,
+                        ],
+                      },
+                      {
+                        $eq: [
+                          {
+                            $month:
+                              "$fecha_valor",
+                          },
+                          7,
+                        ],
+                      },
+                    ],
+                  },
+                  true,
+                  false,
+                ],
+              },
+            },
+          ],
+          default: false,
+        },
+      },
+      adjustmenrCondJanuary: {
+        $switch: {
+          branches: [
+            {
+              case: "$firstDayYear",
+              then: true,
+            },
+            {
+              case: {
+                $and: [
+                  {
+                    $eq: [
+                      {
+                        $month: "$fecha_valor",
+                      },
+                      1,
+                    ],
+                  },
+                  {
+                    $lte: [
+                      {
+                        $ifNull: [
+                          {
+                            $divide: [
+                              {
+                                $first:
+                                  "$IngresosComisionesMetricYesterday.sal_actTotal",
+                              },
+                              "$sal_actTotal",
+                            ],
+                          },
+                          1,
+                        ],
+                      },
+                      2,
+                    ],
+                  },
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$IngresosComisionesMetricYesterday.adjustmenrCondJanuary",
+                      },
+                      true,
+                    ],
+                  },
+                ],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $and: [
+                  {
+                    $eq: [
+                      {
+                        $month: "$fecha_valor",
+                      },
+                      1,
+                    ],
+                  },
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$IngresosComisionesMetricYesterday.adjustmenrCondJanuary",
+                      },
+                      false,
+                    ],
+                  },
+                ],
+              },
+              then: false,
+            },
+          ],
+          default: false,
+        },
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "IngresosComisionesMetric",
+      on: "fecha_valor",
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$limit": 1
+  }, {
+    "$lookup": {
+      "from": "Parametricingresocomisiones", 
+      "pipeline": [
+        {
+          "$project": {
+            "cuentaContable": 1, 
+            "productoControlGestion": 1, 
+            "_id": 0
+          }
+        }
+      ], 
+      "as": "Parametricingresocomisiones"
+    }
+  }, {
+    "$project": {
+      "Parametricingresocomisiones": 1, 
+      "cuentasContable": "$Parametricingresocomisiones.cuentaContable", 
+      "todayDate": {
+        "$subtract": [
+          {
+            "$toDate": {
+              "$dateFromString": {
+                "dateString": {
+                  "$dateToString": {
+                    "format": "%Y-%m-%dT00:00:00%z", 
+                    "date": {
+                      "$toDate": "$$NOW"
+                    }
+                  }
+                }
+              }
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_brm", 
+      "let": {
+        "todayDate": "$todayDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$$todayDate", "$fecha_odate"
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "nucta": 1, 
+            "sal_act": {
+              "$multiply": [
+                "$sal_act", -1
+              ]
+            }, 
+            "sal_ant": {
+              "$multiply": [
+                "$sal_ant", -1
+              ]
+            }, 
+            "sal_net_act": {
+              "$multiply": [
+                "$sal_net_act", -1
+              ]
+            }
+          }
+        }
+      ], 
+      "as": "sidis_brm"
+    }
+  }, {
+    "$addFields": {
+      "avaiableData": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$size": "$sidis_brm"
+              }, 0
+            ]
+          }, true, false
+        ]
+      }, 
+      "firstDayMonth": {
+        "$eq": [
+          {
+            "$dayOfMonth": "$todayDate"
+          }, 1
+        ]
+      }, 
+      "firstDayYear": {
+        "$and": [
+          {
+            "$eq": [
+              {
+                "$dayOfMonth": "$todayDate"
+              }, 1
+            ]
+          }, {
+            "$eq": [
+              {
+                "$month": "$todayDate"
+              }, 1
+            ]
+          }
+        ]
+      }, 
+      "sidis_brm": {
+        "$filter": {
+          "input": "$sidis_brm", 
+          "as": "brm", 
+          "cond": {
+            "$in": [
+              "$$brm.nucta", "$cuentasContable"
+            ]
+          }
+        }
+      }, 
+      "cuentasContable": "$$REMOVE", 
+      "yesterdayDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": -1
+        }
+      }, 
+      "tomorrowDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": 1
+        }
+      }, 
+      "previusMonthDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "month", 
+          "amount": -1
+        }
+      }, 
+      "PreviusMonthlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }, 
+              "month": {
+                "$month": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "previusYearDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "year", 
+          "amount": -1
+        }
+      }, 
+      "PreviusYearlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "sidis_brm": {
+        "$map": {
+          "input": "$sidis_brm", 
+          "as": "brm", 
+          "in": {
+            "$mergeObjects": [
+              "$$brm", {
+                "producto": {
+                  "$arrayElemAt": [
+                    {
+                      "$filter": {
+                        "input": {
+                          "$map": {
+                            "input": "$Parametricingresocomisiones", 
+                            "as": "liquidaciones", 
+                            "in": {
+                              "$cond": [
+                                {
+                                  "$eq": [
+                                    "$$liquidaciones.cuentaContable", "$$brm.nucta"
+                                  ]
+                                }, "$$liquidaciones.productoControlGestion", null
+                              ]
+                            }
+                          }
+                        }, 
+                        "as": "filtered", 
+                        "cond": {
+                          "$ne": [
+                            "$$filtered", null
+                          ]
+                        }
+                      }
+                    }, 0
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "Parametricingresocomisiones": "$$REMOVE", 
+      "sidis_brm": "$REMOVE", 
+      "sal_actTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": "$$brm.sal_act"
+          }
+        }
+      }, 
+      "sal_antTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": "$$brm.sal_ant"
+          }
+        }
+      }, 
+      "sal_net_actTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": "$$brm.sal_net_act"
+          }
+        }
+      }, 
+      "sal_actPOSBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "POS"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antPOSBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "POS"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actPOSBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "POS"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actOperacionesCambiariasBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Operaciones Cambiarias"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antOperacionesCambiariasBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Operaciones Cambiarias"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actOperacionesCambiariasBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Operaciones Cambiarias"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actMediosdePagoBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Medios de Pago"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antMediosdePagoBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Medios de Pago"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actMediosdePagoBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Medios de Pago"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actPagoProveedoresBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Pago Proveedores"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antPagoProveedoresBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Pago Proveedores"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actPagoProveedoresBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Pago Proveedores"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actConsultadeSaldoBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Consulta de Saldo"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antConsultadeSaldoBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Consulta de Saldo"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actConsultadeSaldoBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Consulta de Saldo"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actRecaudacionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Recaudación"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antRecaudacionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Recaudación"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actRecaudacionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Recaudación"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actNominaBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Nómina"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antNominaBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Nómina"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actNominaBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Nómina"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actPagoMovilBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Pago Móvil"
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antPagoMovilBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Pago Móvil"
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actPagoMovilBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$$brm.producto", "Pago Móvil"
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actOtrosBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$not": {
+                    "$in": [
+                      "$$brm.producto", [
+                        "POS", "Operaciones Cambiarias", "Medios de Pago", "Pago Proveedores", "Consulta de Saldo", "Recaudación", "Nómina", "Pago Móvil"
+                      ]
+                    ]
+                  }
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antOtrosBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$not": {
+                    "$in": [
+                      "$$brm.producto", [
+                        "POS", "Operaciones Cambiarias", "Medios de Pago", "Pago Proveedores", "Consulta de Saldo", "Recaudación", "Nómina", "Pago Móvil"
+                      ]
+                    ]
+                  }
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actOtrosBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$not": {
+                    "$in": [
+                      "$$brm.producto", [
+                        "POS", "Operaciones Cambiarias", "Medios de Pago", "Pago Proveedores", "Consulta de Saldo", "Recaudación", "Nómina", "Pago Móvil"
+                      ]
+                    ]
+                  }
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "IngresosComisionesMetric", 
+      "localField": "yesterdayDate", 
+      "foreignField": "fecha_valor", 
+      "as": "IngresosComisionesMetricYesterday"
+    }
+  }, {
+    "$lookup": {
+      "from": "IngresosComisionesMetric", 
+      "localField": "PreviusMonthlastDate", 
+      "foreignField": "fecha_valor", 
+      "as": "IngresosComisionesMetricPreviusMonthlastDate"
+    }
+  }, {
+    "$addFields": {
+      "fecha_valor": "$todayDate", 
+      "todayDate": "$$REMOVE", 
+      "sal_actTotalBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actTotalBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actTotalBs"
+          }
+        ]
+      }, 
+      "sal_antTotalBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antTotalBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antTotalBs"
+          }
+        ]
+      }, 
+      "sal_net_actTotalBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actTotalBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actTotalBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antTotalBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actPOSBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actPOSBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actPOSBs"
+          }
+        ]
+      }, 
+      "sal_antPOSBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antPOSBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPOSBs"
+          }
+        ]
+      }, 
+      "sal_net_actPOSBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actPOSBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actPOSBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPOSBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actOperacionesCambiariasBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actOperacionesCambiariasBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actOperacionesCambiariasBs"
+          }
+        ]
+      }, 
+      "sal_antOperacionesCambiariasBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antOperacionesCambiariasBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOperacionesCambiariasBs"
+          }
+        ]
+      }, 
+      "sal_net_actOperacionesCambiariasBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actOperacionesCambiariasBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actOperacionesCambiariasBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOperacionesCambiariasBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actMediosdePagoBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actMediosdePagoBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actMediosdePagoBs"
+          }
+        ]
+      }, 
+      "sal_antMediosdePagoBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antMediosdePagoBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antMediosdePagoBs"
+          }
+        ]
+      }, 
+      "sal_net_actMediosdePagoBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actMediosdePagoBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actMediosdePagoBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antMediosdePagoBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actPagoProveedoresBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actPagoProveedoresBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actPagoProveedoresBs"
+          }
+        ]
+      }, 
+      "sal_antPagoProveedoresBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antPagoProveedoresBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoProveedoresBs"
+          }
+        ]
+      }, 
+      "sal_net_actPagoProveedoresBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actPagoProveedoresBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actPagoProveedoresBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoProveedoresBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actConsultadeSaldoBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actConsultadeSaldoBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actConsultadeSaldoBs"
+          }
+        ]
+      }, 
+      "sal_antConsultadeSaldoBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antConsultadeSaldoBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antConsultadeSaldoBs"
+          }
+        ]
+      }, 
+      "sal_net_actConsultadeSaldoBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actConsultadeSaldoBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actConsultadeSaldoBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antConsultadeSaldoBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actRecaudacionBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actRecaudacionBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actRecaudacionBs"
+          }
+        ]
+      }, 
+      "sal_antRecaudacionBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antRecaudacionBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antRecaudacionBs"
+          }
+        ]
+      }, 
+      "sal_net_actRecaudacionBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actRecaudacionBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actRecaudacionBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antRecaudacionBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actNominaBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actNominaBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actNominaBs"
+          }
+        ]
+      }, 
+      "sal_antNominaBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antNominaBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antNominaBs"
+          }
+        ]
+      }, 
+      "sal_net_actNominaBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actNominaBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actNominaBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antNominaBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actPagoMovilBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actPagoMovilBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actPagoMovilBs"
+          }
+        ]
+      }, 
+      "sal_antPagoMovilBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antPagoMovilBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoMovilBs"
+          }
+        ]
+      }, 
+      "sal_net_actPagoMovilBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actPagoMovilBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actPagoMovilBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antPagoMovilBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_actOtrosBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actOtrosBs", {
+            "$first": "$IngresosComisionesMetricYesterday.sal_actOtrosBs"
+          }
+        ]
+      }, 
+      "sal_antOtrosBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antOtrosBs", {
+            "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOtrosBs"
+          }
+        ]
+      }, 
+      "sal_net_actOtrosBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actOtrosBs", {
+            "$subtract": [
+              {
+                "$first": "$IngresosComisionesMetricYesterday.sal_actOtrosBs"
+              }, {
+                "$first": "$IngresosComisionesMetricPreviusMonthlastDate.sal_antOtrosBs"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "fecha_valor", 
+      "foreignField": "Fecha", 
+      "as": "sidis_tasaconversion"
+    }
+  }, {
+    "$addFields": {
+      "sidis_tasaconversion": "$$REMOVE", 
+      "sal_actTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actPOS": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actPOSBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antPOS": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antPOSBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actPOS": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actPOSBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actOperacionesCambiarias": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actOperacionesCambiariasBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antOperacionesCambiarias": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antOperacionesCambiariasBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actOperacionesCambiarias": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actOperacionesCambiariasBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actMediosdePago": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actMediosdePagoBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antMediosdePago": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antMediosdePagoBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actMediosdePago": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actMediosdePagoBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actPagoProveedores": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actPagoProveedoresBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antPagoProveedores": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antPagoProveedoresBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actPagoProveedores": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actPagoProveedoresBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actConsultadeSaldo": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actConsultadeSaldoBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antConsultadeSaldo": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antConsultadeSaldoBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actConsultadeSaldo": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actConsultadeSaldoBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actRecaudacion": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actRecaudacionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antRecaudacion": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antRecaudacionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actRecaudacion": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actRecaudacionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actNomina": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actNominaBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antNomina": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antNominaBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actNomina": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actNominaBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actPagoMovil": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actPagoMovilBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antPagoMovil": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antPagoMovilBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actPagoMovil": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actPagoMovilBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actOtros": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actOtrosBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antOtros": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antOtrosBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actOtros": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actOtrosBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "IngresosComisionesMetricYesterday": "$$REMOVE", 
+      "IngresosComisionesMetricPreviusMonthlastDate": "$$REMOVE", 
+      "sidis_tasaconversion": "$$REMOVE", 
+      "adjustmentCond": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$first": "$IngresosComisionesMetricYesterday.adjustmentCond"
+                      }, true
+                    ]
+                  }, {
+                    "$in": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, [
+                        7, 8, 9, 10, 11, 12
+                      ]
+                    ]
+                  }
+                ]
+              }, 
+              "then": true
+            }, {
+              "case": {
+                "$or": [
+                  {
+                    "$eq": [
+                      {
+                        "$first": "$IngresosComisionesMetricYesterday.adjustmentCond"
+                      }, false
+                    ]
+                  }, {
+                    "$lte": [
+                      {
+                        "$first": "$IngresosComisionesMetricYesterday.adjustmentCond"
+                      }, null
+                    ]
+                  }
+                ]
+              }, 
+              "then": {
+                "$cond": [
+                  {
+                    "$and": [
+                      {
+                        "$lte": [
+                          {
+                            "$ifNull": [
+                              {
+                                "$divide": [
+                                  "$sal_actTotal", {
+                                    "$first": "$IngresosComisionesMetricYesterday.sal_actTotal"
+                                  }
+                                ]
+                              }, 1
+                            ]
+                          }, 0.5
+                        ]
+                      }, {
+                        "$eq": [
+                          {
+                            "$month": "$fecha_valor"
+                          }, 7
+                        ]
+                      }
+                    ]
+                  }, true, false
+                ]
+              }
+            }
+          ], 
+          "default": false
+        }
+      }, 
+      "adjustmenrCondJanuary": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$firstDayYear", 
+              "then": true
+            }, {
+              "case": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, 1
+                    ]
+                  }, {
+                    "$lte": [
+                      {
+                        "$ifNull": [
+                          {
+                            "$divide": [
+                              {
+                                "$first": "$IngresosComisionesMetricYesterday.sal_actTotal"
+                              }, "$sal_actTotal"
+                            ]
+                          }, 1
+                        ]
+                      }, 2
+                    ]
+                  }, {
+                    "$eq": [
+                      {
+                        "$first": "$IngresosComisionesMetricYesterday.adjustmenrCondJanuary"
+                      }, true
+                    ]
+                  }
+                ]
+              }, 
+              "then": true
+            }, {
+              "case": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, 1
+                    ]
+                  }, {
+                    "$eq": [
+                      {
+                        "$first": "$IngresosComisionesMetricYesterday.adjustmenrCondJanuary"
+                      }, false
+                    ]
+                  }
+                ]
+              }, 
+              "then": false
+            }
+          ], 
+          "default": false
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "IngresosComisionesMetric", 
+      "on": "fecha_valor", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

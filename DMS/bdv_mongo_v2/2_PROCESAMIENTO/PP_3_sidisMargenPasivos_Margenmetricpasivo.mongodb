@@ -1,0 +1,307 @@
+// sidis_margen a Margenmetricpasivo
+
+[
+  {
+    $match: {
+      $and: [
+        {
+          mcl_fecha_proceso: {
+            $gte: ISODate("2022-01-01T00:00:00.000+00:00"),
+          },
+        },
+        {
+          mcl_fecha_proceso: {
+            $lt: ISODate("2023-05-01T00:00:00.000+00:00"),
+          },
+        },
+      ],
+      tipoConsulta: 2,
+    },
+  },
+  {
+    $group: {
+      _id: {
+        fechaProceso: "$mcl_fecha_proceso",
+        rifCedula: "$mcl_rif_cedula",
+        mcl_naturaleza_producto: "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair: "$mcl_producto_altair",
+        mcl_subproducto_altair: "$mcl_subproducto_altair",
+        mcl_cuenta_contable1: "$mcl_cuenta_contable1",
+      },
+      estatus: {
+        $first: "$mcl_estatus",
+      },
+      prd_nombre_producto: {
+        $first: "$prd_nombre_producto",
+      },
+      resultSize: {
+        $first: "$resultSize",
+      },
+      sidisLibreconvertibilidadConvenio20: {
+        $first: "$sidisLibreconvertibilidadConvenio20",
+      },
+      sidisProducto: {
+        $first: "$sidisProducto",
+      },
+      sidisTasaconversion: {
+        $first: "$sidisTasaconversion",
+      },
+      tasa_dolar: {
+        $first: "$tasa_dolar",
+      },
+      relacion_eur: {
+        $first: "$relacion_eur",
+      },
+      fechaUltimaTransacPasivos: {
+        $max: "$mcl_fecha_ult_tran_d",
+      },
+      numeroContrato: {
+        $sum: 1,
+      },
+      saldoPasivo: {
+        $sum: "$mcl_saldo",
+      },
+      promedioPasivo: {
+        $sum: "$mcl_promedio",
+      },
+      numDebitoPasivo: {
+        $sum: "$mcl_numero_debitos",
+      },
+      montoDebitoPasivo: {
+        $sum: "$mcl_monto_debitos",
+      },
+      numCreditoPasivo: {
+        $sum: "$mcl_numero_creditos",
+      },
+      montoCreditoPasivo: {
+        $sum: "$mcl_monto_creditos",
+      },
+    },
+  },
+  {
+    /**
+     * newField: The new field name.
+     * expression: The new field expression.
+     */
+    $addFields: {
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "BOLIVARES",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: "$sidisLibreconvertibilidadConvenio20.denominacion",
+            },
+          ],
+        },
+      },
+      moneda_base: "BOLIVARES",
+    },
+  },
+  {
+    $addFields: {
+      fechaProceso: "$_id.fechaProceso",
+      rifCedula: "$_id.rifCedula",
+      name: "$_id.name",
+      naturalezaProducto: "$_id.mcl_naturaleza_producto",
+      codigoProducto: "$_id.mcl_producto",
+      codigoProductoaAltair: "$_id.mcl_producto_altair",
+      codigoSubProductoAltair:
+        "$_id.mcl_subproducto_altair",
+      cuentaContable1: "$_id.mcl_cuenta_contable1",
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0],
+              },
+              then: "",
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0],
+              },
+              then: "$sidisLibreconvertibilidadConvenio20.condicion",
+            },
+          ],
+        },
+      },
+      saldoPasivo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$saldoPasivo",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$saldoPasivo",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$saldoPasivo",
+        },
+      },
+      promedioPasivo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$promedioPasivo",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$promedioPasivo",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$promedioPasivo",
+        },
+      },
+      montoDebitoPasivo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$montoDebitoPasivo",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$montoDebitoPasivo",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$montoDebitoPasivo",
+        },
+      },
+      montoCreditoPasivo: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$denominacion", "$moneda_base"],
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$montoCreditoPasivo",
+                      "$tasa_dolar",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+            {
+              case: {
+                $eq: ["$denominacion", "EUROS"],
+              },
+              then: {
+                $round: [
+                  {
+                    $multiply: [
+                      "$montoCreditoPasivo",
+                      "$relacion_eur",
+                    ],
+                  },
+                  4,
+                ],
+              },
+            },
+          ],
+          default: "$montoCreditoPasivo",
+        },
+      },
+
+      _id: "$$REMOVE",
+      moneda_base: "$$REMOVE",
+      resultSize: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricspasivo",
+      on: "_id",
+      whenNotMatched: "insert",
+    },
+  },
+]

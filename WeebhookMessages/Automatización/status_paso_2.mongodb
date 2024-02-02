@@ -1,0 +1,163 @@
+[
+  {
+    $match: {
+      //status_paso_2,3
+      proceso: "webhook_messages_marketing",
+      $expr: {
+        $eq: [
+          "$fechaProceso",
+          {
+            $toDate: "2023-12-18",
+            //"{{$json.fechaProceso}}"
+          },
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      //status_paso_2
+      procesos: {
+        $map: {
+          input: "$procesos",
+          as: "procesos",
+          in: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      "$$procesos.subProceso",
+                      "AcutalizacionPeopleMessages",
+                      //"{{$json.proceso}}"
+                    ],
+                  },
+                ],
+              },
+              {
+                $mergeObjects: [
+                  {
+                    subProceso:
+                      "AcutalizacionPeopleMessages",
+                    //"{{$json.proceso}}"
+                  },
+                  {
+                    descripcion:
+                      "$$procesos.descripcion",
+                  },
+                  {
+                    fechaProceso: "$fechaProceso",
+                  },
+                  {
+                    fuenteEntrada:
+                      "$$procesos.fuenteEntrada",
+                  },
+                  {
+                    fuenteSalida:
+                      "$$procesos.fuenteSalida",
+                  },
+                  {
+                    frecuencia:
+                      "$$procesos.frecuencia",
+                  },
+                  {
+                    fechaInicio: "$$NOW",
+                  },
+                  {
+                    fechaFin:
+                      "$$procesos.fechaFin",
+                  },
+                  {
+                    status: "En Proceso",
+                  },
+                  {
+                    tiempoEjecucion:
+                      "$$procesos.tiempoEjecucion",
+                  },
+                ],
+              },
+              "$$procesos",
+            ],
+          },
+        },
+      },
+    },
+  },
+
+  {
+    $merge: {
+      into: "sidis_statusProcesos",
+      on: ["proceso", "fechaProceso"],
+    },
+  },
+]
+
+// n8n
+
+[
+  {
+    "$match": {
+      "proceso": "webhook_messages_marketing", 
+      "$expr": {
+        "$eq": [
+          "$fechaProceso", {
+            "$toDate": "{{$json.fechaProceso}}"
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "procesos": {
+        "$map": {
+          "input": "$procesos", 
+          "as": "procesos", 
+          "in": {
+            "$cond": [
+              {
+                "$and": [
+                  {
+                    "$eq": [
+                      "$$procesos.subProceso", "{{$json.proceso}}"
+                    ]
+                  }
+                ]
+              }, {
+                "$mergeObjects": [
+                  {
+                    "subProceso": "{{$json.proceso}}"
+                  }, {
+                    "descripcion": "$$procesos.descripcion"
+                  }, {
+                    "fechaProceso": "$fechaProceso"
+                  }, {
+                    "fuenteEntrada": "$$procesos.fuenteEntrada"
+                  }, {
+                    "fuenteSalida": "$$procesos.fuenteSalida"
+                  }, {
+                    "frecuencia": "$$procesos.frecuencia"
+                  }, {
+                    "fechaInicio": "$$NOW"
+                  }, {
+                    "fechaFin": "$$procesos.fechaFin"
+                  }, {
+                    "status": "En Proceso"
+                  }, {
+                    "tiempoEjecucion": "$$procesos.tiempoEjecucion"
+                  }
+                ]
+              }, "$$procesos"
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "proceso", "fechaProceso"
+      ]
+    }
+  }
+]

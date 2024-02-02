@@ -1,0 +1,176 @@
+// de people a people
+
+[
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        //cambiar
+        from: "sidis_segmentacion",
+        let: {
+          rif: "$vat",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$$rif", "$seg_rif_cedula"],
+              },
+            },
+          },
+        ],
+        as: "result",
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        maxFecha: {
+          $max: "$result.seg_fecha_proceso",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        result: {
+          $filter: {
+            input: "$result",
+            as: "result",
+            cond: {
+              $eq: [
+                "$$result.seg_fecha_proceso",
+                "$maxFecha",
+              ],
+            },
+          },
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+
+      {
+        clientDate: {
+          $first: "$result.seg_fecha_alta",
+        },
+        dateOfBirth: {
+          $first: "$result.seg_fecha_nac",
+        },
+        regionCode: {
+          $first: "$result.seg_territorio",
+        },
+        regionName: {
+          $first: "$result.seg_nombre_territorio",
+        },
+        codigobanca: {
+          $first: "$result.seg_banca",
+        },
+        nombrebanca: {
+          $first: "$result.seg_nombre_banca",
+        },
+        nivelSocioEconomico: {
+          $first:
+            "$result.seg_nivel_socioecon_real",
+        },
+        codigosegmento: {
+          $first: "$result.seg_segmento",
+        },
+        nombresegmento: {
+          $first: "$result.seg_nombre_segmento",
+        },
+        codigosubSegmento: {
+          $first: "$result.seg_subsegmento",
+        },
+        nombresubSegmento: {
+          $first:
+            "$result.seg_nombre_subsegmento",
+        },
+        officeCode: {
+          $first: "$result.seg_oficina_tutora",
+        },
+        officeName: {
+          $first: "$result.seg_nombre_oficina",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        integrationIds: {
+          $mergeObjects: [
+            "$integrationIds",
+            {
+              sidis_segmentacion: {
+                $first: "$result.seg_rif_cedula",
+              },
+            },
+          ],
+        },
+        peopleIds: {
+          $mergeObjects: [
+            "$peopleIds",
+            {
+              sidis_segmentacion: [
+                {
+                  $first: "$result._id",
+                },
+              ],
+            },
+          ],
+        },
+        updatedAt: new Date(),
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        result: 0,
+        maxFecha: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+
+      {
+        //cambiar
+        into: "People",
+        on: "_id",
+        whenNotMatched: "insert",
+      },
+  },
+]

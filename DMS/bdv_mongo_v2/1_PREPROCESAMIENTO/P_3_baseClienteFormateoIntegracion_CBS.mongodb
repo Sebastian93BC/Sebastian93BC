@@ -1,0 +1,252 @@
+// de base cliente a sidis_cliente_base_segmentacion  CBS
+
+[
+    {
+      $match: {
+        mbc_cod_banca: {
+          $nin: ["5", "4"],
+        },
+      },
+    },
+    {
+      $addFields: {
+        mbc_fecha_proceso: {
+          $dateFromString: {
+            dateString: "$mbc_fecha_proceso",
+            format: "%d/%m/%Y %H:%M:%S",
+            onNull: new Date("1900-01-01T00:00:00.000Z"),
+            onError: new Date("1900-01-01T00:00:00.000Z"),
+          },
+        },
+        mbc_cod_banca: {
+          $toInt: "$mbc_cod_banca",
+        },
+        mbc_cod_segmento: {
+          $toInt: "$mbc_cod_segmento",
+        },
+        mbc_grupo_economico: {
+          $toInt: "$mbc_grupo_economico",
+        },
+        mbc_fecha_inclusion: {
+          $dateFromString: {
+            dateString: "$mbc_fecha_inclusion",
+            format: "%d/%m/%Y %H:%M:%S",
+            onNull: new Date("1900-01-01T00:00:00.000Z"),
+            onError: new Date("1900-01-01T00:00:00.000Z"),
+          },
+        },
+        mbc_fecha_ult_transac: {
+          $dateFromString: {
+            dateString: "$mbc_fecha_ult_transac",
+            format: "%d/%m/%Y %H:%M:%S",
+            onNull: new Date("1900-01-01T00:00:00.000Z"),
+            onError: new Date("1900-01-01T00:00:00.000Z"),
+          },
+        },
+        mbc_saldo_3m: {
+          $toDecimal: "$mbc_saldo_3m",
+        },
+        mbc_saldo_6m: {
+          $toDecimal: "$mbc_saldo_6m",
+        },
+        mbc_sueldo_6m: {
+          $toDecimal: "$mbc_sueldo_6m",
+        },
+        mbc_monto_creditos: {
+          $toDecimal: "$mbc_monto_creditos",
+        },
+        mbc_monto_debitos: {
+          $toDecimal: "$mbc_monto_debitos",
+        },
+        mbc_numero_creditos: {
+          $toInt: "$mbc_numero_creditos",
+        },
+        mbc_numero_debitos: {
+          $toInt: "$mbc_numero_debitos",
+        },
+        mbc_vista: {
+          $toBool: "$mbc_vista",
+        },
+        mbc_ahorro: {
+          $toBool: "$mbc_ahorro",
+        },
+        mbc_plazo: {
+          $toBool: "$mbc_plazo",
+        },
+        mbc_tarjeta_clv_prepag: {
+          $toBool: "$mbc_tarjeta_clv_prepag",
+        },
+        mbc_tdd: {
+          $toBool: "$mbc_tdd",
+        },
+        mbc_consumo: {
+          $toBool: "$mbc_consumo",
+        },
+        mbc_crediauto: {
+          $toBool: "$mbc_crediauto",
+        },
+        mbc_credipersonal: {
+          $toBool: "$mbc_credipersonal",
+        },
+        mbc_credinomina: {
+          $toBool: "$mbc_credinomina",
+        },
+        mbc_credi_mcbe: {
+          $toBool: "$mbc_credi_mcbe",
+        },
+        mbc_tdc: {
+          $toBool: "$mbc_tdc",
+        },
+        mbc_ced_buen_vivir: {
+          $toBool: "$mbc_ced_buen_vivir",
+        },
+        mbc_emprendedores: {
+          $toBool: "$mbc_emprendedores",
+        },
+        mbc_tarjeta_turismo: {
+          $toBool: "$mbc_tarjeta_turismo",
+        },
+        mbc_creditos_dirig: {
+          $toBool: "$mbc_creditos_dirig",
+        },
+        mbc_turismo: {
+          $toBool: "$mbc_turismo",
+        },
+        mbc_hip_vivienda: {
+          $toBool: "$mbc_hip_vivienda",
+        },
+        mbc_hip_constructor: {
+          $toBool: "$mbc_hip_constructor",
+        },
+        mbc_manufactura: {
+          $toBool: "$mbc_manufactura",
+        },
+        mbc_microcredito: {
+          $toBool: "$mbc_microcredito",
+        },
+        mbc_microcred_social: {
+          $toBool: "$mbc_microcred_social",
+        },
+        mbc_agropecuario: {
+          $toBool: "$mbc_agropecuario",
+        },
+        mbc_pagare: {
+          $toBool: "$mbc_pagare",
+        },
+        mbc_prestamo: {
+          $toBool: "$mbc_prestamo",
+        },
+        mbc_arrendamiento: {
+          $toBool: "$mbc_arrendamiento",
+        },
+        mbc_cartas_credito: {
+          $toBool: "$mbc_cartas_credito",
+        },
+        mbc_plan_mayor: {
+          $toBool: "$mbc_plan_mayor",
+        },
+        mbc_descuento: {
+          $toBool: "$mbc_descuento",
+        },
+        mbc_factori: {
+          $toBool: "$mbc_factori",
+        },
+        mbc_credito_cta_cte: {
+          $toBool: "$mbc_credito_cta_cte",
+        },
+        mbc_seguro: {
+          $toBool: "$mbc_seguro",
+        },
+        mbc_cash: {
+          $toBool: "$mbc_cash",
+        },
+        mbc_domiciliaciones: {
+          $toBool: "$mbc_domiciliaciones",
+        },
+        mbc_fidecomiso: {
+          $toBool: "$mbc_fidecomiso",
+        },
+        mbc_cadivi: {
+          $toBool: "$mbc_cadivi",
+        },
+        mbc_operaciones_fx: {
+          $toBool: "$mbc_operaciones_fx",
+        },
+        mbc_comex: {
+          $toBool: "$mbc_comex",
+        },
+        mbc_sitme: {
+          $toBool: "$mbc_sitme",
+        },
+        mbc_pos: {
+          $toBool: "$mbc_pos",
+        },
+        mbc_tbcom: {
+          $toBool: "$mbc_tbcom",
+        },
+        mbc_pensionado_jubilado: {
+          $toBool: "$mbc_pensionado_jubilado",
+        },
+        mbc_nomina: {
+          $toBool: "$mbc_nomina",
+        },
+        mbc_internet: {
+          $toBool: "$mbc_internet",
+        },
+        mbc_clavemovil: {
+          $toBool: "$mbc_clavemovil",
+        },
+        mbc_clave_personal: {
+          $toBool: "$mbc_clave_personal",
+        },
+        mbc_clave_empresarial: {
+          $toBool: "$mbc_clave_empresarial",
+        },
+        mbc_banca_movil: {
+          $toBool: "$mbc_banca_movil",
+        },
+        mbc_cliente_activo: {
+          $toBool: "$mbc_cliente_activo",
+        },
+        mbc_cliente_gestionable: {
+          $toBool: "$mbc_cliente_gestionable",
+        },
+        mbc_cliente_vinculado: {
+          $toBool: "$mbc_cliente_vinculado",
+        },
+        mbc_feve: {
+          $toBool: "$mbc_feve",
+        },
+        mbc_uai: {
+          $toBool: "$mbc_uai",
+        },
+        mbc_cuenta_dolares: {
+          $toBool: "$mbc_cuenta_dolares",
+        },
+        mbc_cta_cte_social: {
+          $toBool: "$mbc_cta_cte_social",
+        },
+        mbc_cta_digital_somos: {
+          $toBool: "$mbc_cta_digital_somos",
+        },
+        mbc_cta_ahorro_digital: {
+          $toBool: "$mbc_cta_ahorro_digital",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        sidisBaseCliente: "$$ROOT",
+        rifCedula: "$mbc_rif_cliente",
+        fechaProceso: "$mbc_fecha_proceso",
+      },
+    },
+    {
+      $merge: {
+        into: "sidis_cliente_base_segmentacion",
+        on: ["fechaProceso", "rifCedula"],
+        whenNotMatched: "insert",
+      },
+    },
+  ]

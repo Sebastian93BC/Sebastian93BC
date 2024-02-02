@@ -1,0 +1,755 @@
+// de segmentacion a sidis_cliente_base_segmentacion  CBS
+
+[
+  {
+    $match: {
+      seg_banca: {
+        $nin: ["5", "4"],
+      },
+    },
+  },
+  {
+    $addFields: {
+      seg_rif_cedula: {
+        $trim: {
+          input: "$seg_rif_cedula",
+        },
+      },
+      seg_nombre_banca: {
+        $trim: {
+          input: "$seg_nombre_banca",
+        },
+      },
+      seg_nombre_segmento: {
+        $trim: {
+          input: "$seg_nombre_segmento",
+        },
+      },
+      seg_nombre_territorio: {
+        $trim: {
+          input: "$seg_nombre_territorio",
+        },
+      },
+      seg_nombre_oficina: {
+        $trim: {
+          input: "$seg_nombre_oficina",
+        },
+      },
+      seg_estatus: {
+        $trim: {
+          input: "$seg_estatus",
+        },
+      },
+      seg_nivel_socioecon_real: {
+        $trim: {
+          input: "$seg_nivel_socioecon_real",
+        },
+      },
+      seg_nivel_socioecon_sn: {
+        $trim: {
+          input: "$seg_nivel_socioecon_sn",
+        },
+      },
+      seg_nivel_socioecon_lc: {
+        $trim: {
+          input: "$seg_nivel_socioecon_lc",
+        },
+      },
+      seg_nivel_socioecon_prom: {
+        $trim: {
+          input: "$seg_nivel_socioecon_prom",
+        },
+      },
+      seg_nivel_socioecon_est: {
+        $trim: {
+          input: "$seg_nivel_socioecon_est",
+        },
+      },
+      seg_tipo_cliente: {
+        $trim: {
+          input: "$seg_tipo_cliente",
+        },
+      },
+      seg_tipo_cliente_per_ant: {
+        $trim: {
+          input: "$seg_tipo_cliente_per_ant",
+        },
+      },
+      seg_tipo_cliente_trim: {
+        $trim: {
+          input: "$seg_tipo_cliente_trim",
+        },
+      },
+      seg_tipo_cliente_acum: {
+        $trim: {
+          input: "$seg_tipo_cliente_acum",
+        },
+      },
+      seg_tipo_cliente_per_ant_acum: {
+        $trim: {
+          input: "$seg_tipo_cliente_per_ant_acum",
+        },
+      },
+      seg_nombre_subsegmento: {
+        $trim: {
+          input: "$seg_nombre_subsegmento",
+        },
+      },
+      seg_banca: {
+        $convert: {
+          input: "$seg_banca",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_segmento: {
+        $convert: {
+          input: "$seg_segmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_territorio: {
+        $convert: {
+          input: "$seg_territorio",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_oficina_tutora: {
+        $convert: {
+          input: "$seg_oficina_tutora",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cnt_contratos: {
+        $convert: {
+          input: "$seg_cnt_contratos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cnt_productos: {
+        $convert: {
+          input: "$seg_cnt_productos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_num_debitos: {
+        $convert: {
+          input: "$seg_sum_num_debitos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_num_creditos: {
+        $convert: {
+          input: "$seg_sum_num_creditos",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cnt_producto_fam: {
+        $convert: {
+          input: "$seg_cnt_producto_fam",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_deb_ult_3m: {
+        $convert: {
+          input: "$seg_deb_ult_3m",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cre_ult_3m: {
+        $convert: {
+          input: "$seg_cre_ult_3m",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cant_cta_transac: {
+        $convert: {
+          input: "$seg_cant_cta_transac",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cant_tarj_deb: {
+        $convert: {
+          input: "$seg_cant_tarj_deb",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cant_prod: {
+        $convert: {
+          input: "$seg_cant_prod",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_subsegmento: {
+        $convert: {
+          input: "$seg_subsegmento",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_saldo: {
+        $convert: {
+          input: "$seg_sum_saldo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_limite_credito: {
+        $convert: {
+          input: "$seg_sum_limite_credito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_promedio: {
+        $convert: {
+          input: "$seg_sum_promedio",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_monto_debitos: {
+        $convert: {
+          input: "$seg_sum_monto_debitos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_monto_creditos: {
+        $convert: {
+          input: "$seg_sum_monto_creditos",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_sum_producto_fam: {
+        $convert: {
+          input: "$seg_sum_producto_fam",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_cierre_activo: {
+        $convert: {
+          input: "$seg_cierre_activo",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_saldo_prom_ult_3m: {
+        $convert: {
+          input: "$seg_saldo_prom_ult_3m",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_margen_basico_bruto: {
+        $convert: {
+          input: "$seg_margen_basico_bruto",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_ratio: {
+        $convert: {
+          input: "$seg_ratio",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      seg_fecha_proceso: {
+        $dateFromString: {
+          dateString: "$seg_fecha_proceso",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_alta: {
+        $dateFromString: {
+          dateString: "$seg_fecha_alta",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_canc_venci_d: {
+        $dateFromString: {
+          dateString: "$seg_fecha_canc_venci_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_apertura_d: {
+        $dateFromString: {
+          dateString: "$seg_fecha_apertura_d",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_fecha_nac: {
+        $dateFromString: {
+          dateString: "$seg_fecha_nac",
+          format: "%d/%m/%Y %H:%M:%S",
+          onNull: new Date("1900/01/01 00:00:00.000"),
+          onError: new Date("1900/01/01 00:00:00.000"),
+        },
+      },
+      seg_cliente_gestionable: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_gestionable"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_gestionable"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_gestionable"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_vinculado: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_vinculado"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_vinculado"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_vinculado"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_nomina: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_nomina"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_nomina"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_nomina"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_universidades: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_universidades"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_universidades"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_universidades"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_todos: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_todos"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_todos"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_todos"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_part: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_part"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_part"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_part"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_jur: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_jur"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_jur"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_jur"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_todos_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_todos_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_todos_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_todos_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_part_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_part_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_part_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_part_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_jur_gest: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_jur_gest"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_jur_gest"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_jur_gest"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_todos_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_todos_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_todos_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_todos_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_part_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_part_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_part_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_part_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+      seg_cliente_mbb_jur_vinc: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["S", "$seg_cliente_mbb_jur_vinc"],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $eq: ["N", "$seg_cliente_mbb_jur_vinc"],
+              },
+              then: false,
+            },
+            {
+              case: {
+                $eq: ["", "$seg_cliente_mbb_jur_vinc"],
+              },
+              then: false,
+            },
+          ],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      sidisSegmentacion: "$$ROOT",
+      rifCedula: "$seg_rif_cedula",
+      fechaProceso: "$seg_fecha_proceso",
+    },
+  },
+  {
+    $addFields: {
+      persona: {
+        $cond: {
+          if: {
+            $in: [
+              "$sidisSegmentacion.seg_segmento",
+              [2, 4, 7, 10, 20],
+            ],
+          },
+          then: "Natural",
+          else: "Jurídica",
+        },
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "sidis_cliente_base_segmentacion",
+      on: ["fechaProceso", "rifCedula"],
+      whenNotMatched: "insert",
+    },
+  },
+]

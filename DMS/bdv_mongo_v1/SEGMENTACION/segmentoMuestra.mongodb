@@ -1,0 +1,27 @@
+[
+  {
+    $match: {
+      $and: [
+        { seg_rif_cedula: { $gte: "J00000000" } },
+        { seg_rif_cedula: { $lte: "J99999999" } },
+      ],
+    },
+  },
+  {
+    /**
+     * query: The query in MQL.
+     */
+    $match: {
+      seg_fecha_proceso: {
+        $gte: ISODate("2022-12-31T00:00:00.000+00:00"),
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "sidis_segmentacion_test",
+      on: "_id",
+      whenNotMatched: "insert",
+    },
+  },
+]

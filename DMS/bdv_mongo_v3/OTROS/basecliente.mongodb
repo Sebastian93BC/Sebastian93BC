@@ -1,0 +1,90 @@
+//formateo
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        mbc_cod_banca: {
+          $nin: ["5", "4"],
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        mbc_fecha_proceso: {
+          $dateFromString: {
+            dateString: "$mbc_fecha_proceso",
+            format: "%d/%m/%Y %H:%M:%S",
+            onNull: new Date(
+              "1900-01-01T00:00:00.000Z"
+            ),
+            onError: new Date(
+              "1900-01-01T00:00:00.000Z"
+            ),
+          },
+        },
+        mbc_cod_banca: {
+          $toInt: "$mbc_cod_banca",
+        },
+        mbc_cod_segmento: {
+          $toInt: "$mbc_cod_segmento",
+        },
+        mbc_grupo_economico: {
+          $toInt: "$mbc_grupo_economico",
+        },
+        mbc_fecha_inclusion: {
+          $dateFromString: {
+            dateString: "$mbc_fecha_inclusion",
+            format: "%d/%m/%Y %H:%M:%S",
+            onNull: new Date(
+              "1900-01-01T00:00:00.000Z"
+            ),
+            onError: new Date(
+              "1900-01-01T00:00:00.000Z"
+            ),
+          },
+        },
+        mbc_fecha_ult_transac: {
+          $dateFromString: {
+            dateString: "$mbc_fecha_ult_transac",
+            format: "%d/%m/%Y %H:%M:%S",
+            onNull: new Date(
+              "1900-01-01T00:00:00.000Z"
+            ),
+            onError: new Date(
+              "1900-01-01T00:00:00.000Z"
+            ),
+          },
+        },
+        mbc_saldo_3m: {
+          $toDecimal: "$mbc_saldo_3m",
+        },
+        mbc_saldo_6m: {
+          $toDecimal: "$mbc_saldo_6m",
+        },
+        mbc_sueldo_6m: {
+          $toDecimal: "$mbc_sueldo_6m",
+        },
+        mbc_monto_creditos: {
+          $toDecimal: "$mbc_monto_creditos",
+        },
+        mbc_monto_debitos: {
+          $toDecimal: "$mbc_monto_debitos",
+        },
+        mbc_numero_creditos: {
+          $toInt: "$mbc_numero_creditos",
+        },
+        mbc_numero_debitos: {
+          $toInt: "$mbc_numero_debitos",
+        },
+      },
+  },
+]
+

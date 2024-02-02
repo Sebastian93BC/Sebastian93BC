@@ -1,0 +1,140 @@
+//Margenmetricspasivo  >>> Margenmetric
+[
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        $and: [
+          {
+            mcl_fecha_proceso: {
+              $gte: ISODate(
+                "2023-03-01T00:00:00.000+00:00"
+              ),
+            },
+          },
+          {
+            mcl_fecha_proceso: {
+              $lt: ISODate(
+                "2023-04-01T00:00:00.000+00:00"
+              ),
+            },
+          },
+        ],
+      },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "mcl_cuenta_contable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      condicion: {
+        $first: "$result.condicion",
+      },
+    },
+  },
+  {
+    $match: {
+      condicion: {
+        $nin: ["NO_MOVIBLE", "Conv20"],
+      },
+    },
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          mcl_rif_cedula: "$mcl_rif_cedula",
+          mcl_fecha_proceso: "$mcl_fecha_proceso",
+        },
+        saldoPromedio: {
+          $sum: "$promedio",
+        },
+        saldoPasivos: {
+          $sum: "$saldo",
+        },
+        montoCreditos: {
+          $sum: "$monto_creditos",
+        },
+        montoDebitos: {
+          $sum: "$monto_debitos",
+        },
+        numeroCreditos: {
+          $sum: "$num_creditos",
+        },
+        numeroDebitos: {
+          $sum: "$num_debitos",
+        },
+        numeroContratos: {
+          $sum: "numero_contratos",
+        },
+        segmento: {
+          $first: "$mcl_segmento",
+        },
+        subSegmento: {
+          $first: "$mcl_subsegmento",
+        },
+        nombreCliente: {
+          $first: "$mcl_nombre_cliente",
+        },
+        grupoEconomico: {
+          $first: "$mcl_grupo_economico",
+        },
+        nivelSocioEconomico: {
+          $first: "$mcl_nivel_socioecon",
+        },
+        banca: {
+          $first: "$mcl_banca",
+        },
+        cuentaContable1: {
+          $first: "$mcl_cuenta_contable1",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        rifCedula: "$_id.mcl_rif_cedula",
+        fechaProceso: "$_id.mcl_fecha_proceso",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetric",
+        on: ["rifCedula", "fechaProceso"],
+        whenNotMatched: "insert",
+      },
+  },
+]

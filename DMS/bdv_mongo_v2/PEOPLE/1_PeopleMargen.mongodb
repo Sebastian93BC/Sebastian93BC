@@ -1,0 +1,221 @@
+// Sale de Margenmetricnatural a People
+
+[
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: "$rifCedula",
+        values: {
+          $push: "$$ROOT",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        maxFecha: {
+          $max: "$values.fechaProceso",
+        },
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+
+      {
+        values: {
+          $filter: {
+            input: "$values",
+            as: "value",
+            cond: {
+              $eq: [
+                "$$value.fechaProceso",
+                "$maxFecha",
+              ],
+            },
+          },
+        },
+      },
+  },
+  {
+    $unwind:
+      /**
+       * path: Path to the array field.
+       * includeArrayIndex: Optional name for index.
+       * preserveNullAndEmptyArrays: Optional
+       *   toggle to unwind null and empty values.
+       */
+      {
+        path: "$values",
+      },
+  },
+  {
+    $replaceRoot:
+      /**
+       * replacementDocument: A document or string.
+       */
+      {
+        newRoot: "$values",
+      },
+  },
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        from: "People",
+        let: {
+          rif: "$rifCedula",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$$rif", "$vat"],
+              },
+            },
+          },
+          {
+            $project: {
+              integrationIds: 1,
+              peopleIds: 1,
+              createdAt: 1,
+            },
+          },
+        ],
+        as: "result",
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        RintegrationIds: {
+          $first: "$result.integrationIds",
+        },
+        RpeopleIds: {
+          $first: "$result.peopleIds",
+        },
+        RcreatedAt: {
+          $first: "$result.createdAt",
+        },
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        integrationIds: {
+          $ifNull: [
+            "$RintegrationIds",
+            {
+              Margenmetricnatural: "$rifCedula",
+            },
+          ],
+        },
+        peopleIds: {
+          $ifNull: [
+            "$RpeopleIds",
+            {
+              Margenmetricnatural: ["$_id"],
+            },
+          ],
+        },
+        _id: 0,
+        vat: "$rifCedula",
+        name: "$nombreCliente",
+        stage: "client",
+        codigoBanca: "$banca",
+        codigoGrupoEconomico: "$grupoEconomico",
+        nivelSocioEconomico:
+          "$nivelSocioEconomico",
+        codigoSegmento: "$segmento",
+        codigoSubSegmento: "$subSegmento",
+        saldoPromedio: "$saldoPromedio",
+        saldoPasivos: "$saldoPasivos",
+        montoAbonado: "$montoAbonado",
+        montoCredito: "$montoCreditos",
+        montoDebito: "$montoDebitos",
+        saldoConv20: "$saldoConv20",
+        saldoEuro: "$saldoEuro",
+        saldoDolar: "$saldoDolar",
+        traMontoHaberEURO:'$traMontoHaberEURO',
+        traMontoHaberUSD:'$traMontoHaberUSD',
+        creditoOtorgado:"$creditoOtorgado",
+        carteraCredito:"$carteraCredito",
+        numeroContrato: "$numeroContratos",
+        numeroCredito: "$numeroCreditos",
+        numeroDebito: "$numeroDebitos",
+        reciprocidad: "$reciprocidad",
+        cantidadBeneficiario:'$cantidadBeneficiario',
+        volumenPagosProveedor:'$volumenPagosProveedor',
+        reciprocidadBeneficiario:'$reciprocidadBeneficiario',
+        volumenPagosProveedorBDV:'$volumenPagosProveedorBDV',
+        volumenPagosProveedorOTRO:'$volumenPagosProveedorOTRO',
+        crecimientoAnualCarteraCredito:
+          "$crecimientoAnualCarteraCredito",
+        crecimientoAnualCreditoOtorgado:
+          "$crecimientoAnualCreditoOtorgado",
+        crecimientoAnualMontoAbonado:
+          "$crecimientoAnualMontoAbonado",
+        crecimientoAnualMontoCredito:
+          "$crecimientoAnualMontoCreditos",
+        crecimientoAnualSaldoPromedio:
+          "$crecimientoAnualSaldoPromedio",
+        sumaAnualCarteraCredito:
+          "$sumaAnualCarteraCredito",
+        sumaAnualCreditoOtorgado:
+          "$sumaAnualCreditoOtorgado",
+        sumaAnualMontoAbonado:
+          "$sumaAnualMontoAbonado",
+        sumaAnualMontoCredito:
+          "$sumaAnualMontoCreditos",
+        sumaAnualSaldoPromedio:
+          "$sumaAnualSaldoPromedio",
+        updatedAt: new Date(),
+        createdAt: {
+          $ifNull: ["$RcreatedAt", new Date()],
+        },
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "People",
+        on: "vat",
+        whenNotMatched: "insert",
+      },
+  },
+]
+
+

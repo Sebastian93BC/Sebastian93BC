@@ -1,0 +1,68 @@
+//Desde Margenmetricnse
+[
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          nivelSocioEconomico:
+            "$nivelSocioEconomico",
+          fechaProceso: "$fechaProceso",
+        },
+        montoCreditos: {
+          $first: "$montoCreditos",
+        },
+        creditoOtorgado: {
+          $first: "$creditoOtorgado",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        nivelSocioEconomico:
+          "$_id.nivelSocioEconomico",
+        fechaProceso: "$_id.fechaProceso",
+        montoAbonado: {
+          $subtract: [
+            "$montoCreditos",
+            "$creditoOtorgado",
+          ],
+        },
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricnse",
+        on: [
+          "nivelSocioEconomico",
+          "fechaProceso",
+        ],
+      },
+  },
+]

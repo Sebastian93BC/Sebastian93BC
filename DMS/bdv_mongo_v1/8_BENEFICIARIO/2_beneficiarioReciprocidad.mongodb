@@ -1,0 +1,357 @@
+// sidis_beneficiario a Margenmetricbeneficiario
+
+[
+  {
+    $match:
+      //rango de fechas
+
+      {
+        snb_fec_valor: {
+          $gte: new Date("2023-03-01"),
+          $lt: new Date("2023-04-01"),
+        },
+      },
+  },
+  {
+    $match:
+      /**
+       * query: The query in MQL.
+       */
+      {
+        snb_rif_empresa: "J50019975",
+      },
+  },
+  {
+    $lookup: {
+      from: "sidis_ordenante",
+      let: {
+        rif_empresa: "$snb_rif_empresa",
+        id_debito: "$snb_id_debito",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                {
+                  $eq: [
+                    "$sno_rif_empresa",
+                    "$$rif_empresa",
+                  ],
+                },
+                {
+                  $eq: [
+                    "$sno_id_debito",
+                    "$$id_debito",
+                  ],
+                },
+                {
+                  $eq: [
+                    "$sno_tipo_pago",
+                    "PROVEEDORE",
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            sno_rif_empresa: 1,
+            sno_tipo_pago: 1,
+            sno_num_cuenta: 1,
+            sno_medio_envi: 1,
+          },
+        },
+      ],
+      as: "ordenante",
+    },
+  },
+  {
+    $unwind: "$ordenante",
+  },
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        from: "Sidis_cliente_test",
+        let: {
+          rif: "$snb_rif_empresa",
+          mes: {
+            $month: "$snb_fec_valor",
+          },
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  {
+                    $eq: ["$cli_rif", "$$rif"],
+                  },
+                  {
+                    $eq: [
+                      {
+                        $month:
+                          "$cli_fecha_carga",
+                      },
+                      "$$mes",
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+        as: "cliente",
+      },
+  },
+  {
+    $unwind:
+      /**
+       * path: Path to the array field.
+       * includeArrayIndex: Optional name for index.
+       * preserveNullAndEmptyArrays: Optional
+       *   toggle to unwind null and empty values.
+       */
+      {
+        path: "$cliente",
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        snb_ci_benefic: 1,
+        snb_rif_empresa: 1,
+        cli_nom_cliente:
+          "$cliente.cli_nom_cliente",
+        cli_banca: "$cliente.cli_banca",
+        cli_segmento: "$cliente.cli_segmento",
+        snb_num_cuenta: 1,
+        tipo_banco: {
+          $cond: [
+            {
+              $eq: [
+                {
+                  $substr: [
+                    "$snb_num_cuenta",
+                    0,
+                    4,
+                  ],
+                },
+                "0102",
+              ],
+            },
+            "BDV",
+            "OTROS",
+          ],
+        },
+        sno_rif_empresa:
+          "$ordenante.sno_rif_empresa",
+        sno_tipo_pago: "$ordenante.sno_tipo_pago",
+        sno_num_cuenta:
+          "$ordenante.sno_num_cuenta",
+        sno_medio_envi:
+          "$ordenante.sno_medio_envi",
+        snb_fec_valor: 1,
+        snb_mto_pcorrecto: 1,
+        fechaProceso: ISODate(
+          "2023-03-31T00:00:00.000+00:00"
+        ),
+      },
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          fechaProceso: "$fechaProceso",
+          rifCedula: "$snb_rif_empresa",
+        },
+        fechaProceso: {
+          $first: "$fechaProceso",
+        },
+        snb_mto_pcorrecto: {
+          $sum: "$snb_mto_pcorrecto",
+        },
+        volumenPagosProveedorBDV: {
+          $sum: {
+            $cond: {
+              if: {
+                $eq: ["$tipo_banco", "BDV"],
+              },
+              then: "$snb_mto_pcorrecto",
+              else: 0,
+            },
+          },
+        },
+        volumenPagosProveedorOTRO: {
+          $sum: {
+            $cond: {
+              if: {
+                $ne: ["$tipo_banco", "BDV"],
+              },
+              then: "$snb_mto_pcorrecto",
+              else: 0,
+            },
+          },
+        },
+      },
+  },
+  {
+    $replaceRoot:
+      /**
+       * replacementDocument: A document or string.
+       */
+      {
+        newRoot: {
+          $mergeObjects: ["$$ROOT", "$_id"],
+        },
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        _id: 0,
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        reciprocidadBeneficiario: {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$volumenPagosProveedorBDV",
+                    "$snb_mto_pcorrecto",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        snb_mto_pcorrecto: 0,
+        _id: 0,
+      },
+  },
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        from: "sidis_tasaconversion",
+        localField: "fechaProceso",
+        foreignField: "Fecha",
+        as: "result",
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        tasa: {
+          $first: "$result.Tasa_DOL",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        volumenPagosProveedorBDV: {
+          $round: [
+            {
+              $divide: [
+                "$volumenPagosProveedorBDV",
+                "$tasa",
+              ],
+            },
+            2,
+          ],
+        },
+        volumenPagosProveedorOTRO: {
+          $round: [
+            {
+              $divide: [
+                "$volumenPagosProveedorOTRO",
+                "$tasa",
+              ],
+            },
+            2,
+          ],
+        },
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        result: 0,
+        tasa: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+      {
+        into: "Margenmetricbeneficiario",
+        on: ["rifCedula", "fechaProceso"],
+      },
+  },
+]

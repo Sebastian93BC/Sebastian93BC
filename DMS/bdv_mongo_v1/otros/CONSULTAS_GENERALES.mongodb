@@ -1,0 +1,29 @@
+// clonar indices en otra coleción
+
+var indexes = db.sidis_margen_test_mes.getIndexes();
+
+
+indexes.forEach(function(index){
+    delete index.v;
+    delete index.ns;
+    var key = index.key;
+    delete index.key
+
+   db.sidis_margen_test_mes_juridicos.createIndex(key, index);
+});
+
+
+
+//CREAR INDICES
+db.CollectionName.createIndex(
+  {field:-1},
+ { name: 'fecha del proceso' }
+)
+
+
+
+{$and:[
+  {'$mcl_rif_cedula':{$gte:"V00000000"}},
+  {'$mcl_rif_cedula':{$gte:"V99999999"}}
+]}
+

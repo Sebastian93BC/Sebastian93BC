@@ -1,0 +1,185 @@
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$file_date", {
+            "$subtract": [
+              {
+                "$dateTrunc": {
+                  "date": "$$NOW", 
+                  "unit": "day"
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "file_date": 1, 
+      "ren_cod_op": 1, 
+      "changeUseCodeOp": 1
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_cod_operac", 
+      "let": {
+        "file_date": "$file_date", 
+        "ren_cod_op": "$ren_cod_op"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$lt": [
+                    "$file_date", "$$file_date"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$ren_cod_op", "$ren_cod_op"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$changeUseCodeOp", true
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$ne": [
+                    "$file_date", {
+                      "$toDate": "2023-08-03"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "_id": 1, 
+            "file_date": 1
+          }
+        }
+      ], 
+      "as": "sidis_cod_operac_ant"
+    }
+  }, {
+    "$project": {
+      "lastDatechangeUseCodeOp": {
+        "$max": "$sidis_cod_operac_ant.file_date"
+      }, 
+      "ren_cod_op": 1, 
+      "file_date": 1, 
+      "changeUseCodeOp": 1
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_cod_operac", 
+      "let": {
+        "file_date": "$file_date", 
+        "lastDatechangeUseCodeOp": "$lastDatechangeUseCodeOp", 
+        "ren_cod_op": "$ren_cod_op"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$gte": [
+                    "$file_date", "$$lastDatechangeUseCodeOp"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$lt": [
+                    "$file_date", "$$file_date"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$ren_cod_op", "$ren_cod_op"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "_id": 1, 
+            "file_date": 1
+          }
+        }
+      ], 
+      "as": "sidis_cod_operac_ant"
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "sidis_cod_operac_ant": 1, 
+      "changesIndicador": {
+        "$cond": [
+          {
+            "$and": [
+              {
+                "$gt": [
+                  {
+                    "$size": "$sidis_cod_operac_ant"
+                  }, 0
+                ]
+              }, "$changeUseCodeOp"
+            ]
+          }, true, false
+        ]
+      }, 
+      "fecha_baja": "$file_date"
+    }
+  }, {
+    "$unwind": {
+      "path": "$sidis_cod_operac_ant", 
+      "preserveNullAndEmptyArrays": true
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": {
+        "$mergeObjects": [
+          "$$ROOT", "$sidis_cod_operac_ant"
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "fecha_baja": {
+        "$cond": [
+          {
+            "$eq": [
+              "$changesIndicador", true
+            ]
+          }, "$fecha_baja", ""
+        ]
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_cod_operac", 
+      "on": "_id", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "discard"
+    }
+  }
+]

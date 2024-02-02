@@ -1,0 +1,55 @@
+[
+  {
+    $match: {
+      processed: {
+        $exists: false,
+      },
+    },
+  },
+  {
+    $addFields: {
+      processed: false,
+    },
+  },
+  {
+    $project: {
+      processed: 1,
+    },
+  },
+  {
+    $merge: {
+      into: "brm_ajustado",
+      on: "_id",
+      whenMatched: "merge",
+    },
+  },
+]
+
+
+//n8n
+
+
+[
+  {
+    "$match": {
+      "processed": {
+        "$exists": false
+      }
+    }
+  }, {
+    "$addFields": {
+      "processed": false
+    }
+  }, {
+    "$project": {
+      "processed": 1
+    }
+  }, {
+    "$merge": {
+      "into": "brm_ajustado", 
+      "on": "_id", 
+      "whenMatched": "merge"
+    }
+  }
+]
+

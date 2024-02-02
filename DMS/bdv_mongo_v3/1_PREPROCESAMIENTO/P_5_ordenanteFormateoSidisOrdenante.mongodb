@@ -1,0 +1,356 @@
+[
+  {
+    $addFields: {
+      sno_ind_cobcomi: {
+        $convert: {
+          input: "$sno_ind_cobcomi",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_num_negoc: {
+        $convert: {
+          input: "$sno_num_negoc",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_id_debito: {
+        $convert: {
+          input: "$sno_id_debito",
+          to: "int",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_mto_debito: {
+        $convert: {
+          input: "$sno_mto_debito",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_mto_actuali: {
+        $convert: {
+          input: "$sno_mto_actuali",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_mto_cobcomi: {
+        $convert: {
+          input: "$sno_mto_cobcomi",
+          to: "decimal",
+          onError: 0,
+          onNull: 0,
+        },
+      },
+      sno_fec_valor: {
+        $convert: {
+          input: "$sno_fec_valor",
+          to: "date",
+          onError: "$sno_fec_valor",
+          onNull: "$$REMOVE",
+        },
+      },
+      sno_fec_inineg: {
+        $convert: {
+          input: "$sno_fec_inineg",
+          to: "date",
+          onError: "$sno_fec_inineg",
+          onNull: "$$REMOVE",
+        },
+      },
+      sno_fec_recarch: {
+        $convert: {
+          input: "$sno_fec_recarch",
+          to: "date",
+          onError: "$sno_fec_recarch",
+          onNull: "$$REMOVE",
+        },
+      },
+      sno_num_cuenta: {
+        $trim: {
+          input: "$sno_num_cuenta",
+        },
+      },
+      sno_id_reflote: {
+        $trim: {
+          input: "$sno_id_reflote",
+        },
+      },
+      sno_rif_empresa: {
+        $trim: {
+          input: "$sno_rif_empresa",
+        },
+      },
+      sno_medio_envi: {
+        $trim: {
+          input: "$sno_medio_envi",
+        },
+      },
+      sno_tipo_pago: {
+        $trim: {
+          input: "$sno_tipo_pago",
+        },
+      },
+      sno_neg_priabon: {
+        $trim: {
+          input: "$sno_neg_priabon",
+        },
+      },
+      sno_neg_sinabon: {
+        $trim: {
+          input: "$sno_neg_sinabon",
+        },
+      },
+      sno_cta_cobcomi: {
+        $trim: {
+          input: "$sno_cta_cobcomi",
+        },
+      },
+      sno_tipo_sobreg: {
+        $trim: {
+          input: "$sno_tipo_sobreg",
+        },
+      },
+      sno_serial_nego: {
+        $trim: {
+          input: "$sno_serial_nego",
+        },
+      },
+      sno_regla_negoc: {
+        $trim: {
+          input: "$sno_regla_negoc",
+        },
+      },
+      sno_id_perfil: {
+        $trim: {
+          input: "$sno_id_perfil",
+        },
+      },
+      sno_tipo_registro: {
+        $trim: {
+          input: "$sno_tipo_registro",
+        },
+      },
+      sno_interfaz: {
+        $trim: {
+          input: "$sno_interfaz",
+        },
+      },
+    },
+  },
+  {
+    $addFields:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        sno_num_negoc: {
+          $convert: {
+            input: "$sno_num_negoc",
+            to: "int",
+            onError: 0,
+            onNull: 0,
+          },
+        },
+        sno_id_debito: {
+          $convert: {
+            input: "$sno_id_debito",
+            to: "int",
+            onError: 0,
+            onNull: 0,
+          },
+        },
+      },
+  },
+  {
+    $merge: {
+      into: "sidis_ordenante",
+      on: "_id",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$addFields": {
+      "sno_ind_cobcomi": {
+        "$convert": {
+          "input": "$sno_ind_cobcomi", 
+          "to": "int", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_num_negoc": {
+        "$convert": {
+          "input": "$sno_num_negoc", 
+          "to": "int", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_id_debito": {
+        "$convert": {
+          "input": "$sno_id_debito", 
+          "to": "int", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_mto_debito": {
+        "$convert": {
+          "input": "$sno_mto_debito", 
+          "to": "decimal", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_mto_actuali": {
+        "$convert": {
+          "input": "$sno_mto_actuali", 
+          "to": "decimal", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_mto_cobcomi": {
+        "$convert": {
+          "input": "$sno_mto_cobcomi", 
+          "to": "decimal", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_fec_valor": {
+        "$convert": {
+          "input": "$sno_fec_valor", 
+          "to": "date", 
+          "onError": "$sno_fec_valor", 
+          "onNull": "$$REMOVE"
+        }
+      }, 
+      "sno_fec_inineg": {
+        "$convert": {
+          "input": "$sno_fec_inineg", 
+          "to": "date", 
+          "onError": "$sno_fec_inineg", 
+          "onNull": "$$REMOVE"
+        }
+      }, 
+      "sno_fec_recarch": {
+        "$convert": {
+          "input": "$sno_fec_recarch", 
+          "to": "date", 
+          "onError": "$sno_fec_recarch", 
+          "onNull": "$$REMOVE"
+        }
+      }, 
+      "sno_num_cuenta": {
+        "$trim": {
+          "input": "$sno_num_cuenta"
+        }
+      }, 
+      "sno_id_reflote": {
+        "$trim": {
+          "input": "$sno_id_reflote"
+        }
+      }, 
+      "sno_rif_empresa": {
+        "$trim": {
+          "input": "$sno_rif_empresa"
+        }
+      }, 
+      "sno_medio_envi": {
+        "$trim": {
+          "input": "$sno_medio_envi"
+        }
+      }, 
+      "sno_tipo_pago": {
+        "$trim": {
+          "input": "$sno_tipo_pago"
+        }
+      }, 
+      "sno_neg_priabon": {
+        "$trim": {
+          "input": "$sno_neg_priabon"
+        }
+      }, 
+      "sno_neg_sinabon": {
+        "$trim": {
+          "input": "$sno_neg_sinabon"
+        }
+      }, 
+      "sno_cta_cobcomi": {
+        "$trim": {
+          "input": "$sno_cta_cobcomi"
+        }
+      }, 
+      "sno_tipo_sobreg": {
+        "$trim": {
+          "input": "$sno_tipo_sobreg"
+        }
+      }, 
+      "sno_serial_nego": {
+        "$trim": {
+          "input": "$sno_serial_nego"
+        }
+      }, 
+      "sno_regla_negoc": {
+        "$trim": {
+          "input": "$sno_regla_negoc"
+        }
+      }, 
+      "sno_id_perfil": {
+        "$trim": {
+          "input": "$sno_id_perfil"
+        }
+      }, 
+      "sno_tipo_registro": {
+        "$trim": {
+          "input": "$sno_tipo_registro"
+        }
+      }, 
+      "sno_interfaz": {
+        "$trim": {
+          "input": "$sno_interfaz"
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "sno_num_negoc": {
+        "$convert": {
+          "input": "$sno_num_negoc", 
+          "to": "int", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }, 
+      "sno_id_debito": {
+        "$convert": {
+          "input": "$sno_id_debito", 
+          "to": "int", 
+          "onError": 0, 
+          "onNull": 0
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_ordenante", 
+      "on": "_id", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

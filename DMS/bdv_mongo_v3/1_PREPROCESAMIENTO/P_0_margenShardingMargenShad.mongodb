@@ -1,0 +1,46 @@
+[
+  {
+    $project: {
+      mcl_rif_cedula: 1,
+      lastDigRif: {
+        $substr: ["$mcl_rif_cedula", 8, -1],
+      },
+      last2DigRif: {
+        $substr: ["$mcl_rif_cedula", 7, -1],
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "margenShard",
+      on: ["mcl_rif_cedula", "_id"],
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$project": {
+      "mcl_rif_cedula": 1, 
+      "lastDigRif": {
+        "$substr": [
+          "$mcl_rif_cedula", 8, -1
+        ]
+      }, 
+      "last2DigRif": {
+        "$substr": [
+          "$mcl_rif_cedula", 7, -1
+        ]
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "margenShard", 
+      "on": [
+        "mcl_rif_cedula", "_id"
+      ]
+    }
+  }
+]

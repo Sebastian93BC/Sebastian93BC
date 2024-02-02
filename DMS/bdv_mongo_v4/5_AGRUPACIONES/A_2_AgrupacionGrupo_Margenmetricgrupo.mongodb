@@ -1,0 +1,637 @@
+[
+  {
+    $match: {
+      //rifCedula: "J50019975",
+      $and: [
+        {
+          $expr: {
+            $eq: [
+              "$fechaProceso",
+              {
+                $toDate:
+                  "2023-06-30T00:00:00.000+00:00",
+                //"$toDate": "{{$json.fechaProceso}}"
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        codigoGrupoeconomico:
+          "$codigoGrupoeconomico",
+        fechaProceso: "$fechaProceso",
+      },
+      fechaProceso: {
+        $first: "$fechaProceso",
+      },
+      codigoGrupoeconomico: {
+        $first: "$codigoGrupoeconomico",
+      },
+      cantidadClientes: {
+        $sum: 1,
+      },
+      saldoActivo: {
+        $sum: "$saldoActivo",
+      },
+      abonoLiqActivo: {
+        $sum: "$abonoLiqActivo",
+      },
+      saldoPasivo: {
+        $sum: "$saldoPasivo",
+      },
+      promedioPasivo: {
+        $sum: "$promedioPasivo",
+      },
+      saldoDolar: {
+        $sum: "$saldoDolar",
+      },
+      saldoEuro: {
+        $sum: "$saldoEuro",
+      },
+      saldoConv20: {
+        $sum: "$saldoConv20",
+      },
+      montoAbonado: {
+        $sum: "$montoAbonado",
+      },
+      volumenPagosProveedor: {
+        $sum: "$volumenPagosProveedor",
+      },
+      volumenPagosProveedorBDV: {
+        $sum: "$volumenPagosProveedorBDV",
+      },
+      gastosFlatOtrosBolivares: {
+        $sum: "$gastosFlatOtrosBolivares",
+      },
+      gastosFlatOtrosDolares: {
+        $sum: "$gastosFlatOtrosDolares",
+      },
+      gastosFlatOtrosEuros: {
+        $sum: "$gastosFlatOtrosEuros",
+      },
+      lineaCreditoBolivares: {
+        $sum: "$lineaCreditoBolivares",
+      },
+      lineaCreditoDolares: {
+        $sum: "$lineaCreditoDolares",
+      },
+      lineaCreditoEuros: {
+        $sum: "$lineaCreditoEuros",
+      },
+      tasaInteresBolivares: {
+        $sum: "$tasaInteresBolivares",
+      },
+      tasaInteresDolares: {
+        $sum: "$tasaInteresDolares",
+      },
+      tasaInteresEuros: {
+        $sum: "$tasaInteresEuros",
+      },
+      variacionIDIBolivares: {
+        $sum: "$variacionIDIBolivares",
+      },
+      variacionIDIDolares: {
+        $sum: "$variacionIDIDolares",
+      },
+      variacionIDIEuros: {
+        $sum: "$variacionIDIEuros ",
+      },
+      icc_totalMesBolivares: {
+        $sum: "$icc_totalMesBolivares",
+      },
+      icc_totalMesDolares: {
+        $sum: "$icc_totalMesDolares",
+      },
+      icc_totalMesEuros: {
+        $sum: "$icc_totalMesEuros",
+      },
+      icc_acumuladoBolivares7m: {
+        $sum: "$icc_acumuladoBolivares7m",
+      },
+      icc_acumuladoDolares7m: {
+        $sum: "$icc_acumuladoDolares7m",
+      },
+      icc_acumuladoEuros7m: {
+        $sum: "$icc_acumuladoEuros7m",
+      },
+      nominaBolivares: {
+        $sum: "$nominaBolivares",
+      },
+      nominaDolares: {
+        $sum: "$nominaDolares",
+      },
+      nominaEuros: {
+        $sum: "$nominaEuros",
+      },
+      opCambiariasBolivares: {
+        $sum: "$opCambiariasBolivares",
+      },
+      opCambiariasDolares: {
+        $sum: "$opCambiariasDolares",
+      },
+      opCambiariasEuros: {
+        $sum: "$opCambiariasEuros",
+      },
+      otrosBolivares: {
+        $sum: "$otrosBolivares",
+      },
+      otrosDolares: {
+        $sum: "$otrosDolares",
+      },
+      otrosEuros: {
+        $sum: "$otrosEuros",
+      },
+      pagoProveedoresBolivares: {
+        $sum: "$pagoProveedoresBolivares",
+      },
+      pagoProveedoresDolares: {
+        $sum: "$pagoProveedoresDolares",
+      },
+      pagoProveedoresEuros: {
+        $sum: "$pagoProveedoresEuros",
+      },
+      posBolivares: {
+        $sum: "$posBolivares",
+      },
+      posComisionesBolivares: {
+        $sum: "$posComisionesBolivares",
+      },
+      posComisionesDolares: {
+        $sum: "$posComisionesDolares",
+      },
+      posComisionesEuros: {
+        $sum: "$posComisionesEuros",
+      },
+      posDolaresposEuros: {
+        $sum: "$posDolaresposEuros",
+      },
+      posTransaccionesBolivares: {
+        $sum: "$posTransaccionesBolivares",
+      },
+      posTransaccionesDolares: {
+        $sum: "$posTransaccionesDolares",
+      },
+      posTransaccionesEuros: {
+        $sum: "$posTransaccionesEuros",
+      },
+      ic_totalMesBolivares: {
+        $sum: "$ic_totalMesBolivares",
+      },
+      ic_totalMesDolares: {
+        $sum: "$ic_totalMesDolares",
+      },
+      ic_totalMesEuros: {
+        $sum: "$ic_totalMesEuros",
+      },
+      ic_acumuladoBolivares7m: {
+        $sum: "$ic_acumuladoBolivares7m",
+      },
+      ic_acumuladoDolares7m: {
+        $sum: "$ic_acumuladoDolares7m",
+      },
+      ic_acumuladoEuros7m: {
+        $sum: "$ic_acumuladoEuros7m",
+      },
+      comprasDolares: {
+        $sum: "$comprasDolares",
+      },
+      comprasEuros: {
+        $sum: "$comprasEuros",
+      },
+      depositosDolares: {
+        $sum: "$depositosDolares",
+      },
+      depositosEuros: {
+        $sum: "$depositosEuros",
+      },
+      depositosEfectivoDolares: {
+        $sum: "$depositosEfectivoDolares",
+      },
+      acumComprasDolares: {
+        $sum: "$acumComprasDolares",
+      },
+      acumComprasEuros: {
+        $sum: "$acumComprasEuros",
+      },
+      acumDepositosDolares: {
+        $sum: "$acumDepositosDolares",
+      },
+      acumDepositosEuros: {
+        $sum: "$acumDepositosEuros",
+      },
+      cantidadTransacciones: {
+        $sum: "$cantidadTransacciones",
+      },
+      montoFacturacionBolivares: {
+        $sum: "$montoFacturacionBolivares",
+      },
+      montoFacturacionDolares: {
+        $sum: "$montoFacturacionDolares",
+      },
+      montoFacturacionEuros: {
+        $sum: "$montoFacturacionEuros",
+      },
+      acumuladoFacturacionUlt7MesesBolivares: {
+        $sum: "$acumuladoFacturacionUlt7MesesBolivares",
+      },
+      acumuladoFacturacionUlt7MesesDolares: {
+        $sum: "$acumuladoFacturacionUlt7MesesDolares",
+      },
+      acumuladoFacturacionUlt7MesesEuros: {
+        $sum: "$acumuladoFacturacionUlt7MesesEuros",
+      },
+      acumuladoTransaccionesUlt7Meses: {
+        $sum: "$acumuladoTransaccionesUlt7Meses",
+      },
+      sumAAbonoLiqActivo: {
+        $sum: "$sumAAbonoLiqActivo",
+      },
+      sumAMontoAbonado: {
+        $sum: "$sumAMontoAbonado",
+      },
+      sumAbonoLiqActivo12M: {
+        $sum: "$sumAbonoLiqActivo12M",
+      },
+      sumMontoAbonado12M: {
+        $sum: "$sumMontoAbonado12M",
+      },
+      sumSaldoPromedio12M: {
+        $sum: "$sumSaldoPromedio12M",
+      },
+    },
+  },
+  {
+    $addFields: {
+      saldoPromedio12M: {
+        $round: [
+          {
+            $divide: ["$sumSaldoPromedio12M", 12],
+          },
+          4,
+        ],
+      },
+      reciprocidadBeneficiario: {
+        $cond: {
+          if: {
+            $eq: ["$volumenPagosProveedor", 0],
+          },
+          then: 0,
+          else: {
+            $round: [
+              {
+                $multiply: [
+                  {
+                    $divide: [
+                      "$volumenPagosProveedorBDV",
+                      "$volumenPagosProveedor",
+                    ],
+                  },
+                  100,
+                ],
+              },
+              2,
+            ],
+          },
+        },
+      },
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $match: {
+      codigoGrupoeconomico: {
+        $nin: [null, ""],
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricgrupo",
+      on: [
+        "codigoGrupoeconomico",
+        "fechaProceso",
+      ],
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "codigoGrupoeconomico": "$codigoGrupoeconomico", 
+        "fechaProceso": "$fechaProceso"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "codigoGrupoeconomico": {
+        "$first": "$codigoGrupoeconomico"
+      }, 
+      "cantidadClientes": {
+        "$sum": 1
+      }, 
+      "saldoActivo": {
+        "$sum": "$saldoActivo"
+      }, 
+      "abonoLiqActivo": {
+        "$sum": "$abonoLiqActivo"
+      }, 
+      "saldoPasivo": {
+        "$sum": "$saldoPasivo"
+      }, 
+      "promedioPasivo": {
+        "$sum": "$promedioPasivo"
+      }, 
+      "saldoDolar": {
+        "$sum": "$saldoDolar"
+      }, 
+      "saldoEuro": {
+        "$sum": "$saldoEuro"
+      }, 
+      "saldoConv20": {
+        "$sum": "$saldoConv20"
+      }, 
+      "montoAbonado": {
+        "$sum": "$montoAbonado"
+      }, 
+      "volumenPagosProveedor": {
+        "$sum": "$volumenPagosProveedor"
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$sum": "$volumenPagosProveedorBDV"
+      }, 
+      "gastosFlatOtrosBolivares": {
+        "$sum": "$gastosFlatOtrosBolivares"
+      }, 
+      "gastosFlatOtrosDolares": {
+        "$sum": "$gastosFlatOtrosDolares"
+      }, 
+      "gastosFlatOtrosEuros": {
+        "$sum": "$gastosFlatOtrosEuros"
+      }, 
+      "lineaCreditoBolivares": {
+        "$sum": "$lineaCreditoBolivares"
+      }, 
+      "lineaCreditoDolares": {
+        "$sum": "$lineaCreditoDolares"
+      }, 
+      "lineaCreditoEuros": {
+        "$sum": "$lineaCreditoEuros"
+      }, 
+      "tasaInteresBolivares": {
+        "$sum": "$tasaInteresBolivares"
+      }, 
+      "tasaInteresDolares": {
+        "$sum": "$tasaInteresDolares"
+      }, 
+      "tasaInteresEuros": {
+        "$sum": "$tasaInteresEuros"
+      }, 
+      "variacionIDIBolivares": {
+        "$sum": "$variacionIDIBolivares"
+      }, 
+      "variacionIDIDolares": {
+        "$sum": "$variacionIDIDolares"
+      }, 
+      "variacionIDIEuros": {
+        "$sum": "$variacionIDIEuros "
+      }, 
+      "icc_totalMesBolivares": {
+        "$sum": "$icc_totalMesBolivares"
+      }, 
+      "icc_totalMesDolares": {
+        "$sum": "$icc_totalMesDolares"
+      }, 
+      "icc_totalMesEuros": {
+        "$sum": "$icc_totalMesEuros"
+      }, 
+      "icc_acumuladoBolivares7m": {
+        "$sum": "$icc_acumuladoBolivares7m"
+      }, 
+      "icc_acumuladoDolares7m": {
+        "$sum": "$icc_acumuladoDolares7m"
+      }, 
+      "icc_acumuladoEuros7m": {
+        "$sum": "$icc_acumuladoEuros7m"
+      }, 
+      "nominaBolivares": {
+        "$sum": "$nominaBolivares"
+      }, 
+      "nominaDolares": {
+        "$sum": "$nominaDolares"
+      }, 
+      "nominaEuros": {
+        "$sum": "$nominaEuros"
+      }, 
+      "opCambiariasBolivares": {
+        "$sum": "$opCambiariasBolivares"
+      }, 
+      "opCambiariasDolares": {
+        "$sum": "$opCambiariasDolares"
+      }, 
+      "opCambiariasEuros": {
+        "$sum": "$opCambiariasEuros"
+      }, 
+      "otrosBolivares": {
+        "$sum": "$otrosBolivares"
+      }, 
+      "otrosDolares": {
+        "$sum": "$otrosDolares"
+      }, 
+      "otrosEuros": {
+        "$sum": "$otrosEuros"
+      }, 
+      "pagoProveedoresBolivares": {
+        "$sum": "$pagoProveedoresBolivares"
+      }, 
+      "pagoProveedoresDolares": {
+        "$sum": "$pagoProveedoresDolares"
+      }, 
+      "pagoProveedoresEuros": {
+        "$sum": "$pagoProveedoresEuros"
+      }, 
+      "posBolivares": {
+        "$sum": "$posBolivares"
+      }, 
+      "posComisionesBolivares": {
+        "$sum": "$posComisionesBolivares"
+      }, 
+      "posComisionesDolares": {
+        "$sum": "$posComisionesDolares"
+      }, 
+      "posComisionesEuros": {
+        "$sum": "$posComisionesEuros"
+      }, 
+      "posDolaresposEuros": {
+        "$sum": "$posDolaresposEuros"
+      }, 
+      "posTransaccionesBolivares": {
+        "$sum": "$posTransaccionesBolivares"
+      }, 
+      "posTransaccionesDolares": {
+        "$sum": "$posTransaccionesDolares"
+      }, 
+      "posTransaccionesEuros": {
+        "$sum": "$posTransaccionesEuros"
+      }, 
+      "ic_totalMesBolivares": {
+        "$sum": "$ic_totalMesBolivares"
+      }, 
+      "ic_totalMesDolares": {
+        "$sum": "$ic_totalMesDolares"
+      }, 
+      "ic_totalMesEuros": {
+        "$sum": "$ic_totalMesEuros"
+      }, 
+      "ic_acumuladoBolivares7m": {
+        "$sum": "$ic_acumuladoBolivares7m"
+      }, 
+      "ic_acumuladoDolares7m": {
+        "$sum": "$ic_acumuladoDolares7m"
+      }, 
+      "ic_acumuladoEuros7m": {
+        "$sum": "$ic_acumuladoEuros7m"
+      }, 
+      "comprasDolares": {
+        "$sum": "$comprasDolares"
+      }, 
+      "comprasEuros": {
+        "$sum": "$comprasEuros"
+      }, 
+      "depositosDolares": {
+        "$sum": "$depositosDolares"
+      }, 
+      "depositosEuros": {
+        "$sum": "$depositosEuros"
+      }, 
+      "depositosEfectivoDolares": {
+        "$sum": "$depositosEfectivoDolares"
+      }, 
+      "acumComprasDolares": {
+        "$sum": "$acumComprasDolares"
+      }, 
+      "acumComprasEuros": {
+        "$sum": "$acumComprasEuros"
+      }, 
+      "acumDepositosDolares": {
+        "$sum": "$acumDepositosDolares"
+      }, 
+      "acumDepositosEuros": {
+        "$sum": "$acumDepositosEuros"
+      }, 
+      "cantidadTransacciones": {
+        "$sum": "$cantidadTransacciones"
+      }, 
+      "montoFacturacionBolivares": {
+        "$sum": "$montoFacturacionBolivares"
+      }, 
+      "montoFacturacionDolares": {
+        "$sum": "$montoFacturacionDolares"
+      }, 
+      "montoFacturacionEuros": {
+        "$sum": "$montoFacturacionEuros"
+      }, 
+      "acumuladoFacturacionUlt7MesesBolivares": {
+        "$sum": "$acumuladoFacturacionUlt7MesesBolivares"
+      }, 
+      "acumuladoFacturacionUlt7MesesDolares": {
+        "$sum": "$acumuladoFacturacionUlt7MesesDolares"
+      }, 
+      "acumuladoFacturacionUlt7MesesEuros": {
+        "$sum": "$acumuladoFacturacionUlt7MesesEuros"
+      }, 
+      "acumuladoTransaccionesUlt7Meses": {
+        "$sum": "$acumuladoTransaccionesUlt7Meses"
+      }, 
+      "sumAAbonoLiqActivo": {
+        "$sum": "$sumAAbonoLiqActivo"
+      }, 
+      "sumAMontoAbonado": {
+        "$sum": "$sumAMontoAbonado"
+      }, 
+      "sumAbonoLiqActivo12M": {
+        "$sum": "$sumAbonoLiqActivo12M"
+      }, 
+      "sumMontoAbonado12M": {
+        "$sum": "$sumMontoAbonado12M"
+      }, 
+      "sumSaldoPromedio12M": {
+        "$sum": "$sumSaldoPromedio12M"
+      }
+    }
+  }, {
+    "$addFields": {
+      "saldoPromedio12M": {
+        "$round": [
+          {
+            "$divide": [
+              "$sumSaldoPromedio12M", 12
+            ]
+          }, 4
+        ]
+      }, 
+      "reciprocidadBeneficiario": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$volumenPagosProveedor", 0
+            ]
+          }, 
+          "then": 0, 
+          "else": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$volumenPagosProveedorBDV", "$volumenPagosProveedor"
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }
+        }
+      }, 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$match": {
+      "codigoGrupoeconomico": {
+        "$nin": [
+          null, ""
+        ]
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricgrupo", 
+      "on": [
+        "codigoGrupoeconomico", "fechaProceso"
+      ], 
+      "whenNotMatched": "insert"
+    }
+  }
+]

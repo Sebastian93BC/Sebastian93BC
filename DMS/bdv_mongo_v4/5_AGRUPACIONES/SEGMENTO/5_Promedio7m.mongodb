@@ -1,0 +1,324 @@
+[
+  {
+    $addFields: {
+      //Editar
+      fechaSuperior: {
+        $dateFromParts: {
+          year: {
+            $year: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+
+          month: {
+            $month: {
+              $toDate: "2023-06-30",
+              //"$toDate": "{{$json.fechaProceso}}"
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      fechaProcesoAct: {
+        $dateFromParts: {
+          year: {
+            $year: "$fechaProceso",
+          },
+          month: {
+            $month: "$fechaProceso",
+          },
+        },
+      },
+      fechaInferior: {
+        $dateSubtract: {
+          startDate: {
+            $dateFromParts: {
+              year: {
+                $year: "$fechaSuperior",
+              },
+              month: {
+                $month: "$fechaSuperior",
+              },
+            },
+          },
+          unit: "month",
+          amount: 6,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProcesoAct",
+              "$fechaInferior",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProcesoAct",
+              "$fechaSuperior",
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        codigoSegmento: "$codigoSegmento",
+      },
+      codigoSegmento: {
+        $first: "$codigoSegmento",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      sumIcc_totalMesDolares7m: {
+        $sum: "$icc_totalMesDolares",
+      },
+      sumIc_totalMesDolares7m: {
+        $sum: "$ic_totalMesDolares",
+      },
+      sumMontoFacturacionDolares7m: {
+        $sum: "$montoFacturacionDolares",
+      },
+      sumCantidadTransacciones7m: {
+        $sum: "$cantidadTransacciones",
+      },
+    },
+  },
+  {
+    $addFields: {
+      sumIcc_totalMesDolares7m: {
+        $round: ["$sumIcc_totalMesDolares7m", 4],
+      },
+      sumIc_totalMesDolares7m: {
+        $round: ["$sumIc_totalMesDolares7m", 4],
+      },
+      sumMontoFacturacionDolares7m: {
+        $round: [
+          "$sumMontoFacturacionDolares7m",
+          4,
+        ],
+      },
+      icc_totalPromDolares7m: {
+        $round: [
+          {
+            $divide: [
+              "$sumIcc_totalMesDolares7m",
+              7,
+            ],
+          },
+          4,
+        ],
+      },
+      ic_totalPromDolares7m: {
+        $round: [
+          {
+            $divide: [
+              "$sumIc_totalMesDolares7m",
+              7,
+            ],
+          },
+          4,
+        ],
+      },
+      promedioFacturacionUlt7MesesDolares: {
+        $round: [
+          {
+            $divide: [
+              "$sumMontoFacturacionDolares7m",
+              7,
+            ],
+          },
+          4,
+        ],
+      },
+      promedioTransaccionesUlt7Meses: {
+        $round: [
+          {
+            $divide: [
+              "$sumCantidadTransacciones7m",
+              7,
+            ],
+          },
+          0,
+        ],
+      },
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetricsegmento",
+      on: ["fechaProceso", "codigoSegmento"],
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$addFields": {
+      "fechaSuperior": {
+        "$dateFromParts": {
+          "year": {
+            "$year": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }, 
+          "month": {
+            "$month": {
+              "$toDate": "{{$json.fechaProceso}}"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProcesoAct": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaProceso"
+          }, 
+          "month": {
+            "$month": "$fechaProceso"
+          }
+        }
+      }, 
+      "fechaInferior": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$fechaSuperior"
+              }, 
+              "month": {
+                "$month": "$fechaSuperior"
+              }
+            }
+          }, 
+          "unit": "month", 
+          "amount": 6
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProcesoAct", "$fechaInferior"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProcesoAct", "$fechaSuperior"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "codigoSegmento": "$codigoSegmento"
+      }, 
+      "codigoSegmento": {
+        "$first": "$codigoSegmento"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "sumIcc_totalMesDolares7m": {
+        "$sum": "$icc_totalMesDolares"
+      }, 
+      "sumIc_totalMesDolares7m": {
+        "$sum": "$ic_totalMesDolares"
+      }, 
+      "sumMontoFacturacionDolares7m": {
+        "$sum": "$montoFacturacionDolares"
+      }, 
+      "sumCantidadTransacciones7m": {
+        "$sum": "$cantidadTransacciones"
+      }
+    }
+  }, {
+    "$addFields": {
+      "sumIcc_totalMesDolares7m": {
+        "$round": [
+          "$sumIcc_totalMesDolares7m", 4
+        ]
+      }, 
+      "sumIc_totalMesDolares7m": {
+        "$round": [
+          "$sumIc_totalMesDolares7m", 4
+        ]
+      }, 
+      "sumMontoFacturacionDolares7m": {
+        "$round": [
+          "$sumMontoFacturacionDolares7m", 4
+        ]
+      }, 
+      "icc_totalPromDolares7m": {
+        "$round": [
+          {
+            "$divide": [
+              "$sumIcc_totalMesDolares7m", 7
+            ]
+          }, 4
+        ]
+      }, 
+      "ic_totalPromDolares7m": {
+        "$round": [
+          {
+            "$divide": [
+              "$sumIc_totalMesDolares7m", 7
+            ]
+          }, 4
+        ]
+      }, 
+      "promedioFacturacionUlt7MesesDolares": {
+        "$round": [
+          {
+            "$divide": [
+              "$sumMontoFacturacionDolares7m", 7
+            ]
+          }, 4
+        ]
+      }, 
+      "promedioTransaccionesUlt7Meses": {
+        "$round": [
+          {
+            "$divide": [
+              "$sumCantidadTransacciones7m", 7
+            ]
+          }, 0
+        ]
+      }, 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricsegmento", 
+      "on": [
+        "fechaProceso", "codigoSegmento"
+      ]
+    }
+  }
+]

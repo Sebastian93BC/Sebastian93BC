@@ -1,0 +1,113 @@
+RENTA.REN_MARGEN_CLIENTE.MCL_RIF_CEDULA,
+       RENTA.REN_MARGEN_CLIENTE.MCL_BANCA,
+       RENTA.REN_MARGEN_CLIENTE.MCL_SEGMENTO,
+       RENTA.REN_MARGEN_CLIENTE.MCL_NOMBRE_CLIENTE,
+       RENTA.REN_MARGEN_CLIENTE.MCL_NIVEL_SOCIOECON,
+       RENTA.REN_MARGEN_CLIENTE.MCL_GRUPO_ECONOMICO,
+       RENTA.REN_MARGEN_CLIENTE.MCL_PRODUCTO,
+       a.TRA_FECHA_OPERACION,
+       a.TRA_COD_OP,
+       a.TRA_DESC_COD_OP,
+       a.DIVISA,
+       a.CONTRATO,
+       a.TRA_MONTO_HABER,
+       a.TRA_PRODUCTO,
+       a.TRA_RIF,
+       RENTA.REN_MARGEN_CLIENTE.MCL_ESTATUS
+  From RENTA.REN_MARGEN_CLIENTE
+ Inner Join (Select RENTA.REN_TRANSACCION_NEW.TRA_FECHA_OPERACION,
+                    RENTA.REN_TRANSACCION_NEW.TRA_COD_OP,
+                    RENTA.REN_TRANSACCION_NEW.TRA_DESC_COD_OP,
+                    SubStr(RENTA.REN_TRANSACCION_NEW.TRA_RISTRA_CONTABLE,
+                           38,
+                           3) As DIVISA,
+                    RENTA.REN_TRANSACCION_NEW.TRA_RIF,
+                    RENTA.REN_TRANSACCION_NEW.TRA_CUENTA_CONTRATO As CONTRATO,
+                    RENTA.REN_TRANSACCION_NEW.TRA_MONTO_HABER,
+                    RENTA.REN_TRANSACCION_NEW.TRA_PRODUCTO
+               From RENTA.REN_TRANSACCION_NEW
+              Where RENTA.REN_TRANSACCION_NEW.TRA_FECHA_OPERACION Between
+                    '31122022' And '31032023'
+                And RENTA.REN_TRANSACCION_NEW.TRA_COD_OP <> 0
+                And SubStr(RENTA.REN_TRANSACCION_NEW.TRA_RISTRA_CONTABLE,
+                           38,
+                           3) <> 'VES'
+                And RENTA.REN_TRANSACCION_NEW.TRA_CANAL = 1
+                And RENTA.REN_TRANSACCION_NEW.TRA_IND_CRE_DEB = 'C') a
+    On RENTA.REN_MARGEN_CLIENTE.MCL_CONTRATO = a.CONTRATO
+ Where RENTA.REN_MARGEN_CLIENTE.MCL_ESTATUS <> 'C'
+
+
+ //mongo
+
+ db.REN_MARGEN_CLIENTE.aggregate([
+  {
+    $lookup: {
+      from: "REN_TRANSACCION_NEW",
+      let: { contrato: "$MCL_CONTRATO" },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $gte: ["$TRA_FECHA_OPERACION", "31122022"] },
+                { $lte: ["$TRA_FECHA_OPERACION", "31032023"] },
+                { $ne: ["$TRA_COD_OP", 0] },
+                { $ne: [{ $substr: ["$TRA_RISTRA_CONTABLE", 38, 3] }, "VES"] },
+                { $eq: ["$TRA_CANAL", 1] },
+                { $eq: ["$TRA_IND_CRE_DEB", "C"] },
+                { $eq: ["$TRA_CUENTA_CONTRATO", "$$contrato"] }
+              ]
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            TRA_FECHA_OPERACION: 1,
+            TRA_COD_OP: 1,
+            TRA_DESC_COD_OP: 1,
+            DIVISA: { $substr: ["$TRA_RISTRA_CONTABLE", 38, 3] },
+            CONTRATO: "$TRA_CUENTA_CONTRATO",
+            TRA_MONTO_HABER: 1,
+            TRA_PRODUCTO: 1,
+            TRA_RIF: 1
+          }
+        }
+      ],
+      as: "a"
+    }
+  },
+  {
+    $unwind: "$a"
+  },
+  {
+    $match: {
+      "MCL_ESTATUS": { $ne: "C" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      "REN_MARGEN_CLIENTE.MCL_RIF_CEDULA": 1,
+      "REN_MARGEN_CLIENTE.MCL_BANCA": 1,
+      "REN_MARGEN_CLIENTE.MCL_SEGMENTO": 1,
+      "REN_MARGEN_CLIENTE.MCL_NOMBRE_CLIENTE": 1,
+      "REN_MARGEN_CLIENTE.MCL_NIVEL_SOCIOECON": 1,
+      "REN_MARGEN_CLIENTE.MCL_GRUPO_ECONOMICO": 1,
+      "REN_MARGEN_CLIENTE.MCL_PRODUCTO": 1,
+      "a.TRA_FECHA_OPERACION": 1,
+      "a.TRA_COD_OP": 1,
+      "a.TRA_DESC_COD_OP": 1,
+      "a.DIVISA": 1,
+      "a.CONTRATO": 1,
+      "a.TRA_MONTO_HABER": 1,
+      "a.TRA_PRODUCTO": 1,
+      "a.TRA_RIF": 1,
+      "REN_MARGEN_CLIENTE.MCL_ESTATUS": 1
+    }
+  }
+])
+
+
+

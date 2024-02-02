@@ -1,0 +1,256 @@
+
+// Margengeneralmetric
+[
+  {
+    $group: {
+      _id: {
+        fecha: "$fecha",
+        banca: "$banca",
+        segmento: "$segmento",
+      },
+      cantidadClientes: {
+        $sum: "$cantidadClientes",
+      },
+      cantidadClientesActivos: {
+        $sum: "$cantidadClientesActivos",
+      },
+      fecha: {
+        $first: "$fecha",
+      },
+      banca: {
+        $first: "$banca",
+      },
+      segmento: {
+        $first: "$segmento",
+      },
+    },
+  },
+  {
+    $sort:
+      /**
+       * Provide any number of field/order pairs.
+       */
+      {
+        "_id.fecha": -1,
+        banca: -1,
+        segmento: -1,
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        segmentos: {
+          segmento: "$segmento",
+          cantidadClientes: "$cantidadClientes",
+          cantidadClientesActivos:
+            "$cantidadClientesActivos",
+        },
+      },
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: {
+          banca: "$banca",
+          fecha: "$fecha",
+        },
+        segmentos: {
+          $addToSet: "$segmentos",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        banca: "$_id.banca",
+        fecha: "$_id.fecha",
+        cantidadClientes: {
+          $sum: "$segmentos.cantidadClientes",
+        },
+        cantidadClientesActivos: {
+          $sum: "$segmentos.cantidadClientesActivos",
+        },
+      },
+  },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: "$fecha",
+        banca: {
+          $push: "$$ROOT",
+        },
+      },
+  },
+]
+
+
+//validación
+[
+  // {
+  //   $match:
+  //     /**
+  //      * query: The query in MQL.
+  //      */
+  //
+  //     {
+  //       banca: "BANCA SECTOR PUBLICO",
+  //       segmento: "SECTOR INSTITUCIONAL PUBLICO",
+  //       fecha: ISODate("2023-01-31T00:00:00.000Z"),
+  //       nivel_socioecon: "",
+  //     },
+  // },
+  {
+    $group:
+      /**
+       * _id: The id of the group.
+       * fieldN: The first field name.
+       */
+      {
+        _id: "$fecha",
+        saldoPromdedio: {
+          $sum: "$saldos",
+        },
+        Montos_de_Credito: {
+          $sum: "$Montos_de_Credito",
+        },
+        cantidadClientes: {
+          $sum: "$cantidadClientes",
+        },
+        cantidadClientesActivos: {
+          $sum: "$cantidadClientesActivos",
+        },
+      },
+  },
+  {
+    $sort:
+      /**
+       * Provide any number of field/order pairs.
+       */
+      {
+        _id: 1,
+      },
+  },
+]
+
+
+//correcion persona
+[
+  {
+    $lookup: {
+      from: "segmentos",
+      localField: "segmento",
+      foreignField: "seg_nombre_segmento",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      persona: {
+        $first: "$result.persona",
+      },
+    },
+  },
+  {
+    $project: {
+      result: 0,
+      integrationIds: 0,
+    },
+  },
+  {
+    $addFields: {
+      integrationIds: {
+        margen: {
+          fecha: "$fecha",
+          nivel_socioecon: "$nivel_socioecon",
+          subsegmento: "$subsegmento",
+          segmento: "$segmento",
+          banca: "$banca",
+          persona: "$persona",
+        },
+      },
+    },
+  },
+  {
+    $out: "Margengeneralmetric_1",
+  },
+]
+
+// agrupacion
+[
+  {
+    $group: {
+      _id: {
+        fecha: "$fecha",
+        nivel_socioecon: "$nivel_socioecon",
+        subsegmento: "$subsegmento",
+        segmento: "$segmento",
+        banca: "$banca",
+        persona: "$persona",
+      },
+      banca: {
+        $first: "$banca",
+      },
+      fecha: {
+        $first: "$fecha",
+      },
+      nivel_socioecon: {
+        $first: "$nivel_socioecon",
+      },
+      persona: {
+        $first: "$persona",
+      },
+      segmento: {
+        $first: "$segmento",
+      },
+      subsegmento: {
+        $first: "$subsegmento",
+      },
+      cantidadClientes: {
+        $sum: "$cantidadClientes",
+      },
+      cantidadClientesActivos: {
+        $sum: "$cantidadClientesActivos",
+      },
+      Montos_de_Credito: {
+        $sum: "$Montos_de_Credito",
+      },
+      saldos: {
+        $sum: "$saldos",
+      },
+    },
+  },
+  {
+    $replaceRoot: {
+      newRoot: {
+        $mergeObjects: ["$_id", "$$ROOT"],
+      },
+    },
+  },
+  {
+    $addFields: {
+      integrationIds: {
+        margen: "$_id",
+      },
+      _id: "$$REMOVE",
+    },
+  },
+  {
+    $out: "Margengeneralmetric_1",
+  },
+]

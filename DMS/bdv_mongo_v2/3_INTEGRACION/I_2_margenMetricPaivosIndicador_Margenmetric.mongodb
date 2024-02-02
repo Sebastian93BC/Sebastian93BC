@@ -1,0 +1,260 @@
+// de margenmetricpasivo a margenmetric
+
+[
+  {
+    $match: {
+      rifCedula: "J50019975",
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          fechaProceso: {
+            $gte: ISODate("2022-01-01T00:00:00.000+00:00"),
+          },
+        },
+        {
+          fechaProceso: {
+            $lt: ISODate("2023-03-01T00:00:00.000+00:00"),
+          },
+        },
+      ],
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_libreconvertibilidad_convenio20",
+      localField: "cuentaContable1",
+      foreignField: "cuentaContable",
+      as: "result",
+    },
+  },
+  {
+    $addFields: {
+      condicion: {
+        $first: "$result.condicion",
+      },
+    },
+  },
+  {
+    $match: {
+      condicion: {
+        $nin: ["NO_MOVIBLE", "Conv20"],
+      },
+    },
+  },
+  {
+    $addFields: {
+      movimientosMesPasivo: {
+        $sum: ["$numCreditoPasivo", "$numDebitoPasivo"],
+      },
+      saldosMesPasivo: {
+        $sum: ["$montoCreditoPasivo", "$promedioPasivo"],
+      },
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$rifCedula",
+        fechaProceso: "$fechaProceso",
+      },
+      fechaUltimaTransacPasivo: {
+        $first: "$fechaUltimaTransacPasivos",
+      },
+      saldoPasivo: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$saldoPasivo",
+            else: 0,
+          },
+        },
+      },
+      saldoPasivoDivisaOrigen: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$saldoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      promedioPasivo: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$promedioPasivo",
+            else: 0,
+          },
+        },
+      },
+      promedioPasivoDivisaOrigen: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$promedioPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      montoCreditoPasivo: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$montoCreditoPasivo",
+            else: 0,
+          },
+        },
+      },
+      montoCreditoPasivoDivisaOrigen: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$montoCreditoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      montoDebitoPasivo: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$montoDebitoPasivo",
+            else: 0,
+          },
+        },
+      },
+      montoDebitoPasivoDivisaOrigen: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$montoDebitoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      numCreditoPasivo: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$numCreditoPasivo",
+            else: 0,
+          },
+        },
+      },
+      numDebitoPasivo: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$numDebitoPasivo",
+            else: 0,
+          },
+        },
+      },
+      numeroContrato: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "BOLIVARES"],
+            },
+            then: "$numeroContrato",
+            else: 0,
+          },
+        },
+      },
+      numCreditoPasivoTodasDivisa: {
+        $sum: "$numCreditoPasivo",
+      },
+      numDebitoPasivoTodasDivisa: {
+        $sum: "$numDebitoPasivo",
+      },
+      numeroContratoTodasDivisa: {
+        $sum: "$numeroContrato",
+      },
+      saldoDolar: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "DOLARES"],
+            },
+            then: "$saldoPasivo",
+            else: 0,
+          },
+        },
+      },
+      saldoEuro: {
+        $sum: {
+          $cond: {
+            if: {
+              $eq: ["$denominacion", "EUROS"],
+            },
+            then: "$saldoPasivoDivisaOrigen",
+            else: 0,
+          },
+        },
+      },
+      movimientosMesPasivo: {
+        $sum: "$movimientosMesPasivo",
+      },
+      saldosMesPasivo: {
+        $sum: "$saldosMesPasivo",
+      },
+    },
+  },
+  {
+    $addFields: {
+      rifCedula: "$_id.rifCedula",
+      fechaProceso: "$_id.fechaProceso",
+      clienteActivo: {
+        $cond: [
+          {
+            $or: [
+              {
+                $ne: ["$movimientosMesPasivo", 0],
+              },
+              {
+                $ne: ["$saldosMesPasivo", 0],
+              },
+            ],
+          },
+          true,
+          false,
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+      whenNotMatched: "insert",
+    },
+  },
+]

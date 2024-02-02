@@ -1,0 +1,227 @@
+[
+  // {
+  //   $match: {
+  //     rifCedula: "J50019975",
+  //   },
+  // },
+  {
+    $addFields: {
+      //Editar
+      fechaSuperior: {
+        $dateFromParts: {
+          year: {
+            $year: {
+              $toDate:
+                "2023-06-30T00:00:00.000+00:00",
+              //"$toDate": "{{$json.offSet}}"
+            },
+          },
+
+          month: {
+            $month: {
+              $toDate:
+                "2023-06-30T00:00:00.000+00:00",
+              //"$toDate": "{{$json.offSet}}"
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $addFields: {
+      fechaProcesoAct: {
+        $dateFromParts: {
+          year: {
+            $year: "$fechaProceso",
+          },
+          month: {
+            $month: "$fechaProceso",
+          },
+        },
+      },
+      fechaInferior: {
+        $dateSubtract: {
+          startDate: {
+            $dateFromParts: {
+              year: {
+                $year: "$fechaSuperior",
+              },
+              month: {
+                $month: "$fechaSuperior",
+              },
+            },
+          },
+          unit: "month",
+          amount: 2,
+        },
+      },
+    },
+  },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProcesoAct",
+              "$fechaInferior",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProcesoAct",
+              "$fechaSuperior",
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$rifCedula",
+      },
+      rifCedula: {
+        $first: "$rifCedula",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      montoAbonado3m: {
+        $sum: "$montoAbonado",
+      },
+    },
+  },
+  {
+    $addFields: {
+      montoAbonadoProm3m: {
+        $round: [
+          {
+            $divide: ["$montoAbonado3m", 3],
+          },
+          4,
+        ],
+      },
+      rifCedula: "$rifCedula",
+      _id: "$$REMOVE",
+      montoAbonado3m: "$$REMOVE",
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["fechaProceso", "rifCedula"],
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$addFields": {
+      "fechaSuperior": {
+        "$dateFromParts": {
+          "year": {
+            "$year": {
+              "$toDate": "{{$json.offSet}}"
+            }
+          }, 
+          "month": {
+            "$month": {
+              "$toDate": "{{$json.offSet}}"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProcesoAct": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaProceso"
+          }, 
+          "month": {
+            "$month": "$fechaProceso"
+          }
+        }
+      }, 
+      "fechaInferior": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$fechaSuperior"
+              }, 
+              "month": {
+                "$month": "$fechaSuperior"
+              }
+            }
+          }, 
+          "unit": "month", 
+          "amount": 2
+        }
+      }
+    }
+  }, {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProcesoAct", "$fechaInferior"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProcesoAct", "$fechaSuperior"
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$rifCedula"
+      }, 
+      "rifCedula": {
+        "$first": "$rifCedula"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "montoAbonado3m": {
+        "$sum": "$montoAbonado"
+      }
+    }
+  }, {
+    "$addFields": {
+      "montoAbonadoProm3m": {
+        "$round": [
+          {
+            "$divide": [
+              "$montoAbonado3m", 3
+            ]
+          }, 4
+        ]
+      }, 
+      "rifCedula": "$rifCedula", 
+      "_id": "$$REMOVE", 
+      "montoAbonado3m": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ]
+    }
+  }
+]

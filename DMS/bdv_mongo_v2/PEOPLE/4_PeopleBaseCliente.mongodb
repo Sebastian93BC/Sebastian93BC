@@ -1,0 +1,193 @@
+// de people a people
+
+[
+  {
+    $lookup:
+      /**
+       * from: The target collection.
+       * localField: The local join field.
+       * foreignField: The target join field.
+       * as: The name for the results.
+       * pipeline: Optional pipeline to run on the foreign collection.
+       * let: Optional variables to use in the pipeline field stages.
+       */
+      {
+        //cambiar
+        from: "sidis_base_cliente",
+        let: {
+          rif: "$vat",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: [
+                  "$$rif",
+                  "$mbc_rif_cliente",
+                ],
+              },
+            },
+          },
+        ],
+        as: "result",
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        maxFecha: {
+          $max: "$result.mbc_fecha_proceso",
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        result: {
+          $filter: {
+            input: "$result",
+            as: "result",
+            cond: {
+              $eq: [
+                "$$result.mbc_fecha_proceso",
+                "$maxFecha",
+              ],
+            },
+          },
+        },
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        clientDate: {
+          $first: "$result.mbc_fecha_inclusion",
+        },
+        lastName: {
+          $first: "$result.mbc_nombre_cliente",
+        },
+        regionCode: {
+          $first:
+            "$result.mbc_cod_region_ofi_tut",
+        },
+        regionName: {
+          $first:
+            "$result.mbc_nom_region_ofi_tut",
+        },
+        officeState: {
+          $first:
+            "$result.mbc_nom_estado_ofi_tut",
+        },
+        codeOfficeState: {
+          $first:
+            "$result.mbc_cod_estado_ofi_tut",
+        },
+        age: {
+          $first: "$result.mbc_edad",
+        },
+        codigobanca: {
+          $first: "$result.mbc_cod_banca",
+        },
+        nombrebanca: {
+          $first: "$result.mbc_nom_banca",
+        },
+        codigogrupoEconomico: {
+          $first: "$result.mbc_grupo_economico",
+        },
+        codigosegmento: {
+          $first: "$result.mbc_cod_segmento",
+        },
+        nombresegmento: {
+          $first: "$result.mbc_nom_segmento",
+        },
+        maritalstatus: {
+          $first: "$result.mbc_edo_civil",
+        },
+        officeCode: {
+          $first: "$result.mbc_cod_oficina_tut",
+        },
+        officeName: {
+          $first: "$result.mbc_nom_oficina_tut",
+        },
+        feve: {
+          $first: "$result.mbc_feve",
+        },
+        UAI: {
+          $first: "$result.mbc_uai",
+        },
+        //linkedProduct:''
+      },
+  },
+  {
+    $addFields:
+      /**
+       * newField: The new field name.
+       * expression: The new field expression.
+       */
+      {
+        integrationIds: {
+          $mergeObjects: [
+            "$integrationIds",
+            {
+              sidis_base_cliente: {
+                $first: "$result.mbc_rif_cliente",
+              },
+            },
+          ],
+        },
+        peopleIds: {
+          $mergeObjects: [
+            "$peopleIds",
+            {
+              sidis_base_cliente: [
+                {
+                  $first: "$result._id",
+                },
+              ],
+            },
+          ],
+        },
+        updatedAt: new Date(),
+      },
+  },
+  {
+    $project:
+      /**
+       * specifications: The fields to
+       *   include or exclude.
+       */
+      {
+        result: 0,
+        maxFecha: 0,
+      },
+  },
+  {
+    $merge:
+      /**
+       * into: The target collection.
+       * on: Fields to  identify.
+       * let: Defined variables.
+       * whenMatched: Action for matching docs.
+       * whenNotMatched: Action for non-matching docs.
+       */
+
+      {
+        //cambiar
+        into: "People",
+        on: "_id",
+        whenNotMatched: "insert",
+      },
+  },
+]
