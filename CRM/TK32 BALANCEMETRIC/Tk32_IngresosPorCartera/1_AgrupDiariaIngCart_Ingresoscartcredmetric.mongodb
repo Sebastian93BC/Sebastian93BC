@@ -1,6 +1,6 @@
 [
   {
-    $limit: 1,
+    $limit: 1
   },
   {
     $project: {
@@ -14,26 +14,25 @@
                   $dateToString: {
                     format: "%Y-%m-%dT00:00:00%z",
                     date: {
-                      $toDate: "$$NOW",
-                    },
-                  },
-                },
-              },
-            },
+                      $toDate: "$$NOW"
+                    }
+                  }
+                }
+              }
+            }
           },
           {
             $multiply: [
               {
-                $toInt: "373",
-                //"567"
+                $toInt: "10"
                 //"{{$json.offSet}}"
               },
-              86400000,
-            ],
-          },
-        ],
-      },
-    },
+              86400000
+            ]
+          }
+        ]
+      }
+    }
   },
   {
     $lookup: {
@@ -43,55 +42,98 @@
           $project: {
             cuentaContable: 1,
             productoControlGestion: 1,
-            _id: 0,
-          },
-        },
+            _id: 0
+          }
+        }
       ],
-      as: "Parametricingresocarteracredito",
-    },
+      as: "Parametricingresocarteracredito"
+    }
   },
   {
     $addFields: {
       cuentasContable:
-        "$Parametricingresocarteracredito.cuentaContable",
+        "$Parametricingresocarteracredito.cuentaContable"
       //Generamos un nuevo con la fecha de hoy
-    },
+    }
   },
   {
     $lookup: {
       //Traemos los documenos de la fecha hoy
       from: "sidis_brm",
       let: {
-        todayDate: "$todayDate",
+        todayDate: "$todayDate"
       },
       pipeline: [
         {
           $match: {
             $expr: {
-              $eq: [
-                "$$todayDate",
-                "$fecha_odate",
-              ],
-            },
-          },
+              $eq: ["$$todayDate", "$fecha_odate"]
+            }
+          }
         },
         {
           $project: {
             nucta: 1,
             sal_act: {
-              $multiply: ["$sal_act", -1],
+              $multiply: ["$sal_act", -1]
             },
             sal_ant: {
-              $multiply: ["$sal_ant", -1],
+              $multiply: ["$sal_ant", -1]
             },
             sal_net_act: {
-              $multiply: ["$sal_net_act", -1],
-            },
-          },
-        },
+              $multiply: ["$sal_net_act", -1]
+            }
+          }
+        }
       ],
-      as: "sidis_brm",
-    },
+      as: "sidis_brm"
+    }
+  },
+  {
+    $lookup: {
+      //Traemos los documenos de la fecha hoy
+      from: "sidis_brm",
+      let: {
+        todayDate: "$todayDate"
+      },
+      pipeline: [
+        {
+          $match: {
+            $and: [
+              {
+                $expr: {
+                  $eq: [
+                    "$$todayDate",
+                    "$fecha_odate"
+                  ]
+                }
+              },
+              {
+                $expr: {
+                  $eq: ["513", "$nucta"]
+                }
+              }
+            ]
+          }
+        },
+        {
+          $project: {
+            nucta: 1,
+            fecha_odate: 1,
+            sal_act: {
+              $multiply: ["$sal_act", -1]
+            },
+            sal_ant: {
+              $multiply: ["$sal_ant", -1]
+            },
+            sal_net_act: {
+              $multiply: ["$sal_net_act", -1]
+            }
+          }
+        }
+      ],
+      as: "sidis_brm513"
+    }
   },
   {
     $addFields: {
@@ -100,42 +142,42 @@
           {
             $gt: [
               {
-                $size: "$sidis_brm",
+                $size: "$sidis_brm"
               },
-              0,
-            ],
+              0
+            ]
           },
           true,
-          false,
-        ],
+          false
+        ]
       },
       firstDayMonth: {
         $eq: [
           {
-            $dayOfMonth: "$todayDate",
+            $dayOfMonth: "$todayDate"
           },
-          1,
-        ],
+          1
+        ]
       },
       firstDayYear: {
         $and: [
           {
             $eq: [
               {
-                $dayOfMonth: "$todayDate",
+                $dayOfMonth: "$todayDate"
               },
-              1,
-            ],
+              1
+            ]
           },
           {
             $eq: [
               {
-                $month: "$todayDate",
+                $month: "$todayDate"
               },
-              1,
-            ],
-          },
-        ],
+              1
+            ]
+          }
+        ]
       },
       //Filtra los documentos correspondientes a ingresos por comisión
       sidis_brm: {
@@ -145,130 +187,131 @@
           cond: {
             $in: [
               "$$brm.nucta",
-              "$cuentasContable",
-            ],
-          },
-        },
+              "$cuentasContable"
+            ]
+          }
+        }
       },
       cuentasContable: "$$REMOVE",
       yesterdayDate: {
         $dateAdd: {
           startDate: "$todayDate",
           unit: "day",
-          amount: -1,
-        },
+          amount: -1
+        }
       },
       tomorrowDate: {
         $dateAdd: {
           startDate: "$todayDate",
           unit: "day",
-          amount: 1,
-        },
+          amount: 1
+        }
       },
       previusMonthDate: {
         $dateAdd: {
           startDate: "$todayDate",
           unit: "month",
-          amount: -1,
-        },
+          amount: -1
+        }
       },
       previusMonthlastDate: {
         $subtract: [
           {
             $dateFromParts: {
               year: {
-                $year: "$todayDate",
+                $year: "$todayDate"
               },
               month: {
-                $month: "$todayDate",
-              },
-            },
+                $month: "$todayDate"
+              }
+            }
           },
-          86400000,
-        ],
+          86400000
+        ]
       },
       previusYearDate: {
         $dateAdd: {
           startDate: "$todayDate",
           unit: "year",
-          amount: -1,
-        },
+          amount: -1
+        }
       },
-      PreviusYearlastDate: {
+      previusYearlastDate: {
         $subtract: [
           {
             $dateFromParts: {
               year: {
-                $year: "$todayDate",
-              },
-            },
+                $year: "$todayDate"
+              }
+            }
           },
-          86400000,
-        ],
-      },
-    },
+          86400000
+        ]
+      }
+    }
   },
   {
     $lookup: {
       from: "sidis_activosIa",
       let: {
-        todayDate: "$todayDate",
+        todayDate: "$todayDate"
       },
       pipeline: [
         {
           $match: {
             $expr: {
-              $eq: ["$$todayDate", "$fevalor"],
-            },
-          },
+              $eq: ["$$todayDate", "$fevalor"]
+            }
+          }
         },
         {
           $match: {
             $nor: [
               {
-                sitdeuct: "CASTIGO",
+                sitdeuct: "CASTIGO"
               },
               {
-                indretro: "S",
+                indretro: "S"
               },
               {
                 cod_evento:
                   "CANCELACION ANTICIPADA",
-                formpago: "EN TELEPROCESO",
-              },
-            ],
-          },
+                formpago: "EN TELEPROCESO"
+              }
+            ]
+          }
         },
         {
           $project: {
             _id: 0,
-            capindif: 1,
-          },
-        },
+            capindif: 1
+          }
+        }
       ],
-      as: "sidis_activosIa",
-    },
+      as: "sidis_activosIa"
+    }
   },
   {
     $lookup: {
       from: "Ingresoscartcredmetric",
       localField: "yesterdayDate",
       foreignField: "fecha_valor",
-      as: "IngresoscartcredmetricyesterdayDate",
-    },
+      as: "IngresoscartcredmetricyesterdayDate"
+    }
   },
   {
     $lookup: {
       from: "sidis_tasaconversion",
       localField: "todayDate",
       foreignField: "Fecha",
-      as: "sidis_tasaconversion",
-    },
+      as: "sidis_tasaconversion"
+    }
   },
   {
     $addFields: {
       Parametricingresocarteracredito: "$$REMOVE",
       sidis_brm: "$$REMOVE",
+      sidis_brm513: "$$REMOVE",
       sidis_activosIa: "$$REMOVE",
       IngresoscartcredmetricyesterdayDate:
         "$$REMOVE",
@@ -280,16 +323,16 @@
             $cond: [
               "$avaiableData",
               {
-                $sum: "$sidis_brm.sal_act",
+                $sum: "$sidis_brm.sal_act"
               },
               {
                 $first:
-                  "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs",
-              },
-            ],
+                  "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       sal_antTotalBs: {
         $round: [
@@ -297,16 +340,16 @@
             $cond: [
               "$avaiableData",
               {
-                $sum: "$sidis_brm.sal_ant",
+                $sum: "$sidis_brm.sal_ant"
               },
               {
                 $first:
-                  "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs",
-              },
-            ],
+                  "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       sal_net_actTotalBs: {
         $round: [
@@ -314,16 +357,16 @@
             $cond: [
               "$avaiableData",
               {
-                $sum: "$sidis_brm.sal_net_act",
+                $sum: "$sidis_brm.sal_net_act"
               },
               {
                 $first:
-                  "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs",
-              },
-            ],
+                  "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       capindifTotalBs: {
         $round: [
@@ -332,22 +375,22 @@
               {
                 $gt: [
                   {
-                    $size: "$sidis_activosIa",
+                    $size: "$sidis_activosIa"
                   },
-                  0,
-                ],
+                  0
+                ]
               },
               {
-                $sum: "$sidis_activosIa.capindif",
+                $sum: "$sidis_activosIa.capindif"
               },
               {
                 $first:
-                  "$IngresoscartcredmetricyesterdayDate.capindifBs",
-              },
-            ],
+                  "$IngresoscartcredmetricyesterdayDate.capindifBs"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       sal_actTotalBsUSD: {
         $round: [
@@ -359,25 +402,25 @@
                     $cond: [
                       "$avaiableData",
                       {
-                        $sum: "$sidis_brm.sal_act",
+                        $sum: "$sidis_brm.sal_act"
                       },
                       {
                         $first:
-                          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs",
-                      },
-                    ],
+                          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs"
+                      }
+                    ]
                   },
-                  4,
-                ],
+                  4
+                ]
               },
               {
                 $first:
-                  "$sidis_tasaconversion.Tasa_DOL",
-              },
-            ],
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       sal_antTotalBsUSD: {
         $round: [
@@ -389,25 +432,25 @@
                     $cond: [
                       "$avaiableData",
                       {
-                        $sum: "$sidis_brm.sal_ant",
+                        $sum: "$sidis_brm.sal_ant"
                       },
                       {
                         $first:
-                          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs",
-                      },
-                    ],
+                          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs"
+                      }
+                    ]
                   },
-                  4,
-                ],
+                  4
+                ]
               },
               {
                 $first:
-                  "$sidis_tasaconversion.Tasa_DOL",
-              },
-            ],
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       sal_net_actTotalBsUSD: {
         $round: [
@@ -419,25 +462,25 @@
                     $cond: [
                       "$avaiableData",
                       {
-                        $sum: "$sidis_brm.sal_net_act",
+                        $sum: "$sidis_brm.sal_net_act"
                       },
                       {
                         $first:
-                          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs",
-                      },
-                    ],
+                          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs"
+                      }
+                    ]
                   },
-                  4,
-                ],
+                  4
+                ]
               },
               {
                 $first:
-                  "$sidis_tasaconversion.Tasa_DOL",
-              },
-            ],
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       capindifTotalBsUSD: {
         $round: [
@@ -451,73 +494,240 @@
                         $gt: [
                           {
                             $size:
-                              "$sidis_activosIa",
+                              "$sidis_activosIa"
                           },
-                          0,
-                        ],
+                          0
+                        ]
                       },
                       {
-                        $sum: "$sidis_activosIa.capindif",
+                        $sum: "$sidis_activosIa.capindif"
                       },
                       {
                         $first:
-                          "$IngresoscartcredmetricyesterdayDate.capindifBs",
-                      },
-                    ],
+                          "$IngresoscartcredmetricyesterdayDate.capindifBs"
+                      }
+                    ]
                   },
-                  4,
-                ],
+                  4
+                ]
               },
               {
                 $first:
-                  "$sidis_tasaconversion.Tasa_DOL",
-              },
-            ],
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
       sal_actTotalBsyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs",
+          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs"
       },
       sal_antTotalBsyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs",
+          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs"
       },
       sal_net_actTotalBsyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs",
+          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs"
       },
       capindifTotalBsyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.capindifTotalBs",
+          "$IngresoscartcredmetricyesterdayDate.capindifTotalBs"
       },
       sal_actTotalBsUSDyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBsUSD",
+          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBsUSD"
       },
       sal_antTotalBsUSDyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBsUSD",
+          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBsUSD"
       },
       sal_net_actTotalBsUSDyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBsUSD",
+          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBsUSD"
       },
       capindifTotalBsUSDyesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.capindifTotalBsUSD",
+          "$IngresoscartcredmetricyesterdayDate.capindifTotalBsUSD"
       },
-      condVarIDIyesterday: {
+      condVarYesterday: {
         $first:
-          "$IngresoscartcredmetricyesterdayDate.condVarIDI",
+          "$IngresoscartcredmetricyesterdayDate.condVar"
       },
-    },
+      //Calculo basado en nucta 513
+
+      sal_actTotalBs513: {
+        $round: [
+          {
+            $cond: [
+              "$avaiableData",
+              {
+                $sum: "$sidis_brm513.sal_act"
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs513"
+              }
+            ]
+          },
+          4
+        ]
+      },
+      sal_antTotalBs513: {
+        $round: [
+          {
+            $cond: [
+              "$avaiableData",
+              {
+                $sum: "$sidis_brm513.sal_ant"
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs513"
+              }
+            ]
+          },
+          4
+        ]
+      },
+      sal_net_actTotalBs513: {
+        $round: [
+          {
+            $cond: [
+              "$avaiableData",
+              {
+                $sum: "$sidis_brm513.sal_net_act"
+              },
+              {
+                $first:
+                  "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs513"
+              }
+            ]
+          },
+          4
+        ]
+      },
+      sal_actTotalBsUSD513: {
+        $round: [
+          {
+            $divide: [
+              {
+                $round: [
+                  {
+                    $cond: [
+                      "$avaiableData",
+                      {
+                        $sum: "$sidis_brm513.sal_act"
+                      },
+                      {
+                        $first:
+                          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs513"
+                      }
+                    ]
+                  },
+                  4
+                ]
+              },
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          },
+          4
+        ]
+      },
+      sal_antTotalBsUSD513: {
+        $round: [
+          {
+            $divide: [
+              {
+                $round: [
+                  {
+                    $cond: [
+                      "$avaiableData",
+                      {
+                        $sum: "$sidis_brm513.sal_ant"
+                      },
+                      {
+                        $first:
+                          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs513"
+                      }
+                    ]
+                  },
+                  4
+                ]
+              },
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          },
+          4
+        ]
+      },
+      sal_net_actTotalBsUSD513: {
+        $round: [
+          {
+            $divide: [
+              {
+                $round: [
+                  {
+                    $cond: [
+                      "$avaiableData",
+                      {
+                        $sum: "$sidis_brm513.sal_net_act"
+                      },
+                      {
+                        $first:
+                          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs513"
+                      }
+                    ]
+                  },
+                  4
+                ]
+              },
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          },
+          4
+        ]
+      },
+      sal_actTotalBsyesterday513: {
+        $first:
+          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs513"
+      },
+      sal_antTotalBsyesterday513: {
+        $first:
+          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs513"
+      },
+      sal_net_actTotalBsyesterday513: {
+        $first:
+          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs513"
+      },
+      sal_actTotalBsUSDyesterday513: {
+        $first:
+          "$IngresoscartcredmetricyesterdayDate.sal_actTotalBsUSD513"
+      },
+      sal_antTotalBsUSDyesterday513: {
+        $first:
+          "$IngresoscartcredmetricyesterdayDate.sal_antTotalBsUSD513"
+      },
+      sal_net_actTotalBsUSDyesterday513: {
+        $first:
+          "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBsUSD513"
+      }
+    }
   },
   {
     $addFields: {
-      condVarIDI: {
+      condVar: {
         $cond: [
           {
             $and: [
@@ -526,20 +736,20 @@
                   {
                     $eq: [
                       {
-                        $month: "$todayDate",
+                        $month: "$todayDate"
                       },
-                      7,
-                    ],
+                      7
+                    ]
                   },
                   {
                     $eq: [
                       {
-                        $month: "$todayDate",
+                        $month: "$todayDate"
                       },
-                      1,
-                    ],
-                  },
-                ],
+                      1
+                    ]
+                  }
+                ]
               },
               {
                 $gte: [
@@ -551,53 +761,50 @@
                             $abs: {
                               $subtract: [
                                 "$sal_actTotalBs",
-                                "$sal_actTotalBsyesterday",
-                              ],
-                            },
+                                "$sal_actTotalBsyesterday"
+                              ]
+                            }
                           },
-                          "$sal_actTotalBs",
-                        ],
+                          "$sal_actTotalBs"
+                        ]
                       },
-                      4,
-                    ],
+                      4
+                    ]
                   },
-                  3.5,
-                ],
-              },
-            ],
+                  3.5
+                ]
+              }
+            ]
           },
           {
-            $not: "$condVarIDIyesterday",
+            $not: "$condVarYesterday"
           },
           {
-            $ifNull: [
-              "$condVarIDIyesterday",
-              false,
-            ],
-          },
-        ],
+            $ifNull: ["$condVarYesterday", false]
+          }
+        ]
       },
-      varCapindif: {
+      condVarDay: {
         $and: [
           {
             $or: [
               {
                 $eq: [
                   {
-                    $month: "$todayDate",
+                    $month: "$todayDate"
                   },
-                  7,
-                ],
+                  7
+                ]
               },
               {
                 $eq: [
                   {
-                    $month: "$todayDate",
+                    $month: "$todayDate"
                   },
-                  1,
-                ],
-              },
-            ],
+                  1
+                ]
+              }
+            ]
           },
           {
             $gte: [
@@ -609,22 +816,22 @@
                         $abs: {
                           $subtract: [
                             "$sal_actTotalBs",
-                            "$sal_actTotalBsyesterday",
-                          ],
-                        },
+                            "$sal_actTotalBsyesterday"
+                          ]
+                        }
                       },
-                      "$sal_actTotalBs",
-                    ],
+                      "$sal_actTotalBs"
+                    ]
                   },
-                  4,
-                ],
+                  4
+                ]
               },
-              3.5,
-            ],
-          },
-        ],
+              3.5
+            ]
+          }
+        ]
       },
-      varCapindifValue: {
+      condVarIdic: {
         $round: [
           {
             $divide: [
@@ -632,17 +839,48 @@
                 $abs: {
                   $subtract: [
                     "$sal_actTotalBs",
-                    "$sal_actTotalBsyesterday",
-                  ],
-                },
+                    "$sal_actTotalBsyesterday"
+                  ]
+                }
               },
-              "$sal_actTotalBs",
-            ],
+              "$sal_actTotalBs"
+            ]
           },
-          4,
-        ],
+          4
+        ]
       },
-    },
+      condLastDayOfMonth: {
+        $cond: [
+          {
+            $eq: [
+              "$todayDate",
+              {
+                $subtract: [
+                  {
+                    $dateFromParts: {
+                      year: {
+                        $year: "$todayDate"
+                      },
+                      month: {
+                        $sum: [
+                          {
+                            $month: "$todayDate"
+                          },
+                          1
+                        ]
+                      }
+                    }
+                  },
+                  86400000
+                ]
+              }
+            ]
+          },
+          true,
+          false
+        ]
+      }
+    }
   },
   // {
   //   $addFields:
@@ -678,12 +916,12 @@
     $merge: {
       into: "Ingresoscartcredmetric",
       on: "fecha_valor",
-      whenMatched: "replace",
-    },
-  },
+      whenMatched: "replace"
+    }
+  }
 ]
 
-////////////////////
+//n8n
 
 [
   {
@@ -771,6 +1009,55 @@
         }
       ], 
       "as": "sidis_brm"
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_brm", 
+      "let": {
+        "todayDate": "$todayDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$todayDate", "$fecha_odate"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "513", "$nucta"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "nucta": 1, 
+            "fecha_odate": 1, 
+            "sal_act": {
+              "$multiply": [
+                "$sal_act", -1
+              ]
+            }, 
+            "sal_ant": {
+              "$multiply": [
+                "$sal_ant", -1
+              ]
+            }, 
+            "sal_net_act": {
+              "$multiply": [
+                "$sal_net_act", -1
+              ]
+            }
+          }
+        }
+      ], 
+      "as": "sidis_brm513"
     }
   }, {
     "$addFields": {
@@ -863,7 +1150,7 @@
           "amount": -1
         }
       }, 
-      "PreviusYearlastDate": {
+      "previusYearlastDate": {
         "$subtract": [
           {
             "$dateFromParts": {
@@ -930,6 +1217,7 @@
     "$addFields": {
       "Parametricingresocarteracredito": "$$REMOVE", 
       "sidis_brm": "$$REMOVE", 
+      "sidis_brm513": "$$REMOVE", 
       "sidis_activosIa": "$$REMOVE", 
       "IngresoscartcredmetricyesterdayDate": "$$REMOVE", 
       "sidis_tasaconversion": "$$REMOVE", 
@@ -1114,13 +1402,139 @@
       "capindifTotalBsUSDyesterday": {
         "$first": "$IngresoscartcredmetricyesterdayDate.capindifTotalBsUSD"
       }, 
-      "condVarIDIyesterday": {
-        "$first": "$IngresoscartcredmetricyesterdayDate.condVarIDI"
+      "condVarYesterday": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.condVar"
+      }, 
+      "sal_actTotalBs513": {
+        "$round": [
+          {
+            "$cond": [
+              "$avaiableData", {
+                "$sum": "$sidis_brm513.sal_act"
+              }, {
+                "$first": "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs513"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antTotalBs513": {
+        "$round": [
+          {
+            "$cond": [
+              "$avaiableData", {
+                "$sum": "$sidis_brm513.sal_ant"
+              }, {
+                "$first": "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs513"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actTotalBs513": {
+        "$round": [
+          {
+            "$cond": [
+              "$avaiableData", {
+                "$sum": "$sidis_brm513.sal_net_act"
+              }, {
+                "$first": "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs513"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actTotalBsUSD513": {
+        "$round": [
+          {
+            "$divide": [
+              {
+                "$round": [
+                  {
+                    "$cond": [
+                      "$avaiableData", {
+                        "$sum": "$sidis_brm513.sal_act"
+                      }, {
+                        "$first": "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs513"
+                      }
+                    ]
+                  }, 4
+                ]
+              }, {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antTotalBsUSD513": {
+        "$round": [
+          {
+            "$divide": [
+              {
+                "$round": [
+                  {
+                    "$cond": [
+                      "$avaiableData", {
+                        "$sum": "$sidis_brm513.sal_ant"
+                      }, {
+                        "$first": "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs513"
+                      }
+                    ]
+                  }, 4
+                ]
+              }, {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actTotalBsUSD513": {
+        "$round": [
+          {
+            "$divide": [
+              {
+                "$round": [
+                  {
+                    "$cond": [
+                      "$avaiableData", {
+                        "$sum": "$sidis_brm513.sal_net_act"
+                      }, {
+                        "$first": "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs513"
+                      }
+                    ]
+                  }, 4
+                ]
+              }, {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actTotalBsyesterday513": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.sal_actTotalBs513"
+      }, 
+      "sal_antTotalBsyesterday513": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.sal_antTotalBs513"
+      }, 
+      "sal_net_actTotalBsyesterday513": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBs513"
+      }, 
+      "sal_actTotalBsUSDyesterday513": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.sal_actTotalBsUSD513"
+      }, 
+      "sal_antTotalBsUSDyesterday513": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.sal_antTotalBsUSD513"
+      }, 
+      "sal_net_actTotalBsUSDyesterday513": {
+        "$first": "$IngresoscartcredmetricyesterdayDate.sal_net_actTotalBsUSD513"
       }
     }
   }, {
     "$addFields": {
-      "condVarIDI": {
+      "condVar": {
         "$cond": [
           {
             "$and": [
@@ -1161,15 +1575,15 @@
               }
             ]
           }, {
-            "$not": "$condVarIDIyesterday"
+            "$not": "$condVarYesterday"
           }, {
             "$ifNull": [
-              "$condVarIDIyesterday", false
+              "$condVarYesterday", false
             ]
           }
         ]
       }, 
-      "varCapindif": {
+      "condVarDay": {
         "$and": [
           {
             "$or": [
@@ -1208,7 +1622,7 @@
           }
         ]
       }, 
-      "varCapindifValue": {
+      "condVarIdic": {
         "$round": [
           {
             "$divide": [
@@ -1221,6 +1635,32 @@
               }, "$sal_actTotalBs"
             ]
           }, 4
+        ]
+      }, 
+      "condLastDayOfMonth": {
+        "$cond": [
+          {
+            "$eq": [
+              "$todayDate", {
+                "$subtract": [
+                  {
+                    "$dateFromParts": {
+                      "year": {
+                        "$year": "$todayDate"
+                      }, 
+                      "month": {
+                        "$sum": [
+                          {
+                            "$month": "$todayDate"
+                          }, 1
+                        ]
+                      }
+                    }
+                  }, 86400000
+                ]
+              }
+            ]
+          }, true, false
         ]
       }
     }
