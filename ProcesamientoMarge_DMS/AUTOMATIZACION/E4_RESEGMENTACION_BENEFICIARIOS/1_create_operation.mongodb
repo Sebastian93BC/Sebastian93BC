@@ -1,0 +1,290 @@
+[
+  {
+    "$limit": 1
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "lastUpdatedAt": "$$REMOVE", 
+      "processName": "$$REMOVE", 
+      "proceso": "$$REMOVE", 
+      "processDate": "$$REMOVE", 
+      "lastUpdatedDate": "$$REMOVE", 
+      "currentUpdatedDate": "$$REMOVE"
+    }
+  }, {
+    "$lookup": {
+      "from": "Margenmetric", 
+      "let": {
+        "rifCedula": "$rifCedula"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$or": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J50019975"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20012611"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20012611"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20004076"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J00123072"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20009997"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J00124134"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J00076727"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20000107"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20008387"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20016315"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J00095036"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20016137"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J00041627"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20010014"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J50370526"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20011432"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20004236"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20002838"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J40180965"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "G20002414"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$rifCedula", "J29535597"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "fechaProceso": 1, 
+            "_id": 0
+          }
+        }
+      ], 
+      "as": "Margenmetric"
+    }
+  }, {
+    "$addFields": {
+      "Margenmetric": "$$REMOVE", 
+      "fechaProceso": {
+        "$setUnion": "$Margenmetric.fechaProceso"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "processName": "E4_RESEGMENTACION_BENEFICIARIO", 
+      "processDate": {
+        "$toDate": "{{$json.fechaProceso}}"
+      }, 
+      "description": "RESEGMENTACION_BENEFICIARIO", 
+      "processFrequency": "Mensual", 
+      "fromColletion": "sidis_beneficiarios", 
+      "toColletion": "sidis_beneficiarios", 
+      "startDate": "$$NOW", 
+      "endDate": "nda", 
+      "runtimeInMinutes": "nda", 
+      "status": "En Proceso", 
+      "subProcessDate": "$fechaProceso", 
+      "lastDigRif": [
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+      ]
+    }
+  }, {
+    "$unwind": {
+      "path": "$subProcessDate"
+    }
+  }, {
+    "$unwind": {
+      "path": "$lastDigRif"
+    }
+  }, {
+    "$addFields": {
+      "subProcessDate": "$$REMOVE", 
+      "groupName": "$$REMOVE", 
+      "subProcess": {
+        "processName": {
+          "$concat": [
+            "$lastDigRif", "_", {
+              "$substr": [
+                {
+                  "$toString": "$subProcessDate"
+                }, 0, 10
+              ]
+            }
+          ]
+        }, 
+        "processDate": "$subProcessDate", 
+        "description": {
+          "$concat": [
+            "$description", "_lastiDigRif_", "$lastDigRif", "_", {
+              "$toString": "$subProcessDate"
+            }
+          ]
+        }, 
+        "processFrequency": "Mensual", 
+        "fromColletion": "sidis_beneficiario", 
+        "toColletion": "sidis_beneficiario", 
+        "startDate": "nda", 
+        "endDate": "nda", 
+        "runtimeInMinutes": "nda", 
+        "status": "En espera", 
+        "subProcessDate": "nda", 
+        "lastDigRif": "$lastDigRif"
+      }
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "processName": "$processName", 
+        "processDate": "$processDate"
+      }, 
+      "processName": {
+        "$first": "$processName"
+      }, 
+      "processDate": {
+        "$first": "$processDate"
+      }, 
+      "description": {
+        "$first": "$description"
+      }, 
+      "processFrequency": {
+        "$first": "$processFrequency"
+      }, 
+      "fromColletion": {
+        "$first": "$fromColletion"
+      }, 
+      "toColletion": {
+        "$first": "$toColletion"
+      }, 
+      "startDate": {
+        "$first": "$startDate"
+      }, 
+      "endDate": {
+        "$first": "$endDate"
+      }, 
+      "runtimeInMinutes": {
+        "$first": "$runtimeInMinutes"
+      }, 
+      "status": {
+        "$first": "$status"
+      }, 
+      "subProcess": {
+        "$push": "$subProcess"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "processName", "processDate"
+      ]
+    }
+  }
+]

@@ -1,0 +1,50 @@
+//MARGEN PASIVO
+db.createCollection("Margenpasivo")
+
+db.Margenpasivo.createIndex(
+  {
+    rifCedula: 1,
+    naturalezaProducto: 1,
+    codigoProducto: 1,
+    codigoProductoaAltair: 1,
+    codigoSubProductoAltair: 1,
+    cuentaContable1: 1,
+	condicion:1,
+    fechaProceso: 1,
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+
+sh.shardCollection("bdv.Margenpasivo", {
+  rifCedula: "hashed",
+  naturalezaProducto: 1,
+  codigoProducto: 1,
+})
+
+
+
+
+//activos
+
+db.createCollection("Margenactivo")
+
+db.Margenactivo.createIndex(
+  {
+    rifCedula: 1,
+    naturalezaProducto: 1,
+    codigoProducto: 1,
+    codigoProductoaAltair: 1,
+    codigoSubProductoAltair: 1,
+    cuentaContable1: 1,
+    fechaProceso: 1,
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+sh.shardCollection("bdv.Margenactivo", {
+  rifCedula: "hashed",
+  naturalezaProducto: 1,
+  codigoProducto: 1,
+},
+)

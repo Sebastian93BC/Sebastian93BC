@@ -1,0 +1,242 @@
+[
+  // {
+  //   $match: {
+  //filtra los documentos
+  //     $expr: {
+  //       $gte: [
+  //         "$fechaSolicitud",
+  //         {
+  //           $dateAdd: {
+  //             startDate: {
+  //               $dateTrunc: {
+  //                 date: "$$NOW",
+  //                 unit: "day",
+  //               },
+  //             },
+  //             unit: "day",
+  //             amount: -1,
+  //           },
+  //         },
+  //       ],
+  //     },
+  //   },
+  // },
+  {
+    $group: {
+      _id: {
+        vat: "$vat",
+        producto: "$producto"
+      },
+      vat: {
+        $first: "$vat"
+      },
+      producto: {
+        $first: "$producto"
+      },
+      oportunity: {
+        $first: {
+          $and: [
+            {
+              $eq: ["$codigoestado", "001"]
+            }
+          ]
+        }
+      },
+      credYOtro: {
+        $first: {
+          $or: [
+            {
+              $eq: ["$codigoestado", "015"]
+            },
+            {
+              $eq: ["$codigoestado", "061"]
+            },
+            {
+              $eq: ["$codigoestado", "005"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$vat",
+      productoList: {
+        $addToSet: "$producto"
+      },
+      oportunityTrue: {
+        $sum: {
+          $cond: [
+            {
+              $eq: ["$oportunity", true]
+            },
+            1,
+            0
+          ]
+        }
+      },
+      oportunityFalse: {
+        $sum: {
+          $cond: [
+            {
+              $eq: ["$oportunity", false]
+            },
+            1,
+            0
+          ]
+        }
+      },
+      credYOtrosTrue: {
+        $sum: {
+          $cond: [
+            {
+              $eq: ["$credYOtro", true]
+            },
+            1,
+            0
+          ]
+        }
+      },
+      credYOtrosFalse: {
+        $sum: {
+          $cond: [
+            {
+              $eq: ["$credYOtro", false]
+            },
+            1,
+            0
+          ]
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      vat: "$_id",
+      updatedAt: "$$NOW",
+      _id: "$$REMOVE"
+    }
+  },
+  {
+    $merge: {
+      into: "Potential",
+      on: "vat",
+      whenMatched: "merge",
+      whenNotMatched: "discard"
+    }
+  }
+]
+
+//n8n
+
+[
+  {
+    "$group": {
+      "_id": {
+        "vat": "$vat", 
+        "producto": "$producto"
+      }, 
+      "vat": {
+        "$first": "$vat"
+      }, 
+      "producto": {
+        "$first": "$producto"
+      }, 
+      "oportunity": {
+        "$first": {
+          "$and": [
+            {
+              "$eq": [
+                "$codigoestado", "001"
+              ]
+            }
+          ]
+        }
+      }, 
+      "credYOtro": {
+        "$first": {
+          "$or": [
+            {
+              "$eq": [
+                "$codigoestado", "015"
+              ]
+            }, {
+              "$eq": [
+                "$codigoestado", "061"
+              ]
+            }, {
+              "$eq": [
+                "$codigoestado", "005"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }, {
+    "$group": {
+      "_id": "$vat", 
+      "productoList": {
+        "$addToSet": "$producto"
+      }, 
+      "oportunityTrue": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$oportunity", true
+              ]
+            }, 1, 0
+          ]
+        }
+      }, 
+      "oportunityFalse": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$oportunity", false
+              ]
+            }, 1, 0
+          ]
+        }
+      }, 
+      "credYOtrosTrue": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$credYOtro", true
+              ]
+            }, 1, 0
+          ]
+        }
+      }, 
+      "credYOtrosFalse": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$credYOtro", false
+              ]
+            }, 1, 0
+          ]
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "vat": "$_id", 
+      "updatedAt": "$$NOW", 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Potential", 
+      "on": "vat", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "discard"
+    }
+  }
+]

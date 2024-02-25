@@ -91,7 +91,7 @@
           {
             $multiply: [
               {
-                $toInt: "71"
+                $toInt: "1"
                 //"{{$json.offSet}}"
               },
               86400000
@@ -106,11 +106,14 @@
   },
   {
     $lookup: {
-      from: "sidis_activos_liq_uvc",
+      from: "sidis_activos_liq_bs",
       let: {
         todayDate: "$todayDate",
         currentMonth: {
           $month: "$todayDate"
+        },
+        currentYear: {
+          $year: "$todayDate"
         }
       },
       pipeline: [
@@ -130,7 +133,19 @@
                   $eq: [
                     "$$currentMonth",
                     {
-                      $month: "$formalizacion"
+                      $month:
+                        "$fecha_formalizacion"
+                    }
+                  ]
+                }
+              },
+              {
+                $expr: {
+                  $eq: [
+                    "$$currentYear",
+                    {
+                      $year:
+                        "$fecha_formalizacion"
                     }
                   ]
                 }
@@ -142,13 +157,13 @@
           $project: {
             _id: 0,
             cuenta_contable: 1,
-            mto_credito: 1,
+            mto_credito: "$monto_credito",
             fecha_vencimiento: 1,
-            formalizacion: 1
+            formalizacion: "$fecha_formalizacion"
           }
         }
       ],
-      as: "sidis_activos_liq_uvc"
+      as: "sidis_activos_liq_bs"
     }
   },
   {
@@ -158,7 +173,7 @@
           {
             $gt: [
               {
-                $size: "$sidis_activos_liq_uvc"
+                $size: "$sidis_activos_liq_bs"
               },
               0
             ]
@@ -251,9 +266,9 @@
         ]
       },
       //Filtra los documentos correspondientes a ingresos por comisión
-      sidis_activos_liq_uvc: {
+      sidis_activos_liq_bs: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $in: [
@@ -268,9 +283,9 @@
   },
   {
     $addFields: {
-      sidis_activos_liq_uvc: {
+      sidis_activos_liq_bs: {
         $map: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "items",
           in: {
             $mergeObjects: [
@@ -298,9 +313,9 @@
   },
   {
     $addFields: {
-      sidis_activos_liq_uvc: {
+      sidis_activos_liq_bs: {
         $map: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           in: {
             $mergeObjects: [
@@ -331,7 +346,7 @@
     $addFields: {
       montoLiqProdVigente: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $eq: ["$$item.condicion", "VIGENTE"]
@@ -340,7 +355,7 @@
       },
       numLiqProdVigente: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $eq: ["$$item.condicion", "VIGENTE"]
@@ -349,7 +364,7 @@
       },
       montoLiqProdVigente45d: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $and: [
@@ -368,7 +383,7 @@
       },
       montoLiqProdVigente6m: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $and: [
@@ -390,7 +405,7 @@
       },
       montoLiqProdVigente9m: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $and: [
@@ -412,7 +427,7 @@
       },
       montoLiqProdVigente1a: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $and: [
@@ -434,7 +449,7 @@
       },
       montoLiqProdVigenteMas1a: {
         $filter: {
-          input: "$sidis_activos_liq_uvc",
+          input: "$sidis_activos_liq_bs",
           as: "item",
           cond: {
             $and: [
@@ -902,7 +917,7 @@
     $addFields: {
       _id: "$$REMOVE",
       Parametricliquidacion: "$$REMOVE",
-      sidis_activos_liq_uvc: "$$REMOVE",
+      sidis_activos_liq_bs: "$$REMOVE",
       todayDate: "$$REMOVE",
       fecha_valor: "$todayDate",
       comercialmontoLiqProdVigente: {
@@ -1018,10 +1033,401 @@
     }
   },
   {
+    $lookup: {
+      from: "Liquidacionmetric",
+      localField: "fecha_valor",
+      foreignField: "fecha_valor",
+      as: "Liquidacionmetric"
+    }
+  },
+  {
+    $addFields: {
+      Liquidacionmetric: "$$REMOVE",
+      montoLiqProdVigente: {
+        $sum: [
+          "$montoLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.montoLiqProdVigente"
+          }
+        ]
+      },
+      numLiqProdVigente: {
+        $sum: [
+          "$numLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.numLiqProdVigente"
+          }
+        ]
+      },
+      montoLiqProdVigente45d: {
+        $sum: [
+          "$montoLiqProdVigente45d",
+          {
+            $first:
+              "$Liquidacionmetric.montoLiqProdVigente45d"
+          }
+        ]
+      },
+      montoLiqProdVigente6m: {
+        $sum: [
+          "$montoLiqProdVigente6m",
+          {
+            $first:
+              "$Liquidacionmetric.montoLiqProdVigente6m"
+          }
+        ]
+      },
+      montoLiqProdVigente9m: {
+        $sum: [
+          "$montoLiqProdVigente9m",
+          {
+            $first:
+              "$Liquidacionmetric.montoLiqProdVigente9m"
+          }
+        ]
+      },
+      montoLiqProdVigente1a: {
+        $sum: [
+          "$montoLiqProdVigente1a",
+          {
+            $first:
+              "$Liquidacionmetric.montoLiqProdVigente1a"
+          }
+        ]
+      },
+      montoLiqProdVigenteMas1a: {
+        $sum: [
+          "$montoLiqProdVigenteMas1a",
+          {
+            $first:
+              "$Liquidacionmetric.montoLiqProdVigenteMas1a"
+          }
+        ]
+      },
+      comercialmontoLiqProdVigente: {
+        $sum: [
+          "$comercialmontoLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.comercialmontoLiqProdVigente"
+          }
+        ]
+      },
+      comercialnumLiqProdVigente: {
+        $sum: [
+          "$comercialnumLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.comercialnumLiqProdVigente"
+          }
+        ]
+      },
+      comercialmontoLiqProdVigente45d: {
+        $sum: [
+          "$comercialmontoLiqProdVigente45d",
+          {
+            $first:
+              "$Liquidacionmetric.comercialmontoLiqProdVigente45d"
+          }
+        ]
+      },
+      comercialmontoLiqProdVigente6m: {
+        $sum: [
+          "$comercialmontoLiqProdVigente6m",
+          {
+            $first:
+              "$Liquidacionmetric.comercialmontoLiqProdVigente6m"
+          }
+        ]
+      },
+      comercialmontoLiqProdVigente9m: {
+        $sum: [
+          "$comercialmontoLiqProdVigente9m",
+          {
+            $first:
+              "$Liquidacionmetric.comercialmontoLiqProdVigente9m"
+          }
+        ]
+      },
+      comercialmontoLiqProdVigente1a: {
+        $sum: [
+          "$comercialmontoLiqProdVigente1a",
+          {
+            $first:
+              "$Liquidacionmetric.comercialmontoLiqProdVigente1a"
+          }
+        ]
+      },
+      comercialmontoLiqProdVigenteMas1a: {
+        $sum: [
+          "$comercialmontoLiqProdVigenteMas1a",
+          {
+            $first:
+              "$Liquidacionmetric.comercialmontoLiqProdVigenteMas1a"
+          }
+        ]
+      },
+      productivomontoLiqProdVigente: {
+        $sum: [
+          "$productivomontoLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.productivomontoLiqProdVigente"
+          }
+        ]
+      },
+      productivonumLiqProdVigente: {
+        $sum: [
+          "$productivonumLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.productivonumLiqProdVigente"
+          }
+        ]
+      },
+      productivomontoLiqProdVigente45d: {
+        $sum: [
+          "$productivomontoLiqProdVigente45d",
+          {
+            $first:
+              "$Liquidacionmetric.productivomontoLiqProdVigente45d"
+          }
+        ]
+      },
+      productivomontoLiqProdVigente6m: {
+        $sum: [
+          "$productivomontoLiqProdVigente6m",
+          {
+            $first:
+              "$Liquidacionmetric.productivomontoLiqProdVigente6m"
+          }
+        ]
+      },
+      productivomontoLiqProdVigente9m: {
+        $sum: [
+          "$productivomontoLiqProdVigente9m",
+          {
+            $first:
+              "$Liquidacionmetric.productivomontoLiqProdVigente9m"
+          }
+        ]
+      },
+      productivomontoLiqProdVigente1a: {
+        $sum: [
+          "$productivomontoLiqProdVigente1a",
+          {
+            $first:
+              "$Liquidacionmetric.productivomontoLiqProdVigente1a"
+          }
+        ]
+      },
+      productivomontoLiqProdVigenteMas1a: {
+        $sum: [
+          "$productivomontoLiqProdVigenteMas1a",
+          {
+            $first:
+              "$Liquidacionmetric.productivomontoLiqProdVigenteMas1a"
+          }
+        ]
+      },
+      hipotecariomontoLiqProdVigente: {
+        $sum: [
+          "$hipotecariomontoLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecariomontoLiqProdVigente"
+          }
+        ]
+      },
+      hipotecarionumLiqProdVigente: {
+        $sum: [
+          "$hipotecarionumLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecarionumLiqProdVigente"
+          }
+        ]
+      },
+      hipotecariomontoLiqProdVigente45d: {
+        $sum: [
+          "$hipotecariomontoLiqProdVigente45d",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecariomontoLiqProdVigente45d"
+          }
+        ]
+      },
+      hipotecariomontoLiqProdVigente6m: {
+        $sum: [
+          "$hipotecariomontoLiqProdVigente6m",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecariomontoLiqProdVigente6m"
+          }
+        ]
+      },
+      hipotecariomontoLiqProdVigente9m: {
+        $sum: [
+          "$hipotecariomontoLiqProdVigente9m",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecariomontoLiqProdVigente9m"
+          }
+        ]
+      },
+      hipotecariomontoLiqProdVigente1a: {
+        $sum: [
+          "$hipotecariomontoLiqProdVigente1a",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecariomontoLiqProdVigente1a"
+          }
+        ]
+      },
+      hipotecariomontoLiqProdVigenteMas1a: {
+        $sum: [
+          "$hipotecariomontoLiqProdVigenteMas1a",
+          {
+            $first:
+              "$Liquidacionmetric.hipotecariomontoLiqProdVigenteMas1a"
+          }
+        ]
+      },
+      emprendeBdvmontoLiqProdVigente: {
+        $sum: [
+          "$emprendeBdvmontoLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente"
+          }
+        ]
+      },
+      emprendeBdvnumLiqProdVigente: {
+        $sum: [
+          "$emprendeBdvnumLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvnumLiqProdVigente"
+          }
+        ]
+      },
+      emprendeBdvmontoLiqProdVigente45d: {
+        $sum: [
+          "$emprendeBdvmontoLiqProdVigente45d",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente45d"
+          }
+        ]
+      },
+      emprendeBdvmontoLiqProdVigente6m: {
+        $sum: [
+          "$emprendeBdvmontoLiqProdVigente6m",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente6m"
+          }
+        ]
+      },
+      emprendeBdvmontoLiqProdVigente9m: {
+        $sum: [
+          "$emprendeBdvmontoLiqProdVigente9m",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente9m"
+          }
+        ]
+      },
+      emprendeBdvmontoLiqProdVigente1a: {
+        $sum: [
+          "$emprendeBdvmontoLiqProdVigente1a",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente1a"
+          }
+        ]
+      },
+      emprendeBdvmontoLiqProdVigenteMas1a: {
+        $sum: [
+          "$emprendeBdvmontoLiqProdVigenteMas1a",
+          {
+            $first:
+              "$Liquidacionmetric.emprendeBdvmontoLiqProdVigenteMas1a"
+          }
+        ]
+      },
+      microCredmontoLiqProdVigente: {
+        $sum: [
+          "$microCredmontoLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.microCredmontoLiqProdVigente"
+          }
+        ]
+      },
+      microCrednumLiqProdVigente: {
+        $sum: [
+          "$microCrednumLiqProdVigente",
+          {
+            $first:
+              "$Liquidacionmetric.microCrednumLiqProdVigente"
+          }
+        ]
+      },
+      microCredmontoLiqProdVigente45d: {
+        $sum: [
+          "$microCredmontoLiqProdVigente45d",
+          {
+            $first:
+              "$Liquidacionmetric.microCredmontoLiqProdVigente45d"
+          }
+        ]
+      },
+      microCredmontoLiqProdVigente6m: {
+        $sum: [
+          "$microCredmontoLiqProdVigente6m",
+          {
+            $first:
+              "$Liquidacionmetric.microCredmontoLiqProdVigente6m"
+          }
+        ]
+      },
+      microCredmontoLiqProdVigente9m: {
+        $sum: [
+          "$microCredmontoLiqProdVigente9m",
+          {
+            $first:
+              "$Liquidacionmetric.microCredmontoLiqProdVigente9m"
+          }
+        ]
+      },
+      microCredmontoLiqProdVigente1a: {
+        $sum: [
+          "$microCredmontoLiqProdVigente1a",
+          {
+            $first:
+              "$Liquidacionmetric.microCredmontoLiqProdVigente1a"
+          }
+        ]
+      },
+      microCredmontoLiqProdVigenteMas1a: {
+        $sum: [
+          "$microCredmontoLiqProdVigenteMas1a",
+          {
+            $first:
+              "$Liquidacionmetric.microCredmontoLiqProdVigenteMas1a"
+          }
+        ]
+      }
+    }
+  },
+  {
     $merge: {
       into: "Liquidacionmetric",
       on: "fecha_valor",
-      whenMatched: "replace",
+      whenMatched: "merge",
       whenNotMatched: "insert"
     }
   }
@@ -1121,11 +1527,14 @@
     }
   }, {
     "$lookup": {
-      "from": "sidis_activos_liq_uvc", 
+      "from": "sidis_activos_liq_bs", 
       "let": {
         "todayDate": "$todayDate", 
         "currentMonth": {
           "$month": "$todayDate"
+        }, 
+        "currentYear": {
+          "$year": "$todayDate"
         }
       }, 
       "pipeline": [
@@ -1142,7 +1551,15 @@
                 "$expr": {
                   "$eq": [
                     "$$currentMonth", {
-                      "$month": "$formalizacion"
+                      "$month": "$fecha_formalizacion"
+                    }
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$currentYear", {
+                      "$year": "$fecha_formalizacion"
                     }
                   ]
                 }
@@ -1153,13 +1570,13 @@
           "$project": {
             "_id": 0, 
             "cuenta_contable": 1, 
-            "mto_credito": 1, 
+            "mto_credito": "$monto_credito", 
             "fecha_vencimiento": 1, 
-            "formalizacion": 1
+            "formalizacion": "$fecha_formalizacion"
           }
         }
       ], 
-      "as": "sidis_activos_liq_uvc"
+      "as": "sidis_activos_liq_bs"
     }
   }, {
     "$addFields": {
@@ -1168,7 +1585,7 @@
           {
             "$gt": [
               {
-                "$size": "$sidis_activos_liq_uvc"
+                "$size": "$sidis_activos_liq_bs"
               }, 0
             ]
           }, true, false
@@ -1251,9 +1668,9 @@
           }, 86400000
         ]
       }, 
-      "sidis_activos_liq_uvc": {
+      "sidis_activos_liq_bs": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$in": [
@@ -1266,9 +1683,9 @@
     }
   }, {
     "$addFields": {
-      "sidis_activos_liq_uvc": {
+      "sidis_activos_liq_bs": {
         "$map": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "items", 
           "in": {
             "$mergeObjects": [
@@ -1292,9 +1709,9 @@
     }
   }, {
     "$addFields": {
-      "sidis_activos_liq_uvc": {
+      "sidis_activos_liq_bs": {
         "$map": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "in": {
             "$mergeObjects": [
@@ -1320,7 +1737,7 @@
     "$addFields": {
       "montoLiqProdVigente": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$eq": [
@@ -1331,7 +1748,7 @@
       }, 
       "numLiqProdVigente": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$eq": [
@@ -1342,7 +1759,7 @@
       }, 
       "montoLiqProdVigente45d": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$and": [
@@ -1361,7 +1778,7 @@
       }, 
       "montoLiqProdVigente6m": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$and": [
@@ -1384,7 +1801,7 @@
       }, 
       "montoLiqProdVigente9m": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$and": [
@@ -1407,7 +1824,7 @@
       }, 
       "montoLiqProdVigente1a": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$and": [
@@ -1430,7 +1847,7 @@
       }, 
       "montoLiqProdVigenteMas1a": {
         "$filter": {
-          "input": "$sidis_activos_liq_uvc", 
+          "input": "$sidis_activos_liq_bs", 
           "as": "item", 
           "cond": {
             "$and": [
@@ -1861,7 +2278,7 @@
     "$addFields": {
       "_id": "$$REMOVE", 
       "Parametricliquidacion": "$$REMOVE", 
-      "sidis_activos_liq_uvc": "$$REMOVE", 
+      "sidis_activos_liq_bs": "$$REMOVE", 
       "todayDate": "$$REMOVE", 
       "fecha_valor": "$todayDate", 
       "comercialmontoLiqProdVigente": {
@@ -1971,10 +2388,315 @@
       }
     }
   }, {
+    "$lookup": {
+      "from": "Liquidacionmetric", 
+      "localField": "fecha_valor", 
+      "foreignField": "fecha_valor", 
+      "as": "Liquidacionmetric"
+    }
+  }, {
+    "$addFields": {
+      "Liquidacionmetric": "$$REMOVE", 
+      "montoLiqProdVigente": {
+        "$sum": [
+          "$montoLiqProdVigente", {
+            "$first": "$Liquidacionmetric.montoLiqProdVigente"
+          }
+        ]
+      }, 
+      "numLiqProdVigente": {
+        "$sum": [
+          "$numLiqProdVigente", {
+            "$first": "$Liquidacionmetric.numLiqProdVigente"
+          }
+        ]
+      }, 
+      "montoLiqProdVigente45d": {
+        "$sum": [
+          "$montoLiqProdVigente45d", {
+            "$first": "$Liquidacionmetric.montoLiqProdVigente45d"
+          }
+        ]
+      }, 
+      "montoLiqProdVigente6m": {
+        "$sum": [
+          "$montoLiqProdVigente6m", {
+            "$first": "$Liquidacionmetric.montoLiqProdVigente6m"
+          }
+        ]
+      }, 
+      "montoLiqProdVigente9m": {
+        "$sum": [
+          "$montoLiqProdVigente9m", {
+            "$first": "$Liquidacionmetric.montoLiqProdVigente9m"
+          }
+        ]
+      }, 
+      "montoLiqProdVigente1a": {
+        "$sum": [
+          "$montoLiqProdVigente1a", {
+            "$first": "$Liquidacionmetric.montoLiqProdVigente1a"
+          }
+        ]
+      }, 
+      "montoLiqProdVigenteMas1a": {
+        "$sum": [
+          "$montoLiqProdVigenteMas1a", {
+            "$first": "$Liquidacionmetric.montoLiqProdVigenteMas1a"
+          }
+        ]
+      }, 
+      "comercialmontoLiqProdVigente": {
+        "$sum": [
+          "$comercialmontoLiqProdVigente", {
+            "$first": "$Liquidacionmetric.comercialmontoLiqProdVigente"
+          }
+        ]
+      }, 
+      "comercialnumLiqProdVigente": {
+        "$sum": [
+          "$comercialnumLiqProdVigente", {
+            "$first": "$Liquidacionmetric.comercialnumLiqProdVigente"
+          }
+        ]
+      }, 
+      "comercialmontoLiqProdVigente45d": {
+        "$sum": [
+          "$comercialmontoLiqProdVigente45d", {
+            "$first": "$Liquidacionmetric.comercialmontoLiqProdVigente45d"
+          }
+        ]
+      }, 
+      "comercialmontoLiqProdVigente6m": {
+        "$sum": [
+          "$comercialmontoLiqProdVigente6m", {
+            "$first": "$Liquidacionmetric.comercialmontoLiqProdVigente6m"
+          }
+        ]
+      }, 
+      "comercialmontoLiqProdVigente9m": {
+        "$sum": [
+          "$comercialmontoLiqProdVigente9m", {
+            "$first": "$Liquidacionmetric.comercialmontoLiqProdVigente9m"
+          }
+        ]
+      }, 
+      "comercialmontoLiqProdVigente1a": {
+        "$sum": [
+          "$comercialmontoLiqProdVigente1a", {
+            "$first": "$Liquidacionmetric.comercialmontoLiqProdVigente1a"
+          }
+        ]
+      }, 
+      "comercialmontoLiqProdVigenteMas1a": {
+        "$sum": [
+          "$comercialmontoLiqProdVigenteMas1a", {
+            "$first": "$Liquidacionmetric.comercialmontoLiqProdVigenteMas1a"
+          }
+        ]
+      }, 
+      "productivomontoLiqProdVigente": {
+        "$sum": [
+          "$productivomontoLiqProdVigente", {
+            "$first": "$Liquidacionmetric.productivomontoLiqProdVigente"
+          }
+        ]
+      }, 
+      "productivonumLiqProdVigente": {
+        "$sum": [
+          "$productivonumLiqProdVigente", {
+            "$first": "$Liquidacionmetric.productivonumLiqProdVigente"
+          }
+        ]
+      }, 
+      "productivomontoLiqProdVigente45d": {
+        "$sum": [
+          "$productivomontoLiqProdVigente45d", {
+            "$first": "$Liquidacionmetric.productivomontoLiqProdVigente45d"
+          }
+        ]
+      }, 
+      "productivomontoLiqProdVigente6m": {
+        "$sum": [
+          "$productivomontoLiqProdVigente6m", {
+            "$first": "$Liquidacionmetric.productivomontoLiqProdVigente6m"
+          }
+        ]
+      }, 
+      "productivomontoLiqProdVigente9m": {
+        "$sum": [
+          "$productivomontoLiqProdVigente9m", {
+            "$first": "$Liquidacionmetric.productivomontoLiqProdVigente9m"
+          }
+        ]
+      }, 
+      "productivomontoLiqProdVigente1a": {
+        "$sum": [
+          "$productivomontoLiqProdVigente1a", {
+            "$first": "$Liquidacionmetric.productivomontoLiqProdVigente1a"
+          }
+        ]
+      }, 
+      "productivomontoLiqProdVigenteMas1a": {
+        "$sum": [
+          "$productivomontoLiqProdVigenteMas1a", {
+            "$first": "$Liquidacionmetric.productivomontoLiqProdVigenteMas1a"
+          }
+        ]
+      }, 
+      "hipotecariomontoLiqProdVigente": {
+        "$sum": [
+          "$hipotecariomontoLiqProdVigente", {
+            "$first": "$Liquidacionmetric.hipotecariomontoLiqProdVigente"
+          }
+        ]
+      }, 
+      "hipotecarionumLiqProdVigente": {
+        "$sum": [
+          "$hipotecarionumLiqProdVigente", {
+            "$first": "$Liquidacionmetric.hipotecarionumLiqProdVigente"
+          }
+        ]
+      }, 
+      "hipotecariomontoLiqProdVigente45d": {
+        "$sum": [
+          "$hipotecariomontoLiqProdVigente45d", {
+            "$first": "$Liquidacionmetric.hipotecariomontoLiqProdVigente45d"
+          }
+        ]
+      }, 
+      "hipotecariomontoLiqProdVigente6m": {
+        "$sum": [
+          "$hipotecariomontoLiqProdVigente6m", {
+            "$first": "$Liquidacionmetric.hipotecariomontoLiqProdVigente6m"
+          }
+        ]
+      }, 
+      "hipotecariomontoLiqProdVigente9m": {
+        "$sum": [
+          "$hipotecariomontoLiqProdVigente9m", {
+            "$first": "$Liquidacionmetric.hipotecariomontoLiqProdVigente9m"
+          }
+        ]
+      }, 
+      "hipotecariomontoLiqProdVigente1a": {
+        "$sum": [
+          "$hipotecariomontoLiqProdVigente1a", {
+            "$first": "$Liquidacionmetric.hipotecariomontoLiqProdVigente1a"
+          }
+        ]
+      }, 
+      "hipotecariomontoLiqProdVigenteMas1a": {
+        "$sum": [
+          "$hipotecariomontoLiqProdVigenteMas1a", {
+            "$first": "$Liquidacionmetric.hipotecariomontoLiqProdVigenteMas1a"
+          }
+        ]
+      }, 
+      "emprendeBdvmontoLiqProdVigente": {
+        "$sum": [
+          "$emprendeBdvmontoLiqProdVigente", {
+            "$first": "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente"
+          }
+        ]
+      }, 
+      "emprendeBdvnumLiqProdVigente": {
+        "$sum": [
+          "$emprendeBdvnumLiqProdVigente", {
+            "$first": "$Liquidacionmetric.emprendeBdvnumLiqProdVigente"
+          }
+        ]
+      }, 
+      "emprendeBdvmontoLiqProdVigente45d": {
+        "$sum": [
+          "$emprendeBdvmontoLiqProdVigente45d", {
+            "$first": "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente45d"
+          }
+        ]
+      }, 
+      "emprendeBdvmontoLiqProdVigente6m": {
+        "$sum": [
+          "$emprendeBdvmontoLiqProdVigente6m", {
+            "$first": "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente6m"
+          }
+        ]
+      }, 
+      "emprendeBdvmontoLiqProdVigente9m": {
+        "$sum": [
+          "$emprendeBdvmontoLiqProdVigente9m", {
+            "$first": "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente9m"
+          }
+        ]
+      }, 
+      "emprendeBdvmontoLiqProdVigente1a": {
+        "$sum": [
+          "$emprendeBdvmontoLiqProdVigente1a", {
+            "$first": "$Liquidacionmetric.emprendeBdvmontoLiqProdVigente1a"
+          }
+        ]
+      }, 
+      "emprendeBdvmontoLiqProdVigenteMas1a": {
+        "$sum": [
+          "$emprendeBdvmontoLiqProdVigenteMas1a", {
+            "$first": "$Liquidacionmetric.emprendeBdvmontoLiqProdVigenteMas1a"
+          }
+        ]
+      }, 
+      "microCredmontoLiqProdVigente": {
+        "$sum": [
+          "$microCredmontoLiqProdVigente", {
+            "$first": "$Liquidacionmetric.microCredmontoLiqProdVigente"
+          }
+        ]
+      }, 
+      "microCrednumLiqProdVigente": {
+        "$sum": [
+          "$microCrednumLiqProdVigente", {
+            "$first": "$Liquidacionmetric.microCrednumLiqProdVigente"
+          }
+        ]
+      }, 
+      "microCredmontoLiqProdVigente45d": {
+        "$sum": [
+          "$microCredmontoLiqProdVigente45d", {
+            "$first": "$Liquidacionmetric.microCredmontoLiqProdVigente45d"
+          }
+        ]
+      }, 
+      "microCredmontoLiqProdVigente6m": {
+        "$sum": [
+          "$microCredmontoLiqProdVigente6m", {
+            "$first": "$Liquidacionmetric.microCredmontoLiqProdVigente6m"
+          }
+        ]
+      }, 
+      "microCredmontoLiqProdVigente9m": {
+        "$sum": [
+          "$microCredmontoLiqProdVigente9m", {
+            "$first": "$Liquidacionmetric.microCredmontoLiqProdVigente9m"
+          }
+        ]
+      }, 
+      "microCredmontoLiqProdVigente1a": {
+        "$sum": [
+          "$microCredmontoLiqProdVigente1a", {
+            "$first": "$Liquidacionmetric.microCredmontoLiqProdVigente1a"
+          }
+        ]
+      }, 
+      "microCredmontoLiqProdVigenteMas1a": {
+        "$sum": [
+          "$microCredmontoLiqProdVigenteMas1a", {
+            "$first": "$Liquidacionmetric.microCredmontoLiqProdVigenteMas1a"
+          }
+        ]
+      }
+    }
+  }, {
     "$merge": {
       "into": "Liquidacionmetric", 
       "on": "fecha_valor", 
-      "whenMatched": "replace", 
+      "whenMatched": "merge", 
       "whenNotMatched": "insert"
     }
   }

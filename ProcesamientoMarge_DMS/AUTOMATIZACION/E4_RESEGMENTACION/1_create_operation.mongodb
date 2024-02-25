@@ -1,0 +1,203 @@
+[
+  {
+    "$limit": 1
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "lastUpdatedAt": "$$REMOVE", 
+      "proceso": "$$REMOVE", 
+      "currentUpdatedDate": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "processName": "E4_RESEGMENTACION", 
+      "processDate": {
+        "$toDate": "{{$json.fechaProceso}}"
+      }, 
+      "description": "Procesamiento resegmentación de clientes, actualización de People, Company y Cumpleaños", 
+      "processFrequency": "Mensual", 
+      "fromColletion": "Margenmetric", 
+      "toColletion": "Margenmetric, People, Company, Cumpleaños", 
+      "startDate": "$$NOW", 
+      "endDate": "nda", 
+      "runtimeInMinutes": "nda", 
+      "status": "En Proceso", 
+      "subProcess": [
+        {
+          "processName": "0", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "1", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "2", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "3", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "4", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "5", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "6", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "7", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "8", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "9", 
+          "processDate": "nda", 
+          "description": "Resegmentación de clientes histórica, parelizado por el último dígito del Rif", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Margenmetric", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_1_actualizacionPeople", 
+          "processDate": "nda", 
+          "description": "Actualiación de la colección People", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "People", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_2_actualizacionCompany", 
+          "processDate": "nda", 
+          "description": "Actualiación de la colección Company", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Company", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_1_1_cumpleaños_PeopletoCumpleaños", 
+          "processDate": "nda", 
+          "description": "Actualiación de la colección Cumpleaños con los clientes de People", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Cumpleaños", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "A_2_1_cumpleaños_CompanytoCumpleaños", 
+          "processDate": "nda", 
+          "description": "Actualiación de la colección Cumpleaños con los clientes de Company", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "Margenmetric", 
+          "toColletion": "Cumpleaños", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "E4_RESEGMENTACION_BENEFICIARIO", 
+          "processDate": "nda", 
+          "description": "RESEGMENTACION_BENEFICIARIO", 
+          "processFrequency": "Mensual", 
+          "fromColletion": "sidis_beneficiario", 
+          "toColletion": "sidis_beneficiario", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }
+      ]
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "processName", "processDate"
+      ]
+    }
+  }
+]

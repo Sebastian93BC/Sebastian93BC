@@ -1,0 +1,142 @@
+[
+  {
+    $match: {
+      //filtra los documentos de los últimos 31 días
+      $expr: {
+        $gte: [
+          "$file_date",
+          {
+            $dateAdd: {
+              startDate: {
+                $dateTrunc: {
+                  date: "$$NOW",
+                  unit: "day"
+                }
+              },
+              unit: "day",
+              amount: -156
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    $addFields: {
+      fechaProceso: {
+        $subtract: [
+          {
+            $dateFromParts: {
+              year: {
+                $year: {
+                  $toDate: "$fechaSolicitud"
+                }
+              },
+              month: {
+                $sum: [
+                  {
+                    $month: {
+                      $toDate: "$fechaSolicitud"
+                    }
+                  },
+                  1
+                ]
+              }
+            }
+          },
+          86400000
+        ]
+      },
+      fechaSolicitud: {
+        $toDate: "$fechaSolicitud"
+      },
+      vat: {
+        $concat: [
+          "$nacionalidad",
+          {
+            $substrCP: ["$identificacion", 3, 11]
+          }
+        ]
+      }
+    }
+  },
+  {
+    $merge: {
+      into: "sidis_vgp",
+      on: [
+        "fechaSolicitud",
+        "codigoEstado",
+        "_id"
+      ]
+    }
+  }
+]
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$gte": [
+          "$file_date", {
+            "$dateAdd": {
+              "startDate": {
+                "$dateTrunc": {
+                  "date": "$$NOW", 
+                  "unit": "day"
+                }
+              }, 
+              "unit": "day", 
+              "amount": -31
+            }
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProceso": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": {
+                  "$toDate": "$fechaSolicitud"
+                }
+              }, 
+              "month": {
+                "$sum": [
+                  {
+                    "$month": {
+                      "$toDate": "$fechaSolicitud"
+                    }
+                  }, 1
+                ]
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "fechaSolicitud": {
+        "$toDate": "$fechaSolicitud"
+      }, 
+      "vat": {
+        "$concat": [
+          "$nacionalidad", {
+            "$substrCP": [
+              "$identificacion", 3, 11
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_vgp", 
+      "on": [
+        "fechaSolicitud", "codigoEstado", "_id"
+      ]
+    }
+  }
+]

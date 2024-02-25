@@ -1,0 +1,100 @@
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$fechaProceso", {
+                "$toDate":  "{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_ordenante", 
+      "let": {
+        "fechaProceso": "$fechaProceso", 
+        "rif_empresa": "$snb_rif_empresa", 
+        "id_debito": "$snb_id_debito"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$and": [
+                {
+                  "$eq": [
+                    "$fechaProceso", "$$fechaProceso"
+                  ]
+                }, {
+                  "$eq": [
+                    "$sno_rif_empresa", "$$rif_empresa"
+                  ]
+                }, {
+                  "$eq": [
+                    "$sno_id_debito", "$$id_debito"
+                  ]
+                }, {
+                  "$eq": [
+                    "$sno_tipo_pago", "PROVEEDORE"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ], 
+      "as": "ordenante"
+    }
+  }, {
+    "$unwind": {
+      "path": "$ordenante"
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "fechaProceso", 
+      "foreignField": "Fecha", 
+      "as": "sidis_tasaconversion"
+    }
+  }, {
+    "$project": {
+      "fechaProceso": 1, 
+      "snb_ci_benefic": 1, 
+      "snb_rif_empresa": 1, 
+      "snb_id_debito": 1, 
+      "tipoBanco": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$substr": [
+                  "$snb_num_cuenta", 0, 4
+                ]
+              }, "0102"
+            ]
+          }, "BDV", "OTROS"
+        ]
+      }, 
+      "USDConvertRte": {
+        "$first": "$sidis_tasaconversion.Tasa_DOL"
+      }, 
+      "consultaProveerdor": {
+        "$toBool": 1
+      }, 
+      "updatedAt": "$$NOW"
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_beneficiario", 
+      "on": [
+        "snb_ci_benefic", "snb_rif_empresa", "snb_id_debito", "_id"
+      ], 
+      "whenMatched": "merge"
+    }
+  }
+]
