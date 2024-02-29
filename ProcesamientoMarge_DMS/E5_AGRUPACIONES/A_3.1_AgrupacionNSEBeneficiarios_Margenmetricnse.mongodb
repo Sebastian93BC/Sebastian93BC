@@ -1,137 +1,100 @@
 [
-    {
-      $match: {
-        $or: [
-          {
-            $expr: {
-              $eq: [
-                "$fechaProceso",
-                {
-                  $toDate:
-                    "2023-06-30T00:00:00.000+00:00",
-                  //"$toDate": "{{$json.fechaProceso}}"
-                },
-              ],
-            },
-          },
-        ],
-  
-        cantidadBeneficiario: {
-          $gt: 0,
-        },
-        //codigoGrupoeconomico: 9138,
-        //codigoGrupoeconomico:137700,
-        //rifCedula:"J50019975",
-      },
-    },
-    {
-      $unwind: {
-        path: "$beneficiarios",
-      },
-    },
-    {
-      $group: {
-        _id: {
-          nombreNSE: "$nombreNSE",
-          fechaProceso: "$fechaProceso",
-        },
-        nombreNSE: {
-          $first: "$nombreNSE",
-        },
-        fechaProceso: {
-          $first: "$fechaProceso",
-        },
-        cantidadBeneficiario: {
-          $addToSet: "$beneficiarios",
-        },
-      },
-    },
-    {
-      $addFields: {
-        cantidadBeneficiario: {
-          $size: "$cantidadBeneficiario",
-        },
-        _id: "$$REMOVE",
-      },
-    },
-    {
-      $match: {
-        nombreNSE: {
-          $nin: [null],
-        },
-      },
-    },
-    {
-      $merge: {
-        into: "Margenmetricnse",
-        on: ["nombreNSE", "fechaProceso"],
-        whenNotMatched: "insert",
-      },
-    },
-  ]
-
-  //N8N
-
-  [
-    {
-      "$match": {
-        "$or": [
-          {
-            "$expr": {
-              "$eq": [
-                "$fechaProceso", {
-                    "$toDate": "{{$json.fechaProceso}}"
-                }
-              ]
-            }
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
           }
-        ], 
-        "cantidadBeneficiario": {
-          "$gt": 0
         }
-      }
-    }, {
-      "$unwind": {
-        "path": "$beneficiarios"
-      }
-    }, {
-      "$group": {
-        "_id": {
-          "nombreNSE": "$nombreNSE", 
-          "fechaProceso": "$fechaProceso"
-        }, 
-        "nombreNSE": {
-          "$first": "$nombreNSE"
-        }, 
-        "fechaProceso": {
-          "$first": "$fechaProceso"
-        }, 
-        "cantidadBeneficiario": {
-          "$addToSet": "$beneficiarios"
-        }
-      }
-    }, {
-      "$addFields": {
-        "cantidadBeneficiario": {
-          "$size": "$cantidadBeneficiario"
-        }, 
-        "_id": "$$REMOVE"
-      }
-    }, {
-      "$match": {
-        "nombreNSE": {
-          "$nin": [
-            null
+      ]
+    }
+  }, {
+    "$project": {
+      "codigo": "$nombreNSE", 
+      "fechaProceso": 1, 
+      "linkedProducts": 1
+    }
+  }, {
+    "$unwind": {
+      "path": "$linkedProducts"
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "codigo": "$codigo", 
+        "name": "$linkedProducts.name"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "active": {
+        "$max": "$linkedProducts.active"
+      }, 
+      "qtyActive": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$linkedProducts.active", true
+              ]
+            }, 1, 0
           ]
         }
-      }
-    }, {
-      "$merge": {
-        "into": "Margenmetricnse", 
-        "on": [
-          "nombreNSE", "fechaProceso"
-        ], 
-        "whenNotMatched": "insert"
+      }, 
+      "lastUse": {
+        "$max": "$linkedProducts.lastUse"
+      }, 
+      "firstUse": {
+        "$min": "$linkedProducts.firstUse"
       }
     }
-  ]
+  }, {
+    "$group": {
+      "_id": "$_id.codigo", 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "linkedProducts": {
+        "$push": {
+          "name": "$_id.name", 
+          "active": "$active", 
+          "qtyActive": "$qtyActive", 
+          "lastUse": "$lastUse", 
+          "firstUse": "$firstUse"
+        }
+      }
+    }
+  }, {
+    "$project": {
+      "_id": "$$REMOVE", 
+      "codigo": "$_id", 
+      "fechaProceso": 1, 
+      "linkedProducts": "$linkedProducts"
+    }
+  }, {
+    "$match": {
+      "codigo": {
+        "$nin": [
+          null, ""
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "nombreNSE": "$codigo", 
+      "codigo": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricnse", 
+      "on": [
+        "nombreNSE", "fechaProceso"
+      ]
+    }
+  }
+]

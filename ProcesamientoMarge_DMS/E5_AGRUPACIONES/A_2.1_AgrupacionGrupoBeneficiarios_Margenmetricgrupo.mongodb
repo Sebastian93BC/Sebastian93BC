@@ -1,133 +1,161 @@
 [
   {
-    $match:
-      /**
-       * query: The query in MQL.
-       */
-      {
-        $or: [
-          {
-            $expr: {
-              $eq: [
-                "$fechaProceso",
-                {
-                  $toDate:
-                    "2023-06-30T00:00:00.000+00:00",
-                  //"$toDate": "{{$json.fechaProceso}}"
-                },
-              ],
-            },
-          },
-        ],
-
-        cantidadBeneficiario: {
-          $gt: 0,
-        },
-        //codigoGrupoeconomico: 9138,
-        //codigoGrupoeconomico:137700,
-        //rifCedula:'J50019975',
-      },
-  },
-  {
-    $unwind: {
-      path: "$beneficiarios",
-    },
-  },
-  {
-    $group: {
-      _id: {
-        codigoGrupoeconomico:
-          "$codigoGrupoeconomico",
-        fechaProceso: "$fechaProceso",
-      },
-      codigoGrupoeconomico: {
-        $first: "$codigoGrupoeconomico",
-      },
-      fechaProceso: {
-        $first: "$fechaProceso",
-      },
-      beneficiarios: {
-        $addToSet: "$beneficiarios",
-      },
-    },
-  },
-  {
-    $addFields: {
-      cantidadBeneficiario: {
-        $size: "$beneficiarios",
-      },
-      _id: "$$REMOVE",
-    },
-  },
-  {
-    $match: {
-      codigoGrupoeconomico: {
-        $ne: null,
-      },
-    },
-  },
-  {
-    $merge: {
-      into: "Margenmetricgrupo",
-      on: [
-        "codigoGrupoeconomico",
-        "fechaProceso",
-      ],
-      whenNotMatched: "insert",
-    },
-  },
-]
-
-//n8n
-[
-  {
     "$match": {
-      "$or": [
+      "$and": [
         {
           "$expr": {
             "$eq": [
+              "$consultaProveerdor", true
+            ]
+          }
+        }, {
+          "$expr": {
+            "$eq": [
               "$fechaProceso", {
-                "$toDate": "{{$json.fechaProceso}}"
+                "$toDate":  "{{$json.fechaProceso}}"
               }
             ]
           }
         }
-      ], 
-      "cantidadBeneficiario": {
-        "$gt": 0
-      }
-    }
-  }, {
-    "$unwind": {
-      "path": "$beneficiarios"
+      ]
     }
   }, {
     "$group": {
       "_id": {
-        "codigoGrupoeconomico": "$codigoGrupoeconomico", 
+        "rifCedula": "$snb_rif_empresa", 
+        "rifBenefic": "$snb_ci_benefic", 
         "fechaProceso": "$fechaProceso"
       }, 
-      "codigoGrupoeconomico": {
-        "$first": "$codigoGrupoeconomico"
+      "volumenPagosProveedor": {
+        "$sum": "$snb_mto_pcorrecto"
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$eq": [
+                "$tipoBanco", "BDV"
+              ]
+            }, 
+            "then": "$snb_mto_pcorrecto", 
+            "else": 0
+          }
+        }
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$ne": [
+                "$tipoBanco", "BDV"
+              ]
+            }, 
+            "then": "$snb_mto_pcorrecto", 
+            "else": 0
+          }
+        }
       }, 
       "fechaProceso": {
         "$first": "$fechaProceso"
       }, 
+      "USDConvertRte": {
+        "$first": "$USDConvertRte"
+      }, 
+      "codigo": {
+        "$first": "$codigoGrupoeconomico"
+      }
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "fechaProceso": "$fechaProceso", 
+        "codigo": "$codigo"
+      }, 
       "beneficiarios": {
-        "$addToSet": "$beneficiarios"
+        "$sum": 1
+      }, 
+      "volumenPagosProveedor": {
+        "$sum": "$volumenPagosProveedor"
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$sum": "$volumenPagosProveedorBDV"
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$sum": "$volumenPagosProveedorOTRO"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "USDConvertRte": {
+        "$first": "$USDConvertRte"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "codigo": "$_id.codigo", 
+      "fechaProceso": "$fechaProceso", 
+      "cantidadBeneficiario": "$beneficiarios", 
+      "volumenPagosProveedor": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedor", "$USDConvertRte"
+            ]
+          }, 2
+        ]
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedorOTRO", "$USDConvertRte"
+            ]
+          }, 2
+        ]
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedorBDV", "$USDConvertRte"
+            ]
+          }, 2
+        ]
+      }
+    }
+  }, {
+    "$match": {
+      "codigo": {
+        "$ne": null
       }
     }
   }, {
     "$addFields": {
-      "cantidadBeneficiario": {
-        "$size": "$beneficiarios"
-      }, 
-      "_id": "$$REMOVE"
-    }
-  }, {
-    "$match": {
-      "codigoGrupoeconomico": {
-        "$ne": null
+      "codigo": "$$REMOVE", 
+      "codigoGrupoeconomico": "$codigo", 
+      "reciprocidadBeneficiario": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$volumenPagosProveedor", 0
+            ]
+          }, 
+          "then": 0, 
+          "else": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$volumenPagosProveedorBDV", "$volumenPagosProveedor"
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }
+        }
       }
     }
   }, {
@@ -135,8 +163,7 @@
       "into": "Margenmetricgrupo", 
       "on": [
         "codigoGrupoeconomico", "fechaProceso"
-      ], 
-      "whenNotMatched": "insert"
+      ]
     }
   }
 ]

@@ -1,129 +1,5 @@
 [
   {
-    $limit:
-      //only for create_operation and bring_dates
-      1
-  },
-  {
-    $lookup: {
-      // only to bring_dates
-      from: "sidis_statusProcesos",
-      let: {
-        processName:
-          "E4_RESEGMENTACION_BENEFICIARIO",
-        processDate: {
-          $toDate: "2024-01-31"
-          // "{{$json.fechaProceso}}"
-        }
-      },
-      pipeline: [
-        {
-          $match: {
-            $and: [
-              {
-                $expr: {
-                  $eq: [
-                    "$processName",
-                    "$$processName"
-                  ]
-                }
-              },
-              {
-                $expr: {
-                  $eq: [
-                    "$processDate",
-                    "$$processDate"
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          $project: {
-            processName: 1,
-            processDate: 1,
-            subProcessDate:
-              "$subProcess.processDate",
-            lastDigRif: "$subProcess.lastDigRif"
-          }
-        }
-      ],
-      as: "sidis_statusProcesos"
-    }
-  },
-  {
-    $project:
-      // only to bring_dates
-      {
-        _id: 0,
-        processName: {
-          $first:
-            "$sidis_statusProcesos.processName"
-        },
-        processDate: {
-          $first:
-            "$sidis_statusProcesos.processDate"
-        },
-        subProcessDate: {
-          $setUnion: {
-            $first:
-              "$sidis_statusProcesos.subProcessDate"
-          }
-        },
-        lastDigRif: {
-          $setUnion: {
-            $first:
-              "$sidis_statusProcesos.lastDigRif"
-          }
-        }
-      }
-  },
-  {
-    $unwind:
-      // only to bring_dates
-      {
-        path: "$subProcessDate"
-      }
-  },
-  {
-    $unwind:
-      // only to bring_dates
-      {
-        path: "$lastDigRif"
-      }
-  },
-  {
-    $set:
-      // just to bring_dates
-      {
-        processDate: {
-          $substr: [
-            {
-              $toDate: "$processDate"
-            },
-            0,
-            10
-          ]
-        },
-        subProcessDate: {
-          $substr: [
-            {
-              $toDate: "$subProcessDate"
-            },
-            0,
-            10
-          ]
-        }
-      }
-  }
-
-]
-
-//n8n
-
-[
-  {
     "$limit": 1
   }, {
     "$lookup": {
@@ -131,7 +7,7 @@
       "let": {
         "processName": "E4_RESEGMENTACION_BENEFICIARIO", 
         "processDate": {
-          "$toDate":  "{{$json.fechaProceso}}"
+          "$toDate": "{{$json.fechaProceso}}"
         }
       }, 
       "pipeline": [
@@ -157,8 +33,7 @@
           "$project": {
             "processName": 1, 
             "processDate": 1, 
-            "subProcessDate": "$subProcess.processDate", 
-            "lastDigRif": "$subProcess.lastDigRif"
+            "subProcessDate": "$subProcess.processDate"
           }
         }
       ], 
@@ -177,20 +52,11 @@
         "$setUnion": {
           "$first": "$sidis_statusProcesos.subProcessDate"
         }
-      }, 
-      "lastDigRif": {
-        "$setUnion": {
-          "$first": "$sidis_statusProcesos.lastDigRif"
-        }
       }
     }
   }, {
     "$unwind": {
       "path": "$subProcessDate"
-    }
-  }, {
-    "$unwind": {
-      "path": "$lastDigRif"
     }
   }, {
     "$set": {

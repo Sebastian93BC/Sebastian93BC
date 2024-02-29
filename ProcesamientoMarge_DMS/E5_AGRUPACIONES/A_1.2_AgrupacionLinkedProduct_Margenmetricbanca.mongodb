@@ -8,38 +8,43 @@
               "$fechaProceso",
               {
                 $toDate:
-                  "2023-08-31T00:00:00.000+00:00",
+                  "2024-01-31T00:00:00.000+00:00"
                 //"{{$json.fechaProceso}}"
-              },
-            ],
-          },
-        },
-      ],
-    },
+              }
+            ]
+          }
+        }
+      ]
+    }
   },
   {
     $project: {
-      codigoBanca: 1,
+      codigo:
+        //uncheck
+        "$codigoBanca",
+      //"$codigoGrupoeconomico",
+      //"$codigoSegmento",
+      //"$nombreNSE",
       fechaProceso: 1,
-      linkedProducts: 1,
-    },
+      linkedProducts: 1
+    }
   },
   {
     $unwind: {
-      path: "$linkedProducts",
-    },
+      path: "$linkedProducts"
+    }
   },
   {
     $group: {
       _id: {
-        codigoBanca: "$codigoBanca",
-        name: "$linkedProducts.name",
+        codigo: "$codigo",
+        name: "$linkedProducts.name"
       },
       fechaProceso: {
-        $first: "$fechaProceso",
+        $first: "$fechaProceso"
       },
       active: {
-        $max: "$linkedProducts.active",
+        $max: "$linkedProducts.active"
       },
       qtyActive: {
         $sum: {
@@ -47,27 +52,27 @@
             {
               $eq: [
                 "$linkedProducts.active",
-                true,
-              ],
+                true
+              ]
             },
             1,
-            0,
-          ],
-        },
+            0
+          ]
+        }
       },
       lastUse: {
-        $max: "$linkedProducts.lastUse",
+        $max: "$linkedProducts.lastUse"
       },
       firstUse: {
-        $min: "$linkedProducts.firstUse",
-      },
-    },
+        $min: "$linkedProducts.firstUse"
+      }
+    }
   },
   {
     $group: {
-      _id: "$_id.codigoBanca",
+      _id: "$_id.codigo",
       fechaProceso: {
-        $first: "$fechaProceso",
+        $first: "$fechaProceso"
       },
       linkedProducts: {
         $push: {
@@ -75,34 +80,56 @@
           active: "$active",
           qtyActive: "$qtyActive",
           lastUse: "$lastUse",
-          firstUse: "$firstUse",
-        },
-      },
-    },
+          firstUse: "$firstUse"
+        }
+      }
+    }
   },
   {
     $project: {
       _id: "$$REMOVE",
-      codigoBanca: "$_id",
-      linkedProducts: "$linkedProducts",
-    },
+      codigo: "$_id",
+      fechaProceso: 1,
+      linkedProducts: "$linkedProducts"
+    }
   },
   {
     $match: {
-      codigoBanca: {
-        $nin: [null, ""],
-      },
-    },
+      codigo: {
+        $nin: [null, ""]
+      }
+    }
+  },
+  {
+    $addFields: {
+      codigoBanca: "$codigo",
+      //"codigoGrupoeconomico",
+      //"codigoSegmento",
+      //"nombreNSE",
+      codigo: "$$REMOVE"
+    }
   },
   {
     $merge: {
-      into: "Margenmetricbanca",
-      on: ["fechaProceso", "codigoBanca"],
-    },
-  },
+      into:
+        //
+        "Margenmetricbanca",
+      //"Margenmetricgrupo",
+      // "Margenmetricsegmento",
+      //"Margenmetricnse",
+      on: [
+        //
+        "codigoBanca",
+        //"codigoGrupoeconomico",
+        //"codigoSegmento",
+        //"nombreNSE",
+        "fechaProceso"
+      ]
+    }
+  }
 ]
 
-//N8N
+//n8n
 
 [
   {
@@ -121,7 +148,7 @@
     }
   }, {
     "$project": {
-      "codigoBanca": 1, 
+      "codigo": "$codigoBanca", 
       "fechaProceso": 1, 
       "linkedProducts": 1
     }
@@ -132,7 +159,7 @@
   }, {
     "$group": {
       "_id": {
-        "codigoBanca": "$codigoBanca", 
+        "codigo": "$codigo", 
         "name": "$linkedProducts.name"
       }, 
       "fechaProceso": {
@@ -161,7 +188,7 @@
     }
   }, {
     "$group": {
-      "_id": "$_id.codigoBanca", 
+      "_id": "$_id.codigo", 
       "fechaProceso": {
         "$first": "$fechaProceso"
       }, 
@@ -178,23 +205,28 @@
   }, {
     "$project": {
       "_id": "$$REMOVE", 
-      "codigoBanca": "$_id",
-      "fechaProceso": 1,  
+      "codigo": "$_id", 
+      "fechaProceso": 1, 
       "linkedProducts": "$linkedProducts"
     }
   }, {
     "$match": {
-      "codigoBanca": {
+      "codigo": {
         "$nin": [
           null, ""
         ]
       }
     }
   }, {
+    "$addFields": {
+      "codigoBanca": "$codigo", 
+      "codigo": "$$REMOVE"
+    }
+  }, {
     "$merge": {
       "into": "Margenmetricbanca", 
       "on": [
-        "fechaProceso", "codigoBanca"
+        "codigoBanca", "fechaProceso"
       ]
     }
   }

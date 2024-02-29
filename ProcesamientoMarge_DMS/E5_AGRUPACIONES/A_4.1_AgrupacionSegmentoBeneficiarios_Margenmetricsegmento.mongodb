@@ -1,137 +1,169 @@
 [
-    {
-      $match: {
-        $or: [
-          {
-            $expr: {
-              $eq: [
-                "$fechaProceso",
-                {
-                  $toDate:
-                    "2023-06-30T00:00:00.000+00:00",
-                  //"$toDate": "{{$json.fechaProceso}}"
-                },
-              ],
-            },
-          },
-        ],
-  
-        cantidadBeneficiario: {
-          $gt: 0,
-        },
-        //codigoGrupoeconomico: 9138,
-        //codigoGrupoeconomico:137700,
-        //rifCedula:"J50019975",
-      },
-    },
-    {
-      $unwind: {
-        path: "$beneficiarios",
-      },
-    },
-    {
-      $group: {
-        _id: {
-          codigoSegmento: "$codigoSegmento",
-          fechaProceso: "$fechaProceso",
-        },
-        codigoSegmento: {
-          $first: "$codigoSegmento",
-        },
-        fechaProceso: {
-          $first: "$fechaProceso",
-        },
-        cantidadBeneficiario: {
-          $addToSet: "$beneficiarios",
-        },
-      },
-    },
-    {
-      $addFields: {
-        cantidadBeneficiario: {
-          $size: "$cantidadBeneficiario",
-        },
-        _id: "$$REMOVE",
-      },
-    },
-    {
-      $match: {
-        codigoSegmento: {
-          $nin: [null, 0, ""],
-        },
-      },
-    },
-    {
-      $merge: {
-        into: "Margenmetricsegmento",
-        on: ["codigoSegmento", "fechaProceso"],
-        whenNotMatched: "insert",
-      },
-    },
-  ]
-
-  //N8N
-
-  [
-    {
-      "$match": {
-        "$or": [
-          {
-            "$expr": {
-              "$eq": [
-                "$fechaProceso", {
-                    "$toDate": "{{$json.fechaProceso}}"
-                }
-              ]
-            }
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$consultaProveerdor", true
+            ]
           }
-        ], 
-        "cantidadBeneficiario": {
-          "$gt": 0
+        }, {
+          "$expr": {
+            "$eq": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
+          }
         }
-      }
-    }, {
-      "$unwind": {
-        "path": "$beneficiarios"
-      }
-    }, {
-      "$group": {
-        "_id": {
-          "codigoSegmento": "$codigoSegmento", 
-          "fechaProceso": "$fechaProceso"
-        }, 
-        "codigoSegmento": {
-          "$first": "$codigoSegmento"
-        }, 
-        "fechaProceso": {
-          "$first": "$fechaProceso"
-        }, 
-        "cantidadBeneficiario": {
-          "$addToSet": "$beneficiarios"
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$snb_rif_empresa", 
+        "rifBenefic": "$snb_ci_benefic", 
+        "fechaProceso": "$fechaProceso"
+      }, 
+      "volumenPagosProveedor": {
+        "$sum": "$snb_mto_pcorrecto"
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$eq": [
+                "$tipoBanco", "BDV"
+              ]
+            }, 
+            "then": "$snb_mto_pcorrecto", 
+            "else": 0
+          }
         }
-      }
-    }, {
-      "$addFields": {
-        "cantidadBeneficiario": {
-          "$size": "$cantidadBeneficiario"
-        }, 
-        "_id": "$$REMOVE"
-      }
-    }, {
-      "$match": {
-        "codigoSegmento": {
-          "$nin": [
-            null, 0, ""
-          ]
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$sum": {
+          "$cond": {
+            "if": {
+              "$ne": [
+                "$tipoBanco", "BDV"
+              ]
+            }, 
+            "then": "$snb_mto_pcorrecto", 
+            "else": 0
+          }
         }
-      }
-    }, {
-      "$merge": {
-        "into": "Margenmetricsegmento", 
-        "on": [
-          "codigoSegmento", "fechaProceso"
-        ], 
-        "whenNotMatched": "insert"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "USDConvertRte": {
+        "$first": "$USDConvertRte"
+      }, 
+      "codigo": {
+        "$first": "$codigoSegmento"
       }
     }
-  ]
+  }, {
+    "$group": {
+      "_id": {
+        "fechaProceso": "$fechaProceso", 
+        "codigo": "$codigo"
+      }, 
+      "beneficiarios": {
+        "$sum": 1
+      }, 
+      "volumenPagosProveedor": {
+        "$sum": "$volumenPagosProveedor"
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$sum": "$volumenPagosProveedorBDV"
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$sum": "$volumenPagosProveedorOTRO"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "USDConvertRte": {
+        "$first": "$USDConvertRte"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "codigo": "$_id.codigo", 
+      "fechaProceso": "$fechaProceso", 
+      "cantidadBeneficiario": "$beneficiarios", 
+      "volumenPagosProveedor": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedor", "$USDConvertRte"
+            ]
+          }, 2
+        ]
+      }, 
+      "volumenPagosProveedorOTRO": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedorOTRO", "$USDConvertRte"
+            ]
+          }, 2
+        ]
+      }, 
+      "volumenPagosProveedorBDV": {
+        "$round": [
+          {
+            "$divide": [
+              "$volumenPagosProveedorBDV", "$USDConvertRte"
+            ]
+          }, 2
+        ]
+      }
+    }
+  }, {
+    "$match": {
+      "codigo": {
+        "$ne": null
+      }
+    }
+  }, {
+    "$addFields": {
+      "codigo": "$$REMOVE", 
+      "codigoSegmento": "$codigo", 
+      "reciprocidadBeneficiario": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$volumenPagosProveedor", 0
+            ]
+          }, 
+          "then": 0, 
+          "else": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$volumenPagosProveedorBDV", "$volumenPagosProveedor"
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetricsegmento", 
+      "on": [
+        "codigoSegmento", "fechaProceso"
+      ]
+    }
+  }
+]

@@ -24,7 +24,7 @@
                     "$eq": [
                       "$$item.processName", {
                         "$concat": [
-                          "{{$json.lastDigRif}}", "_", "{{$json.subProcessDate}}"
+                          "{{$json.subProcessDate}}"
                         ]
                       }
                     ]

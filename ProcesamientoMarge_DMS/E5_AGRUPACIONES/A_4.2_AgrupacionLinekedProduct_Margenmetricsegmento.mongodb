@@ -1,139 +1,5 @@
 [
   {
-    $match: {
-      $and: [
-        {
-          $expr: {
-            $eq: [
-              "$fechaProceso",
-              {
-                $toDate:
-                  "2023-08-31T00:00:00.000+00:00",
-                //"{{$json.fechaProceso}}"
-              },
-            ],
-          },
-        },
-      ],
-    },
-  },
-  {
-    $project: {
-      //codigoBanca: 1,
-      //codigoGrupoeconomico: 1,
-      codigoSegmento: 1,
-      //nombreNSE:1,
-      fechaProceso: 1,
-      linkedProducts: 1,
-    },
-  },
-  {
-    $unwind: {
-      path: "$linkedProducts",
-    },
-  },
-  {
-    $group: {
-      _id: {
-        //codigoBanca: "$codigoBanca",
-        //codigoGrupoeconomico: "$codigoGrupoeconomico",
-        codigoSegmento: "$codigoSegmento",
-        //nombreNSE: "$nombreNSE",
-        name: "$linkedProducts.name",
-      },
-      fechaProceso: {
-        $first: "$fechaProceso",
-      },
-      active: {
-        $max: "$linkedProducts.active",
-      },
-      qtyActive: {
-        $sum: {
-          $cond: [
-            {
-              $eq: [
-                "$linkedProducts.active",
-                true,
-              ],
-            },
-            1,
-            0,
-          ],
-        },
-      },
-      lastUse: {
-        $max: "$linkedProducts.lastUse",
-      },
-      firstUse: {
-        $min: "$linkedProducts.firstUse",
-      },
-    },
-  },
-  {
-    $group: {
-      _id: "$_id.codigoSegmento",
-      //"$_id.codigoBanca",
-      // "$_id.codigoGrupoeconomico",
-      // "$_id.nombreNSE",
-
-      fechaProceso: {
-        $first: "$fechaProceso",
-      },
-      linkedProducts: {
-        $push: {
-          name: "$_id.name",
-          active: "$active",
-          qtyActive: "$qtyActive",
-          lastUse: "$lastUse",
-          firstUse: "$firstUse",
-        },
-      },
-    },
-  },
-  {
-    $project: {
-      _id: "$$REMOVE",
-      //codigoBanca: "$_id",
-      //codigoGrupoeconomico: "$_id",
-      codigoSegmento: "$_id",
-      // nombreNSE: "$_id",
-
-      linkedProducts: "$linkedProducts",
-    },
-  },
-  {
-    $match: {
-      //codigoBanca:
-      //codigoGrupoeconomico:
-      codigoSegmento:
-        //nombreNSE:
-        {
-          $nin: [null, ""],
-        },
-    },
-  },
-  {
-    $merge: {
-      into:
-        //"Margenmetricbanca",
-        // "Margenmetricgrupo"
-        "Margenmetricsegmento",
-      //"Margenmetricnse"
-      on: [
-        "fechaProceso",
-        // "codigoBanca",
-        // "codigoGrupoeconomico"
-        "codigoSegmento",
-        //"nombreNSE"
-      ],
-    },
-  },
-]
-
-//N8N
-
-[
-  {
     "$match": {
       "$and": [
         {
@@ -149,7 +15,7 @@
     }
   }, {
     "$project": {
-      "codigoSegmento": 1, 
+      "codigo": "$codigoSegmento", 
       "fechaProceso": 1, 
       "linkedProducts": 1
     }
@@ -160,7 +26,7 @@
   }, {
     "$group": {
       "_id": {
-        "codigoSegmento": "$codigoSegmento", 
+        "codigo": "$codigo", 
         "name": "$linkedProducts.name"
       }, 
       "fechaProceso": {
@@ -189,7 +55,7 @@
     }
   }, {
     "$group": {
-      "_id": "$_id.codigoSegmento", 
+      "_id": "$_id.codigo", 
       "fechaProceso": {
         "$first": "$fechaProceso"
       }, 
@@ -206,23 +72,28 @@
   }, {
     "$project": {
       "_id": "$$REMOVE", 
-      "codigoSegmento": "$_id",
+      "codigo": "$_id", 
       "fechaProceso": 1, 
       "linkedProducts": "$linkedProducts"
     }
   }, {
     "$match": {
-      "codigoSegmento": {
+      "codigo": {
         "$nin": [
           null, ""
         ]
       }
     }
   }, {
+    "$addFields": {
+      "codigoSegmento": "$codigo", 
+      "codigo": "$$REMOVE"
+    }
+  }, {
     "$merge": {
       "into": "Margenmetricsegmento", 
       "on": [
-        "fechaProceso", "codigoSegmento"
+        "codigoSegmento", "fechaProceso"
       ]
     }
   }

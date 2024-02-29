@@ -187,18 +187,11 @@
       "endDate": "nda", 
       "runtimeInMinutes": "nda", 
       "status": "En Proceso", 
-      "subProcessDate": "$fechaProceso", 
-      "lastDigRif": [
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-      ]
+      "subProcessDate": "$fechaProceso"
     }
   }, {
     "$unwind": {
       "path": "$subProcessDate"
-    }
-  }, {
-    "$unwind": {
-      "path": "$lastDigRif"
     }
   }, {
     "$addFields": {
@@ -206,20 +199,16 @@
       "groupName": "$$REMOVE", 
       "subProcess": {
         "processName": {
-          "$concat": [
-            "$lastDigRif", "_", {
-              "$substr": [
-                {
-                  "$toString": "$subProcessDate"
-                }, 0, 10
-              ]
-            }
+          "$substr": [
+            {
+              "$toString": "$subProcessDate"
+            }, 0, 10
           ]
         }, 
         "processDate": "$subProcessDate", 
         "description": {
           "$concat": [
-            "$description", "_lastiDigRif_", "$lastDigRif", "_", {
+            "$description", "_", {
               "$toString": "$subProcessDate"
             }
           ]
@@ -231,8 +220,7 @@
         "endDate": "nda", 
         "runtimeInMinutes": "nda", 
         "status": "En espera", 
-        "subProcessDate": "nda", 
-        "lastDigRif": "$lastDigRif"
+        "subProcessDate": "nda"
       }
     }
   }, {
