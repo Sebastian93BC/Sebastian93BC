@@ -1,50 +1,40 @@
 //MARGEN PASIVO
-db.createCollection("Margenpasivo")
+db.createCollection("rawTransaccionesOperativasDayShard")
 
-db.Margenpasivo.createIndex(
+sh.shardCollection("bdv.rawTransaccionesOperativasDayShard", {
+  tra_rif:'hashed',
+  tra_serial_de_operacion:1,
+  tra_cuenta_contrato: 1,
+ // tra_cod_op: 1,
+  //tra_fecha_contable: 1,
+},{numInitialChunks:60})
+
+db.rawTransaccionesOperativasDayShard.createIndex(
   {
-    rifCedula: 1,
-    naturalezaProducto: 1,
-    codigoProducto: 1,
-    codigoProductoaAltair: 1,
-    codigoSubProductoAltair: 1,
-    cuentaContable1: 1,
-	condicion:1,
-    fechaProceso: 1,
+    tra_rif:1,
+    tra_serial_de_operacion:1,
+    _id:1
+    
   },
   { unique: true, name: "mergeIndex" },
 )
 
-
-sh.shardCollection("bdv.Margenpasivo", {
-  rifCedula: "hashed",
-  naturalezaProducto: 1,
-  codigoProducto: 1,
-})
-
-
+["tra_rif",
+"tra_cuenta_contrato",
+"tra_cuenta_contable",
+"tra_fecha_contable",
+"_id",
+]
 
 
-//activos
 
-db.createCollection("Margenactivo")
+tra_rif: 1, 
+tra_serial_de_operacion: 1, 
+tra_cuenta_contrato: 1, 
+tra_cod_op: 1, 
+tra_fecha_contable: 1, 
+tra_nro_mov: 1, 
 
-db.Margenactivo.createIndex(
-  {
-    rifCedula: 1,
-    naturalezaProducto: 1,
-    codigoProducto: 1,
-    codigoProductoaAltair: 1,
-    codigoSubProductoAltair: 1,
-    cuentaContable1: 1,
-    fechaProceso: 1,
-  },
-  { unique: true, name: "mergeIndex" },
-)
 
-sh.shardCollection("bdv.Margenactivo", {
-  rifCedula: "hashed",
-  naturalezaProducto: 1,
-  codigoProducto: 1,
-},
-)
+
+
