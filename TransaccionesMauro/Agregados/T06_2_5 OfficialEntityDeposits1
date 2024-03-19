@@ -1,0 +1,115 @@
+[
+    {
+        "$match": {
+            "$expr": {
+                "$eq": [
+                    "$fechaProceso",
+                    {
+                        "$toDate": "@fechaProceso"
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "$addFields": {
+            "resultOfficialEntityDeposits1": {
+                "$round": [
+                    {
+                        "$divide": [
+                            {
+                                "$multiply": [
+                                    "$officialEntityDeposits1",
+                                    100
+                                ]
+                            },
+                            "$globalOfficialEntityDeposits1"
+                        ]
+                    },
+                    5
+                ]
+            }
+        }
+    },
+    {
+        "$lookup": {
+            "from": "sidis_tasaconversion",
+            "localField": "fechaProceso",
+            "foreignField": "Fecha",
+            "as": "result"
+        }
+    },
+    {
+        "$addFields": {
+            "tasaDolar": {
+                "$arrayElemAt": [
+                    "$result.Tasa_DOL",
+                    0
+                ]
+            },
+            "tasaEuro": {
+                "$arrayElemAt": [
+                    "$result.Tasa_EUR",
+                    0
+                ]
+            },
+            "factorConversion": {
+                "$arrayElemAt": [
+                    "$result.Conversion",
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "$sort": {
+            "resultOfficialEntityDeposits1": -1
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "fechaProceso": 1,
+            "name": 1,
+            "resultOfficialEntityDeposits1": 1,
+            "tasaDolar": 1,
+            "tasaEuro": 1,
+            "factorConversion": 1,
+            "officialEntityDeposits1": 1,
+            "globalOfficialEntityDeposits1USD": 1
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "fechaProceso": "$fechaProceso"
+            },
+            "officialEntityDeposits1": {
+                "$push": {
+                    "name": "$name",
+                    "prctValue": "$resultOfficialEntityDeposits1",
+                    "amountBsValue": "$officialEntityDeposits1",
+                    "amountUsdValue": {
+                        "$divide": [
+                            "$officialEntityDeposits1",
+                            "$tasaDolar"
+                        ]
+                    },
+                    "globalValue": "$globalOfficialEntityDeposits1USD"
+                }
+            }
+        }
+    },
+    {
+        "$addFields": {
+            "fechaProceso": "$_id.fechaProceso",
+            "_id": "$$REMOVE"
+        }
+    },
+    {
+        "$merge": {
+            "into": "Financialstatementdashboard",
+            "on": "fechaProceso"
+        }
+    }
+]

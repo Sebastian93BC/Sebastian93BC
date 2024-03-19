@@ -8,8 +8,7 @@
             "$toDate": "{{$json.subProcessDate}}"
           }
         ]
-      }, 
-      "lastDigRif": "{{$json.lastDigRif}}"
+      }
     }
   }, {
     "$lookup": {

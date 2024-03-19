@@ -1,0 +1,70 @@
+[
+    {
+        "$match": {
+            "$and": [
+                {
+                    "$expr": {
+                        "$eq": [
+                            "$fechaProceso",
+                            {
+                                "$toDate": "2024-02-29"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "nro_pos": {
+                        "$ne": "00000"
+                    }
+                },
+                {
+                    "rifCedula": {
+                        "$nin": [
+                            "",
+                            "00000000"
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "fechaProceso": "$fechaProceso",
+                "rifCedula": "$rifCedula"
+            },
+            "sumaPos": {
+                "$sum": 1
+            }
+        }
+    },
+    {
+        "$project": {
+            "fechaProceso": "$_id.fechaProceso",
+            "rifCedula": "$_id.rifCedula",
+            "pos": {
+                "$cond": {
+                    "if": {
+                        "$gt": [
+                            "$sumaPos",
+                            0
+                        ]
+                    },
+                    "then": 1,
+                    "else": 0
+                }
+            },
+            "_id": 0
+        }
+    },
+    {
+        "$merge": {
+            "into": "sidis_productosVinculados",
+            "on": [
+                "fechaProceso",
+                "rifCedula"
+            ]
+        }
+    }
+]

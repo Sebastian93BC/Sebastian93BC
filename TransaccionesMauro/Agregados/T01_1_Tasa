@@ -1,0 +1,184 @@
+[
+    {
+        "$match": {
+            "mcl_naturaleza_producto": {
+                "$in": [
+                    1,
+                    "1"
+                ]
+            },
+            "mcl_estatus": "A",
+            "mcl_banca": {
+                "$nin": [
+                    "0",
+                    0,
+                    "4",
+                    4,
+                    "5",
+                    5,
+                    "1",
+                    1
+                ]
+            },
+            "$expr": {
+                "$eq": [
+                    "$mcl_fecha_proceso",
+                    {
+                        "$toDate": "@fechaProceso"
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "rifCedula": "$mcl_rif_cedula",
+                "fechaProceso": "$mcl_fecha_proceso"
+            },
+            "tasaInteresBolivares": {
+                "$sum": {
+                    "$cond": [
+                        {
+                            "$eq": [
+                                "$mcl_divisa",
+                                "VES"
+                            ]
+                        },
+                        "$mcl_intereses",
+                        0
+                    ]
+                }
+            },
+            "tasaInteresDolares": {
+                "$sum": {
+                    "$switch": {
+                        "branches": [
+                            {
+                                "case": {
+                                    "$gte": [
+                                        "$mcl_divisa",
+                                        "VES"
+                                    ]
+                                },
+                                "then": {
+                                    "$round": [
+                                        {
+                                            "$divide": [
+                                                "$mcl_intereses",
+                                                "$sidisTasaconversion.Tasa_DOL"
+                                            ]
+                                        },
+                                        4
+                                    ]
+                                }
+                            },
+                            {
+                                "case": {
+                                    "$gte": [
+                                        "$mcl_divisa",
+                                        "USD"
+                                    ]
+                                },
+                                "then": "$mcl_intereses"
+                            },
+                            {
+                                "case": {
+                                    "$gte": [
+                                        "$mcl_divisa",
+                                        "EUR"
+                                    ]
+                                },
+                                "then": {
+                                    "$round": [
+                                        {
+                                            "$multiply": [
+                                                "$mcl_intereses",
+                                                "$sidisTasaconversion.Conversion"
+                                            ]
+                                        },
+                                        4
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "tasaInteresEuros": {
+                "$sum": {
+                    "$switch": {
+                        "branches": [
+                            {
+                                "case": {
+                                    "$gte": [
+                                        "$mcl_divisa",
+                                        "VES"
+                                    ]
+                                },
+                                "then": {
+                                    "$round": [
+                                        {
+                                            "$divide": [
+                                                "$mcl_intereses",
+                                                "$sidisTasaconversion.Tasa_EUR"
+                                            ]
+                                        },
+                                        4
+                                    ]
+                                }
+                            },
+                            {
+                                "case": {
+                                    "$gte": [
+                                        "$mcl_divisa",
+                                        "EUR"
+                                    ]
+                                },
+                                "then": "$mcl_intereses"
+                            },
+                            {
+                                "case": {
+                                    "$gte": [
+                                        "$mcl_divisa",
+                                        "USD"
+                                    ]
+                                },
+                                "then": {
+                                    "$round": [
+                                        {
+                                            "$multiply": [
+                                                "$mcl_intereses",
+                                                "$sidisTasaconversion.Conversion"
+                                            ]
+                                        },
+                                        4
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    {
+        "$project": {
+            "rifCedula": "$_id.rifCedula",
+            "fechaProceso": "$_id.fechaProceso",
+            "tasaInteresBolivares": 1,
+            "tasaInteresDolares": 1,
+            "tasaInteresEuros": 1,
+            "_id": 0
+        }
+    },
+    {
+        "$merge": {
+            "into": "sidis_ingresoCarteraCredito",
+            "on": [
+                "fechaProceso",
+                "rifCedula"
+            ]
+        }
+    }
+]

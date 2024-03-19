@@ -1,0 +1,93 @@
+//hashed
+db.createCollection("sidis_transaccionesComisionesNew")
+
+sh.shardCollection("bdv.sidis_transaccionesComisionesNew", {
+  tra_rif: 'hashed',
+  fechaProceso:1,
+  tra_cuenta_contable:1,
+})
+
+db.sidis_transaccionesComisionesNew.createIndex(
+  {
+    tra_rif:1,
+    fechaProceso:1,
+    tra_cuenta_contable:1,
+    tra_cod_op:1,
+    _id:1,
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+"tra_rif",
+"fechaProceso",
+"tra_cuenta_contable",
+"tra_cod_op",
+
+
+
+var indexes = [
+  {
+    v: 2,
+    key: { mcl_fecha_proceso: -1, tipoConsulta: 1 },
+    name: 'consultaAtivosPasivos'
+  },
+
+  {
+    v: 2,
+    key: {
+      mcl_rif_cedula: 1,
+      mcl_fecha_proceso: 1,
+      tipoConsulta: 1,
+      mcl_naturaleza_producto: 1,
+      mcl_producto: 1,
+      mcl_producto_altair: 1,
+      mcl_subproducto_altair: 1,
+      mcl_cuenta_contable1: 1
+    },
+    name: 'Consulta'
+  },
+  {
+    v: 2,
+    key: {
+      mcl_rif_cedula: 1,
+      mcl_fecha_proceso: 1,
+      mcl_naturaleza_producto: -1,
+      mcl_estatus: 1,
+      mcl_banca: 1,
+
+    },
+    name: 'Consulta Tasa Interes'
+  },
+  {
+    v: 2,
+    key: {
+      mcl_rif_cedula: 1,
+      mcl_fecha_proceso: -1,
+      mcl_naturaleza_producto: 1,
+      mcl_producto: 1,
+      mcl_bin_tarjeta: 1,
+
+    },
+    name: 'ConsultaProdutosTarjetaCredito'
+  },
+  {
+    v: 2,
+    key: {
+      rifCedula: 1,
+      mcl_fecha_proceso: -1,
+      mcl_banca: 1,
+      'sidisProducto.prd_codigo_producto': 1,
+
+    },
+    name: 'relatedProducts'
+  }
+]
+
+indexes.forEach(function (index) {
+  delete index.v;
+  delete index.ns;
+  var key = index.key;
+  delete index.key
+
+  db.sidis_margen.createIndex(key, index);
+});

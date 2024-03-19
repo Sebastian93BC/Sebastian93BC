@@ -1,0 +1,69 @@
+[
+    {
+        "$addFields": {
+            "fechaProceso": {
+                "$dateFromParts": {
+                    "year": {
+                        "$year": "$fechaProceso"
+                    },
+                    "month": {
+                        "$add": [
+                            {
+                                "$month": "$fechaProceso"
+                            },
+                            1
+                        ]
+                    },
+                    "day": {
+                        "$subtract": [
+                            {
+                                "$dayOfMonth": {
+                                    "$dateFromParts": {
+                                        "year": {
+                                            "$year": "$fechaProceso"
+                                        },
+                                        "month": {
+                                            "$add": [
+                                                {
+                                                    "$month": "$fechaProceso"
+                                                },
+                                                1
+                                            ]
+                                        },
+                                        "day": 1
+                                    }
+                                }
+                            },
+                            1
+                        ]
+                    },
+                    "hour": 0,
+                    "minute": 0,
+                    "second": 0,
+                    "millisecond": 0
+                }
+            }
+        }
+    },
+    {
+        "$match": {
+            "$expr": {
+                "$eq": [
+                    "$fechaProceso",
+                    {
+                        "$toDate": "@fechaProceso"
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "$merge": {
+            "into": "sidis_Financialstatement",
+            "on": [
+                "fechaProceso",
+                "name"
+            ]
+        }
+    }
+]

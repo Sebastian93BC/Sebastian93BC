@@ -1,0 +1,131 @@
+[
+    {
+        "$match": {
+            "$expr": {
+                "$eq": [
+                    "$fechaProceso",
+                    {
+                        "$toDate": "2024-03-31"
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "fechaProceso": "$fechaProceso",
+                "rifCedula": "$rifCedula"
+            },
+            "totalMesDolares": {
+                "$sum": {
+                    "$add": [
+                        {
+                            "$ifNull": [
+                                "$tasaInteresDolares",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$gastosFlatOtrosDolares",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$variacionIDIDolares",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$lineaCreditoDolares",
+                                0
+                            ]
+                        }
+                    ]
+                }
+            },
+            "totalMesEuros": {
+                "$sum": {
+                    "$add": [
+                        {
+                            "$ifNull": [
+                                "$tasaInteresEuros",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$gastosFlatOtrosEuros",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$variacionIDIEuros",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$lineaCreditoEuros",
+                                0
+                            ]
+                        }
+                    ]
+                }
+            },
+            "totalMesBolivares": {
+                "$sum": {
+                    "$add": [
+                        {
+                            "$ifNull": [
+                                "$tasaInteresBolivares",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$gastosFlatOtrosBolivares",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$variacionIDIBolivares",
+                                0
+                            ]
+                        },
+                        {
+                            "$ifNull": [
+                                "$lineaCreditoBolivares",
+                                0
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "$project": {
+            "fechaProceso": "$_id.fechaProceso",
+            "rifCedula": "$_id.rifCedula",
+            "totalMesBolivares": 1,
+            "totalMesDolares": 1,
+            "totalMesEuros": 1,
+            "_id": 0
+        }
+    },
+    {
+        "$merge": {
+            "into": "sidis_ingresoCarteraCredito",
+            "on": [
+                "fechaProceso",
+                "rifCedula"
+            ]
+        }
+    }
+]
