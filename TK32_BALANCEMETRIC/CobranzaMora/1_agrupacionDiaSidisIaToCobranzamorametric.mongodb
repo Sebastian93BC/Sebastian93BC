@@ -1,0 +1,2003 @@
+[
+  {
+    $limit: 1,
+  },
+  {
+    $project: {
+      _id: 0,
+      todayDate: {
+        $subtract: [
+          {
+            $toDate: {
+              $dateFromString: {
+                dateString: {
+                  $dateToString: {
+                    format: "%Y-%m-%dT00:00:00%z",
+                    date: {
+                      $toDate: "$$NOW",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            $multiply: [
+              {
+                $toInt: "521",
+                //"{{$json.offSet}}"
+              },
+              86400000,
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_activosIa",
+      let: {
+        date: "$todayDate",
+      },
+      pipeline: [
+        {
+          $match: {
+            $and: [
+              {
+                $expr: {
+                  $eq: ["$$date", "$fevalor"],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            fevalor: 1,
+            cta_contable: 1,
+            monto_paguvc: 1,
+          },
+        },
+      ],
+      as: "sidis_activosIa",
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_brm",
+      let: {
+        date: "$todayDate",
+      },
+      pipeline: [
+        {
+          $match: {
+            $and: [
+              {
+                $expr: {
+                  $eq: ["$$date", "$fecha_odate"],
+                },
+              },
+              {
+                $expr: {
+                  $in: [
+                    "$nucta",
+                    ["131", "132", "133", "134"],
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            nucta: 1,
+            fecha_odate: 1,
+            sal_act: 1,
+            sal_ant: 1,
+            sal_net_act: 1,
+          },
+        },
+      ],
+      as: "sidis_brm",
+    },
+  },
+  {
+    $addFields: {
+      avaiableDataBRM: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $size: "$sidis_brm",
+              },
+              0,
+            ],
+          },
+          true,
+          false,
+        ],
+      },
+      avaiableDataActivosIa: {
+        $cond: [
+          {
+            $gt: [
+              {
+                $size: "$sidis_activosIa",
+              },
+              0,
+            ],
+          },
+          true,
+          false,
+        ],
+      },
+      firstDayMonth: {
+        $eq: [
+          {
+            $dayOfMonth: "$todayDate",
+          },
+          1,
+        ],
+      },
+      firstDayYear: {
+        $and: [
+          {
+            $eq: [
+              {
+                $dayOfMonth: "$todayDate",
+              },
+              1,
+            ],
+          },
+          {
+            $eq: [
+              {
+                $month: "$todayDate",
+              },
+              1,
+            ],
+          },
+        ],
+      },
+      yesterdayDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "day",
+          amount: -1,
+        },
+      },
+      tomorrowDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "day",
+          amount: 1,
+        },
+      },
+      previusMonthDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "month",
+          amount: -1,
+        },
+      },
+      PreviusMonthlastDate: {
+        $subtract: [
+          {
+            $dateFromParts: {
+              year: {
+                $year: "$todayDate",
+              },
+              month: {
+                $month: "$todayDate",
+              },
+            },
+          },
+          86400000,
+        ],
+      },
+      previusYearDate: {
+        $dateAdd: {
+          startDate: "$todayDate",
+          unit: "year",
+          amount: -1,
+        },
+      },
+      PreviusYearlastDate: {
+        $subtract: [
+          {
+            $dateFromParts: {
+              year: {
+                $year: "$todayDate",
+              },
+            },
+          },
+          86400000,
+        ],
+      },
+      monto_paguvc: {
+        $sum: {
+          $map: {
+            input: "$sidis_activosIa",
+            as: "item",
+            in: "$$item.monto_paguvc",
+          },
+        },
+      },
+      sal_act131Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "131"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_act",
+            },
+          },
+        },
+      },
+      sal_act132Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "132"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_act",
+            },
+          },
+        },
+      },
+      sal_act133Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "133"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_act",
+            },
+          },
+        },
+      },
+      sal_act134Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "134"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_act",
+            },
+          },
+        },
+      },
+      sal_ant131Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "131"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_ant",
+            },
+          },
+        },
+      },
+      sal_ant132Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "132"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_ant",
+            },
+          },
+        },
+      },
+      sal_ant133Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "133"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_ant",
+            },
+          },
+        },
+      },
+      sal_ant134Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "134"],
+                  },
+                },
+              },
+              as: "item",
+              in: "$$item.sal_ant",
+            },
+          },
+        },
+      },
+      sal_net_act131Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "131"],
+                  },
+                },
+              },
+              as: "item",
+              in: {
+                $multiply: [
+                  "$$item.sal_net_act",
+                  1,
+                ],
+              },
+            },
+          },
+        },
+      },
+      sal_net_act132Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "132"],
+                  },
+                },
+              },
+              as: "item",
+              in: {
+                $multiply: [
+                  "$$item.sal_net_act",
+                  1,
+                ],
+              },
+            },
+          },
+        },
+      },
+      sal_net_act133Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "133"],
+                  },
+                },
+              },
+              as: "item",
+              in: {
+                $multiply: [
+                  "$$item.sal_net_act",
+                  1,
+                ],
+              },
+            },
+          },
+        },
+      },
+      sal_net_act134Bs: {
+        $sum: {
+          $first: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$sidis_brm",
+                  as: "item",
+                  cond: {
+                    $eq: ["$$item.nucta", "134"],
+                  },
+                },
+              },
+              as: "item",
+              in: {
+                $multiply: [
+                  "$$item.sal_net_act",
+                  1,
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "Cobranzamorametric",
+      localField: "yesterdayDate",
+      foreignField: "fecha_valor",
+      as: "CobranzamorametricYesterday",
+    },
+  },
+  {
+    $lookup: {
+      from: "Cobranzamorametric",
+      localField: "PreviusMonthlastDate",
+      foreignField: "fecha_valor",
+      as: "CobranzamorametricPreviusMonthlastDate",
+    },
+  },
+  {
+    $addFields: {
+      fecha_valor: "$todayDate",
+      todayDate: "$$REMOVE",
+      sidis_activosIa: "$$REMOVE",
+      sidis_brm: "$$REMOVE",
+      CobranzamorametricYesterday: "$$REMOVE",
+      CobranzamorametricPreviusMonthlastDate:
+        "$$REMOVE",
+      monto_paguvc: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$monto_paguvc",
+          {
+            $first:
+              "$CobranzamorametricYesterday.monto_paguvc",
+          },
+        ],
+      },
+      sal_act131Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_act131Bs",
+          {
+            $first:
+              "$CobranzamorametricYesterday.sal_act131Bs",
+          },
+        ],
+      },
+      sal_act132Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_act132Bs",
+          {
+            $first:
+              "$CobranzamorametricYesterday.sal_act132Bs",
+          },
+        ],
+      },
+      sal_act133Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_act133Bs",
+          {
+            $first:
+              "$CobranzamorametricYesterday.sal_act133Bs",
+          },
+        ],
+      },
+      sal_act134Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_act134Bs",
+          {
+            $first:
+              "$CobranzamorametricYesterday.sal_act134Bs",
+          },
+        ],
+      },
+      sal_ant131Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_ant131Bs",
+          {
+            $first:
+              "$CobranzamorametricPreviusMonthlastDate.sal_ant131Bs",
+          },
+        ],
+      },
+      sal_ant132Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_ant132Bs",
+          {
+            $first:
+              "$CobranzamorametricPreviusMonthlastDate.sal_ant132Bs",
+          },
+        ],
+      },
+      sal_ant133Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_ant133Bs",
+          {
+            $first:
+              "$CobranzamorametricPreviusMonthlastDate.sal_ant133Bs",
+          },
+        ],
+      },
+      sal_ant134Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_ant134Bs",
+          {
+            $first:
+              "$CobranzamorametricPreviusMonthlastDate.sal_ant134Bs",
+          },
+        ],
+      },
+      sal_net_act131Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_net_act131Bs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$CobranzamorametricYesterday.sal_act131Bs",
+              },
+              {
+                $first:
+                  "$CobranzamorametricPreviusMonthlastDate.sal_ant131Bs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_net_act132Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_net_act132Bs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$CobranzamorametricYesterday.sal_act132Bs",
+              },
+              {
+                $first:
+                  "$CobranzamorametricPreviusMonthlastDate.sal_ant132Bs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_net_act133Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_net_act133Bs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$CobranzamorametricYesterday.sal_act133Bs",
+              },
+              {
+                $first:
+                  "$CobranzamorametricPreviusMonthlastDate.sal_ant133Bs",
+              },
+            ],
+          },
+        ],
+      },
+      sal_net_act134Bs: {
+        $cond: [
+          "$avaiableDataBRM",
+          "$sal_net_act134Bs",
+          {
+            $subtract: [
+              {
+                $first:
+                  "$CobranzamorametricYesterday.sal_act134Bs",
+              },
+              {
+                $first:
+                  "$CobranzamorametricPreviusMonthlastDate.sal_ant134Bs",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "sidis_tasaconversion",
+      localField: "fecha_valor",
+      foreignField: "Fecha",
+      as: "sidis_tasaconversion",
+    },
+  },
+  {
+    $addFields: {
+      sidis_tasaconversion: "$$REMOVE",
+      monto_pag: {
+        $round: [
+          {
+            $divide: [
+              "$monto_paguvc",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_act131: {
+        $round: [
+          {
+            $divide: [
+              "$sal_act131Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_act132: {
+        $round: [
+          {
+            $divide: [
+              "$sal_act132Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_act133: {
+        $round: [
+          {
+            $divide: [
+              "$sal_act133Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_act134: {
+        $round: [
+          {
+            $divide: [
+              "$sal_act134Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_ant131: {
+        $round: [
+          {
+            $divide: [
+              "$sal_ant131Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_ant132: {
+        $round: [
+          {
+            $divide: [
+              "$sal_ant132Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_ant133: {
+        $round: [
+          {
+            $divide: [
+              "$sal_ant133Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_ant134: {
+        $round: [
+          {
+            $divide: [
+              "$sal_ant134Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_act131: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_act131Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_act132: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_act132Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_act133: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_act133Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      sal_net_act134: {
+        $round: [
+          {
+            $divide: [
+              "$sal_net_act134Bs",
+              {
+                $first:
+                  "$sidis_tasaconversion.Tasa_DOL",
+              },
+            ],
+          },
+          4,
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "Cobranzamorametric",
+      localField: "yesterdayDate",
+      foreignField: "fecha_valor",
+      as: "CobranzamorametricYesterday",
+    },
+  },
+  {
+    $lookup: {
+      from: "Cobranzamorametric",
+      localField: "PreviusMonthlastDate",
+      foreignField: "fecha_valor",
+      as: "CobranzamorametricPreviusMonthlastDate",
+    },
+  },
+  {
+    $addFields: {
+      CobranzamorametricYesterday: "$$REMOVE",
+      CobranzamorametricPreviusMonthlastDate:
+        "$$REMOVE",
+      adjustmentCond: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $and: [
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$CobranzamorametricYesterday.adjustmentCond",
+                      },
+                      true,
+                    ],
+                  },
+                  {
+                    $in: [
+                      {
+                        $month: "$fecha_valor",
+                      },
+                      [7, 8, 9, 10, 11, 12],
+                    ],
+                  },
+                ],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $or: [
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$CobranzamorametricYesterday.adjustmentCond",
+                      },
+                      false,
+                    ],
+                  },
+                  {
+                    $lte: [
+                      {
+                        $first:
+                          "$CobranzamorametricYesterday.adjustmentCond",
+                      },
+                      null,
+                    ],
+                  },
+                ],
+              },
+              then: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          {
+                            $ifNull: [
+                              {
+                                $divide: [
+                                  "$sal_act131Bs",
+                                  {
+                                    $first:
+                                      "$CobranzamorametricYesterday.sal_act131Bs",
+                                  },
+                                ],
+                              },
+                              1,
+                            ],
+                          },
+                          0.5,
+                        ],
+                      },
+                      {
+                        $eq: [
+                          {
+                            $month:
+                              "$fecha_valor",
+                          },
+                          7,
+                        ],
+                      },
+                    ],
+                  },
+                  true,
+                  false,
+                ],
+              },
+            },
+          ],
+          default: false,
+        },
+      },
+      adjustmentCondJanuary: {
+        $switch: {
+          branches: [
+            {
+              case: "$firstDayYear",
+              then: true,
+            },
+            {
+              case: {
+                $and: [
+                  {
+                    $eq: [
+                      {
+                        $month: "$fecha_valor",
+                      },
+                      1,
+                    ],
+                  },
+                  {
+                    $lte: [
+                      {
+                        $ifNull: [
+                          {
+                            $divide: [
+                              {
+                                $first:
+                                  "$CobranzamorametricYesterday.sal_act131Bs",
+                              },
+                              "$sal_act131Bs",
+                            ],
+                          },
+                          1,
+                        ],
+                      },
+                      2,
+                    ],
+                  },
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$CobranzamorametricYesterday.adjustmentCondJanuary",
+                      },
+                      true,
+                    ],
+                  },
+                ],
+              },
+              then: true,
+            },
+            {
+              case: {
+                $and: [
+                  {
+                    $eq: [
+                      {
+                        $month: "$fecha_valor",
+                      },
+                      1,
+                    ],
+                  },
+                  {
+                    $eq: [
+                      {
+                        $first:
+                          "$CobranzamorametricYesterday.adjustmentCondJanuary",
+                      },
+                      false,
+                    ],
+                  },
+                ],
+              },
+              then: false,
+            },
+          ],
+          default: false,
+        },
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "Cobranzamorametric",
+      on: "fecha_valor",
+      whenMatched: "replace",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$limit": 1
+  }, {
+    "$project": {
+      "_id": 0, 
+      "todayDate": {
+        "$subtract": [
+          {
+            "$toDate": {
+              "$dateFromString": {
+                "dateString": {
+                  "$dateToString": {
+                    "format": "%Y-%m-%dT00:00:00%z", 
+                    "date": {
+                      "$toDate": "$$NOW"
+                    }
+                  }
+                }
+              }
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_activosIa", 
+      "let": {
+        "date": "$todayDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$date", "$fevalor"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "fevalor": 1, 
+            "cta_contable": 1, 
+            "monto_paguvc": 1
+          }
+        }
+      ], 
+      "as": "sidis_activosIa"
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_brm", 
+      "let": {
+        "date": "$todayDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$date", "$fecha_odate"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$in": [
+                    "$nucta", [
+                      "131", "132", "133", "134"
+                    ]
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "nucta": 1, 
+            "fecha_odate": 1, 
+            "sal_act": 1, 
+            "sal_ant": 1, 
+            "sal_net_act": 1
+          }
+        }
+      ], 
+      "as": "sidis_brm"
+    }
+  }, {
+    "$addFields": {
+      "avaiableDataBRM": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$size": "$sidis_brm"
+              }, 0
+            ]
+          }, true, false
+        ]
+      }, 
+      "avaiableDataActivosIa": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$size": "$sidis_activosIa"
+              }, 0
+            ]
+          }, true, false
+        ]
+      }, 
+      "firstDayMonth": {
+        "$eq": [
+          {
+            "$dayOfMonth": "$todayDate"
+          }, 1
+        ]
+      }, 
+      "firstDayYear": {
+        "$and": [
+          {
+            "$eq": [
+              {
+                "$dayOfMonth": "$todayDate"
+              }, 1
+            ]
+          }, {
+            "$eq": [
+              {
+                "$month": "$todayDate"
+              }, 1
+            ]
+          }
+        ]
+      }, 
+      "yesterdayDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": -1
+        }
+      }, 
+      "tomorrowDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": 1
+        }
+      }, 
+      "previusMonthDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "month", 
+          "amount": -1
+        }
+      }, 
+      "PreviusMonthlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }, 
+              "month": {
+                "$month": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "previusYearDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "year", 
+          "amount": -1
+        }
+      }, 
+      "PreviusYearlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "monto_paguvc": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_activosIa", 
+            "as": "item", 
+            "in": "$$item.monto_paguvc"
+          }
+        }
+      }, 
+      "sal_act131Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "131"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_act"
+            }
+          }
+        }
+      }, 
+      "sal_act132Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "132"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_act"
+            }
+          }
+        }
+      }, 
+      "sal_act133Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "133"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_act"
+            }
+          }
+        }
+      }, 
+      "sal_act134Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "134"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_act"
+            }
+          }
+        }
+      }, 
+      "sal_ant131Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "131"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_ant"
+            }
+          }
+        }
+      }, 
+      "sal_ant132Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "132"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_ant"
+            }
+          }
+        }
+      }, 
+      "sal_ant133Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "133"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_ant"
+            }
+          }
+        }
+      }, 
+      "sal_ant134Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "134"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": "$$item.sal_ant"
+            }
+          }
+        }
+      }, 
+      "sal_net_act131Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "131"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": {
+                "$multiply": [
+                  "$$item.sal_net_act", 1
+                ]
+              }
+            }
+          }
+        }
+      }, 
+      "sal_net_act132Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "132"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": {
+                "$multiply": [
+                  "$$item.sal_net_act", 1
+                ]
+              }
+            }
+          }
+        }
+      }, 
+      "sal_net_act133Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "133"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": {
+                "$multiply": [
+                  "$$item.sal_net_act", 1
+                ]
+              }
+            }
+          }
+        }
+      }, 
+      "sal_net_act134Bs": {
+        "$sum": {
+          "$first": {
+            "$map": {
+              "input": {
+                "$filter": {
+                  "input": "$sidis_brm", 
+                  "as": "item", 
+                  "cond": {
+                    "$eq": [
+                      "$$item.nucta", "134"
+                    ]
+                  }
+                }
+              }, 
+              "as": "item", 
+              "in": {
+                "$multiply": [
+                  "$$item.sal_net_act", 1
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Cobranzamorametric", 
+      "localField": "yesterdayDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CobranzamorametricYesterday"
+    }
+  }, {
+    "$lookup": {
+      "from": "Cobranzamorametric", 
+      "localField": "PreviusMonthlastDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CobranzamorametricPreviusMonthlastDate"
+    }
+  }, {
+    "$addFields": {
+      "fecha_valor": "$todayDate", 
+      "todayDate": "$$REMOVE", 
+      "sidis_activosIa": "$$REMOVE", 
+      "sidis_brm": "$$REMOVE", 
+      "CobranzamorametricYesterday": "$$REMOVE", 
+      "CobranzamorametricPreviusMonthlastDate": "$$REMOVE", 
+      "monto_paguvc": {
+        "$cond": [
+          "$avaiableDataBRM", "$monto_paguvc", {
+            "$first": "$CobranzamorametricYesterday.monto_paguvc"
+          }
+        ]
+      }, 
+      "sal_act131Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_act131Bs", {
+            "$first": "$CobranzamorametricYesterday.sal_act131Bs"
+          }
+        ]
+      }, 
+      "sal_act132Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_act132Bs", {
+            "$first": "$CobranzamorametricYesterday.sal_act132Bs"
+          }
+        ]
+      }, 
+      "sal_act133Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_act133Bs", {
+            "$first": "$CobranzamorametricYesterday.sal_act133Bs"
+          }
+        ]
+      }, 
+      "sal_act134Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_act134Bs", {
+            "$first": "$CobranzamorametricYesterday.sal_act134Bs"
+          }
+        ]
+      }, 
+      "sal_ant131Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_ant131Bs", {
+            "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant131Bs"
+          }
+        ]
+      }, 
+      "sal_ant132Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_ant132Bs", {
+            "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant132Bs"
+          }
+        ]
+      }, 
+      "sal_ant133Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_ant133Bs", {
+            "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant133Bs"
+          }
+        ]
+      }, 
+      "sal_ant134Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_ant134Bs", {
+            "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant134Bs"
+          }
+        ]
+      }, 
+      "sal_net_act131Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_net_act131Bs", {
+            "$subtract": [
+              {
+                "$first": "$CobranzamorametricYesterday.sal_act131Bs"
+              }, {
+                "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant131Bs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_net_act132Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_net_act132Bs", {
+            "$subtract": [
+              {
+                "$first": "$CobranzamorametricYesterday.sal_act132Bs"
+              }, {
+                "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant132Bs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_net_act133Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_net_act133Bs", {
+            "$subtract": [
+              {
+                "$first": "$CobranzamorametricYesterday.sal_act133Bs"
+              }, {
+                "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant133Bs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "sal_net_act134Bs": {
+        "$cond": [
+          "$avaiableDataBRM", "$sal_net_act134Bs", {
+            "$subtract": [
+              {
+                "$first": "$CobranzamorametricYesterday.sal_act134Bs"
+              }, {
+                "$first": "$CobranzamorametricPreviusMonthlastDate.sal_ant134Bs"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "fecha_valor", 
+      "foreignField": "Fecha", 
+      "as": "sidis_tasaconversion"
+    }
+  }, {
+    "$addFields": {
+      "sidis_tasaconversion": "$$REMOVE", 
+      "monto_pag": {
+        "$round": [
+          {
+            "$divide": [
+              "$monto_paguvc", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_act131": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_act131Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_act132": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_act132Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_act133": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_act133Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_act134": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_act134Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_ant131": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_ant131Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_ant132": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_ant132Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_ant133": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_ant133Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_ant134": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_ant134Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_act131": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_act131Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_act132": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_act132Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_act133": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_act133Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_act134": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_act134Bs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Cobranzamorametric", 
+      "localField": "yesterdayDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CobranzamorametricYesterday"
+    }
+  }, {
+    "$lookup": {
+      "from": "Cobranzamorametric", 
+      "localField": "PreviusMonthlastDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CobranzamorametricPreviusMonthlastDate"
+    }
+  }, {
+    "$addFields": {
+      "CobranzamorametricYesterday": "$$REMOVE", 
+      "CobranzamorametricPreviusMonthlastDate": "$$REMOVE", 
+      "adjustmentCond": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$first": "$CobranzamorametricYesterday.adjustmentCond"
+                      }, true
+                    ]
+                  }, {
+                    "$in": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, [
+                        7, 8, 9, 10, 11, 12
+                      ]
+                    ]
+                  }
+                ]
+              }, 
+              "then": true
+            }, {
+              "case": {
+                "$or": [
+                  {
+                    "$eq": [
+                      {
+                        "$first": "$CobranzamorametricYesterday.adjustmentCond"
+                      }, false
+                    ]
+                  }, {
+                    "$lte": [
+                      {
+                        "$first": "$CobranzamorametricYesterday.adjustmentCond"
+                      }, null
+                    ]
+                  }
+                ]
+              }, 
+              "then": {
+                "$cond": [
+                  {
+                    "$and": [
+                      {
+                        "$lte": [
+                          {
+                            "$ifNull": [
+                              {
+                                "$divide": [
+                                  "$sal_act131Bs", {
+                                    "$first": "$CobranzamorametricYesterday.sal_act131Bs"
+                                  }
+                                ]
+                              }, 1
+                            ]
+                          }, 0.5
+                        ]
+                      }, {
+                        "$eq": [
+                          {
+                            "$month": "$fecha_valor"
+                          }, 7
+                        ]
+                      }
+                    ]
+                  }, true, false
+                ]
+              }
+            }
+          ], 
+          "default": false
+        }
+      }, 
+      "adjustmentCondJanuary": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$firstDayYear", 
+              "then": true
+            }, {
+              "case": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, 1
+                    ]
+                  }, {
+                    "$lte": [
+                      {
+                        "$ifNull": [
+                          {
+                            "$divide": [
+                              {
+                                "$first": "$CobranzamorametricYesterday.sal_act131Bs"
+                              }, "$sal_act131Bs"
+                            ]
+                          }, 1
+                        ]
+                      }, 2
+                    ]
+                  }, {
+                    "$eq": [
+                      {
+                        "$first": "$CobranzamorametricYesterday.adjustmentCondJanuary"
+                      }, true
+                    ]
+                  }
+                ]
+              }, 
+              "then": true
+            }, {
+              "case": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, 1
+                    ]
+                  }, {
+                    "$eq": [
+                      {
+                        "$first": "$CobranzamorametricYesterday.adjustmentCondJanuary"
+                      }, false
+                    ]
+                  }
+                ]
+              }, 
+              "then": false
+            }
+          ], 
+          "default": false
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Cobranzamorametric", 
+      "on": "fecha_valor", 
+      "whenMatched": "replace", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

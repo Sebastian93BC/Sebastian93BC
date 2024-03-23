@@ -1,0 +1,579 @@
+[
+  {
+    '$facet': {
+      'captTotalMes': [
+        {
+          '$match': {
+            '$and': [
+              {
+                '$expr': {
+                  '$eq': [
+                    '$fecha_odate', '$fechaProceso'
+                  ]
+                }
+              }, {
+                'nucta': '21103'
+              }
+            ]
+          }
+        }, {
+          '$group': {
+            '_id': {
+              'fechaProceso': '$fechaProceso'
+            }, 
+            'totalCaptacionesBs': {
+              '$sum': '$sal_act'
+            }
+          }
+        }, {
+          '$addFields': {
+            'fechaProceso': '$_id.fechaProceso', 
+            'mesActual': {
+              '$month': "$$NOW"
+            }, 
+            'anioActual': {
+              '$year': "$$NOW"
+            }, 
+            'mesFechaProceso': {
+              '$month': '$_id.fechaProceso'
+            }, 
+            'anioFechaProceso': {
+              '$year': '$_id.fechaProceso'
+            }, 
+            '_id': '$$REMOVE'
+          }
+        }, {
+          '$lookup': {
+            'from': 'sidis_tasaconversion', 
+            'localField': 'fechaProceso', 
+            'foreignField': 'Fecha', 
+            'as': 'result'
+          }
+        }, {
+          '$addFields': {
+            'totalCaptacionesUsd': {
+              '$round': [
+                {
+                  '$divide': [
+                    '$totalCaptacionesBs', {
+                      '$arrayElemAt': [
+                        '$result.Tasa_DOL', 0
+                      ]
+                    }
+                  ]
+                }, 2
+              ]
+            }, 
+            'tasaDolar': {
+              '$arrayElemAt': [
+                '$result.Tasa_DOL', 0
+              ]
+            }, 
+            'result': '$$REMOVE'
+          }
+        }, {
+          '$addFields': {
+            'totalCaptacionesDicBs': {
+              '$cond': [
+                {
+                  '$and': [
+                    {
+                      '$eq': [
+                        {
+                          '$subtract': [
+                            '$anioActual', '$anioFechaProceso'
+                          ]
+                        }, 1
+                      ]
+                    }, {
+                      '$eq': [
+                        '$mesFechaProceso', 12
+                      ]
+                    }
+                  ]
+                }, '$totalCaptacionesBs', '$$REMOVE'
+              ]
+            }, 
+            'totalCaptacionesDicUsd': {
+              '$cond': [
+                {
+                  '$and': [
+                    {
+                      '$eq': [
+                        {
+                          '$subtract': [
+                            '$anioActual', '$anioFechaProceso'
+                          ]
+                        }, 1
+                      ]
+                    }, {
+                      '$eq': [
+                        '$mesFechaProceso', 12
+                      ]
+                    }
+                  ]
+                }, '$totalCaptacionesUsd', '$$REMOVE'
+              ]
+            }
+          }
+        }
+      ], 
+      'captTotalMesDic': [
+        {
+          '$match': {
+            '$and': [
+              {
+                '$expr': {
+                  '$eq': [
+                    '$fecha_odate', '$fechaProceso'
+                  ]
+                }
+              }, {
+                'nucta': '21103'
+              }
+            ]
+          }
+        }, {
+          '$group': {
+            '_id': {
+              'fechaProceso': '$fechaProceso'
+            }, 
+            'totalCaptacionesBs': {
+              '$sum': '$sal_act'
+            }
+          }
+        }, {
+          '$addFields': {
+            'fechaProceso': '$_id.fechaProceso', 
+            'mesActual': {
+              '$month': "$$NOW"
+            }, 
+            'anioActual': {
+              '$year': "$$NOW"
+            }, 
+            'mesFechaProceso': {
+              '$month': '$_id.fechaProceso'
+            }, 
+            'anioFechaProceso': {
+              '$year': '$_id.fechaProceso'
+            }, 
+            '_id': '$$REMOVE'
+          }
+        }, {
+          '$lookup': {
+            'from': 'sidis_tasaconversion', 
+            'localField': 'fechaProceso', 
+            'foreignField': 'Fecha', 
+            'as': 'result'
+          }
+        }, {
+          '$addFields': {
+            'totalCaptacionesUsd': {
+              '$round': [
+                {
+                  '$divide': [
+                    '$totalCaptacionesBs', {
+                      '$arrayElemAt': [
+                        '$result.Tasa_DOL', 0
+                      ]
+                    }
+                  ]
+                }, 2
+              ]
+            }, 
+            'tasaDolar': {
+              '$arrayElemAt': [
+                '$result.Tasa_DOL', 0
+              ]
+            }, 
+            'result': '$$REMOVE'
+          }
+        }, {
+          '$addFields': {
+            'totalCaptacionesDicBs': {
+              '$cond': [
+                {
+                  '$and': [
+                    {
+                      '$eq': [
+                        {
+                          '$subtract': [
+                            '$anioActual', '$anioFechaProceso'
+                          ]
+                        }, 1
+                      ]
+                    }, {
+                      '$eq': [
+                        '$mesFechaProceso', 12
+                      ]
+                    }
+                  ]
+                }, '$totalCaptacionesBs', '$$REMOVE'
+              ]
+            }, 
+            'totalCaptacionesDicUsd': {
+              '$cond': [
+                {
+                  '$and': [
+                    {
+                      '$eq': [
+                        {
+                          '$subtract': [
+                            '$anioActual', '$anioFechaProceso'
+                          ]
+                        }, 1
+                      ]
+                    }, {
+                      '$eq': [
+                        '$mesFechaProceso', 12
+                      ]
+                    }
+                  ]
+                }, '$totalCaptacionesUsd', '$$REMOVE'
+              ]
+            }
+          }
+        }, {
+          '$match': {
+            'totalCaptacionesDicBs': {
+              '$exists': true
+            }
+          }
+        }
+      ], 
+      'captacionesTotales': [
+        {
+          '$match': {
+            'nucta': '21103'
+          }
+        }, {
+          '$addFields': {
+            'name': 'total', 
+            'actual': '$sal_act', 
+            'anterior': '$sal_ant', 
+            'netoActual': '$sal_net_act'
+          }
+        }
+      ]
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv': {
+        'captacionesTotales': '$captacionesTotales', 
+        'captTotalMesDic': '$captTotalMesDic', 
+        'captTotalMes': '$captTotalMes'
+      }, 
+      'captTotalMes': '$$REMOVE', 
+      'captTotalMesDic': '$$REMOVE', 
+      'captacionesTotales': '$$REMOVE'
+    }
+  }, {
+    '$unwind': {
+      'path': '$captacionesBdv.captacionesTotales'
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv.captacionesTotales.totalCaptacionesDicBs': {
+        '$arrayElemAt': [
+          '$captacionesBdv.captTotalMesDic.totalCaptacionesDicBs', 0
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.totalCaptacionesDicUsd': {
+        '$arrayElemAt': [
+          '$captacionesBdv.captTotalMesDic.totalCaptacionesDicUsd', 0
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.captTotalMes': '$captacionesBdv.captTotalMes', 
+      'captacionesBdv.captTotalMesDic': '$$REMOVE', 
+      'captacionesBdv.captTotalMes': '$$REMOVE'
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv.captacionesTotales.mensual': {
+        '$arrayElemAt': [
+          {
+            '$filter': {
+              'input': '$captacionesBdv.captacionesTotales.captTotalMes', 
+              'as': 'mes', 
+              'cond': {
+                '$eq': [
+                  '$$mes.fechaProceso', '$captacionesBdv.captacionesTotales.fechaProceso'
+                ]
+              }
+            }
+          }, 0
+        ]
+      }
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv.captacionesTotales.mensual': '$captacionesBdv.captacionesTotales.mensual.totalCaptacionesBs', 
+      'captacionesBdv.captacionesTotales.tasaDolar': '$captacionesBdv.captacionesTotales.mensual.tasaDolar', 
+      'captacionesBdv.captacionesTotales.captTotalMes': '$$REMOVE'
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv.captacionesTotales.actual': {
+        '$multiply': [
+          '$captacionesBdv.captacionesTotales.actual', -1
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.anterior': {
+        '$multiply': [
+          '$captacionesBdv.captacionesTotales.anterior', -1
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.netoActual': {
+        '$multiply': [
+          '$captacionesBdv.captacionesTotales.netoActual', -1
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.mensual': {
+        '$multiply': [
+          '$captacionesBdv.captacionesTotales.mensual', -1
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.totalCaptacionesDicUsd': {
+        '$multiply': [
+          '$captacionesBdv.captacionesTotales.totalCaptacionesDicUsd', -1
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.totalCaptacionesDicBs': {
+        '$multiply': [
+          '$captacionesBdv.captacionesTotales.totalCaptacionesDicBs', -1
+        ]
+      }
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv.captacionesTotales.anioFechaProceso': {
+        '$year': '$captacionesBdv.captacionesTotales.fechaProceso'
+      }, 
+      'captacionesBdv.captacionesTotales.anioActual': {
+        '$year': "$$NOW"
+      }, 
+      'captacionesBdv.captacionesTotales.mesFechaProceso': {
+        '$month': '$captacionesBdv.captacionesTotales.fechaProceso'
+      }, 
+      'captacionesBdv.captacionesTotales.mesActual': {
+        '$month': "$$NOW"
+      }
+    }
+  }, {
+    '$addFields': {
+      'captacionesBdv.captacionesTotales.agrupacion': true, 
+      'captacionesBdv.captacionesTotales.varMensual': {
+        '$round': [
+          {
+            '$subtract': [
+              '$captacionesBdv.captacionesTotales.actual', '$captacionesBdv.captacionesTotales.anterior'
+            ]
+          }, 4
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.varAnual': {
+        '$cond': [
+          {
+            '$eq': [
+              {
+                '$year': '$captacionesBdv.captacionesTotales.fechaProceso'
+              }, {
+                '$year': "$$NOW"
+              }
+            ]
+          }, {
+            '$round': [
+              {
+                '$subtract': [
+                  '$captacionesBdv.captacionesTotales.actual', '$captacionesBdv.captacionesTotales.totalCaptacionesDicBs'
+                ]
+              }, 4
+            ]
+          }, 0
+        ]
+      }, 
+      'captacionesBdv.captacionesTotales.creAnual': {
+        '$cond': [
+          {
+            '$eq': [
+              {
+                '$year': '$captacionesBdv.captacionesTotales.fechaProceso'
+              }, {
+                '$year': "$$NOW"
+              }
+            ]
+          }, {
+            '$round': [
+              {
+                '$divide': [
+                  {
+                    '$multiply': [
+                      {
+                        '$subtract': [
+                          '$captacionesBdv.captacionesTotales.actual', '$captacionesBdv.captacionesTotales.totalCaptacionesDicBs'
+                        ]
+                      }, 100
+                    ]
+                  }, '$captacionesBdv.captacionesTotales.totalCaptacionesDicBs'
+                ]
+              }, 4
+            ]
+          }, 0
+        ]
+      }
+    }
+  }, {
+    '$group': {
+      '_id': {
+        'mesAgrupado': '$captacionesBdv.captacionesTotales.agrupacion'
+      }, 
+      'captDataArray': {
+        '$push': {
+          'fechaProceso': '$captacionesBdv.captacionesTotales.fechaProceso', 
+          'fecha_valor': '$captacionesBdv.captacionesTotales.fecha_odate', 
+          'name': '$captacionesBdv.captacionesTotales.name', 
+          'actual': '$captacionesBdv.captacionesTotales.actual', 
+          'anterior': '$captacionesBdv.captacionesTotales.anterior', 
+          'netoActual': '$captacionesBdv.captacionesTotales.netoActual', 
+          'totalCaptacionesDicBs': '$captacionesBdv.captacionesTotales.totalCaptacionesDicBs', 
+          'totalCaptacionesDicUsd': '$captacionesBdv.captacionesTotales.totalCaptacionesDicUsd', 
+          'mensual': '$captacionesBdv.captacionesTotales.mensual', 
+          'tasaDolar': '$captacionesBdv.captacionesTotales.tasaDolar', 
+          'varMensual': '$captacionesBdv.captacionesTotales.varMensual', 
+          'varAnual': '$captacionesBdv.captacionesTotales.varAnual', 
+          'creAnual': '$captacionesBdv.captacionesTotales.creAnual'
+        }
+      }
+    }
+  }, {
+    '$unwind': {
+      'path': '$captDataArray'
+    }
+  }, {
+    '$replaceRoot': {
+      'newRoot': '$captDataArray'
+    }
+  }, {
+    '$facet': {
+      'resultados': [
+        {
+          '$match': {
+            'name': 'total'
+          }
+        }
+      ], 
+      'resultadoNulo': [
+        {
+          '$match': {
+            'mensual': {
+              '$eq': null
+            }
+          }
+        }, {
+          '$sort': {
+            'fecha_valor': -1
+          }
+        }, {
+          '$project': {
+            'fechaProceso': 1, 
+            'fecha_valor': 1, 
+            'actual': 1
+          }
+        }
+      ]
+    }
+  }, {
+    '$addFields': {
+      'actualNulo': {
+        '$slice': [
+          '$resultadoNulo', 1
+        ]
+      }, 
+      'resultadoNulo': '$$REMOVE'
+    }
+  }, {
+    '$unwind': {
+      'path': '$resultados'
+    }
+  }, {
+    '$addFields': {
+      'resultados.mensual': {
+        '$cond': [
+          {
+            '$eq': [
+              '$resultados.fechaProceso', {
+                '$arrayElemAt': [
+                  '$actualNulo.fechaProceso', 0
+                ]
+              }
+            ]
+          }, {
+            '$arrayElemAt': [
+              '$actualNulo.actual', 0
+            ]
+          }, '$resultados.mensual'
+        ]
+      }, 
+      'actualNulo': '$$REMOVE'
+    }
+  }, {
+    '$replaceRoot': {
+      'newRoot': '$resultados'
+    }
+  }, {
+    '$project': {
+      'fechaProceso': 1, 
+      'fecha_valor': 1, 
+      'captacionesBs.conv20': {
+        'actual': '$actual', 
+        'anterior': '$anterior', 
+        'netoActual': '$netoActual', 
+        'mensual': '$mensual', 
+        'varMensual': '$varMensual', 
+        'varAnual': '$varAnual', 
+        'creAnual': '$creAnual'
+      }
+    }
+  }, {
+    '$lookup': {
+      'from': 'Balancemetric', 
+      'localField': 'fecha_valor', 
+      'foreignField': 'fecha_valor', 
+      'as': 'result'
+    }
+  }, {
+    '$unwind': {
+      'path': '$result'
+    }
+  }, {
+    '$addFields': {
+      'result.captacionesBs.conv20': '$captacionesBs.conv20'
+    }
+  }, {
+    '$replaceRoot': {
+      'newRoot': '$result'
+    }
+  }, {
+    '$project': {
+      '_id': 0, 
+      'captaciones': 0, 
+      'cobranzaMora': 0, 
+      'cobranzaMoraUVC': 0, 
+      'liquidaciones': 0, 
+      'liquidacionesUVC': 0, 
+      'cobranzaMoraBs': 0, 
+      'cobranzaMoraUVCBs': 0, 
+      'liquidacionesBs': 0, 
+      'liquidacionesUVCBs': 0, 
+      'carteraCredito': 0, 
+      'carteraCreditoBs': 0, 
+      'ingresosComisiones': 0, 
+      'ingresosComisionesBs': 0
+    }
+  }, {
+    '$merge': {
+      'into': 'Balancemetric', 
+      'on': 'fecha_valor'
+    }
+  }
+]

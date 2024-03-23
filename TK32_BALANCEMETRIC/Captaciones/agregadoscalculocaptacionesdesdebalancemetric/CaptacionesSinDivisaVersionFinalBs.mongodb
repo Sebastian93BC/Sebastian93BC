@@ -1,0 +1,267 @@
+[
+  {
+    "$addFields": {
+      "captacionesBs.sinDivisa.actual": {
+        "$subtract": [
+          "$captacionesBs.total.actual", {
+            "$add": [
+              "$captacionesBs.conv20.actual", "$captacionesBs.libreConv.actual"
+            ]
+          }
+        ]
+      }, 
+      "captacionesBs.sinDivisa.anterior": {
+        "$subtract": [
+          "$captacionesBs.total.anterior", {
+            "$add": [
+              "$captacionesBs.conv20.anterior", "$captacionesBs.libreConv.anterior"
+            ]
+          }
+        ]
+      }, 
+      "captacionesBs.sinDivisa.netoActual": {
+        "$subtract": [
+          "$captacionesBs.total.netoActual", {
+            "$add": [
+              "$captacionesBs.conv20.netoActual", "$captacionesBs.libreConv.netoActual"
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "captaciones": 0, 
+      "cobranzaMora": 0, 
+      "cobranzaMoraUVC": 0, 
+      "liquidaciones": 0, 
+      "liquidacionesUVC": 0, 
+      "cobranzaMoraBs": 0, 
+      "cobranzaMoraUVCBs": 0, 
+      "liquidacionesBs": 0, 
+      "liquidacionesUVCBs": 0, 
+      "carteraCredito": 0, 
+      "carteraCreditoBs": 0, 
+      "ingresosComisiones": 0, 
+      "ingresosComisionesBs": 0
+    }
+  }, {
+    "$facet": {
+      "corteMes": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$fecha_valor", "$fechaProceso"
+              ]
+            }
+          }
+        }, {
+          "$addFields": {
+            "captacionesBs.sinDivisa.mensual": "$captacionesBs.sinDivisa.actual"
+          }
+        }, {
+          "$project": {
+            "captacionesBs.sinDivisa.mensual": 1, 
+            "fechaProceso": 1
+          }
+        }
+      ], 
+      "data": []
+    }
+  }, {
+    "$unwind": {
+      "path": "$data"
+    }
+  }, {
+    "$addFields": {
+      "data.captacionesBs.sinDivisa.corteMes": "$corteMes", 
+      "corteMes": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "data.captacionesBs.sinDivisa.mensual": {
+        "$arrayElemAt": [
+          {
+            "$filter": {
+              "input": "$data.captacionesBs.sinDivisa.corteMes", 
+              "as": "fecha", 
+              "cond": {
+                "$eq": [
+                  "$$fecha.fechaProceso", "$data.fechaProceso"
+                ]
+              }
+            }
+          }, 0
+        ]
+      }, 
+      "data.captacionesBs.sinDivisa.captacionesDic": {
+        "$arrayElemAt": [
+          {
+            "$filter": {
+              "input": "$data.captacionesBs.sinDivisa.corteMes", 
+              "as": "fecha", 
+              "cond": {
+                "$and": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$$fecha.fechaProceso"
+                      }, 12
+                    ]
+                  }, {
+                    "$ne": [
+                      {
+                        "$year": "$data.fechaProces"
+                      }, {
+                        "$year": "$$fecha.fechaProceso"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }, 0
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "data.captacionesBs.sinDivisa.mensual": "$data.captacionesBs.sinDivisa.mensual.captacionesBs.sinDivisa.mensual", 
+      "data.captacionesBs.sinDivisa.corteMes": "$$REMOVE", 
+      "data.captacionesBs.sinDivisa.captacionesDic": "$data.captacionesBs.sinDivisa.captacionesDic.captacionesBs.sinDivisa.mensual", 
+      "data.captacionesBs.sinDivisa.varMensual": {
+        "$subtract": [
+          "$data.captacionesBs.sinDivisa.actual", "$data.captacionesBs.sinDivisa.anterior"
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "data.captacionesBs.sinDivisa.varAnual": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$year": "$data.fechaProceso"
+              }, {
+                "$year": "$$NOW"
+              }
+            ]
+          }, {
+            "$subtract": [
+              "$data.captacionesBs.sinDivisa.actual", "$data.captacionesBs.sinDivisa.captacionesDic"
+            ]
+          }, 0
+        ]
+      }, 
+      "data.captacionesBs.sinDivisa.creAnual": {
+        "$cond": [
+          {
+            "$eq": [
+              {
+                "$year": "$data.fechaProceso"
+              }, {
+                "$year": "$$NOW"
+              }
+            ]
+          }, {
+            "$round": [
+              {
+                "$divide": [
+                  {
+                    "$multiply": [
+                      {
+                        "$subtract": [
+                          "$data.captacionesBs.sinDivisa.actual", "$data.captacionesBs.sinDivisa.captacionesDic"
+                        ]
+                      }, 100
+                    ]
+                  }, "$data.captacionesBs.sinDivisa.captacionesDic"
+                ]
+              }, 4
+            ]
+          }, 0
+        ]
+      }
+    }
+  }, {
+    "$facet": {
+      "data": [
+        {
+          "$match": {
+            "data.captacionesBs.sinDivisa.actual": {
+              "$ne": null
+            }
+          }
+        }
+      ], 
+      "dataNotNull": [
+        {
+          "$match": {
+            "data.captacionesBs.sinDivisa.actual": {
+              "$ne": null
+            }
+          }
+        }, {
+          "$group": {
+            "_id": {
+              "fechaProceso": "$data.fechaProceso", 
+              "fechaValor": "$data.fecha_valor"
+            }, 
+            "maxFechaValor": {
+              "$max": "$data.fecha_valor"
+            }, 
+            "maxMensual": {
+              "$max": "$data.captacionesBs.sinDivisa.actual"
+            }
+          }
+        }, {
+          "$sort": {
+            "_id.fechaValor": -1
+          }
+        }
+      ]
+    }
+  }, {
+    "$addFields": {
+      "ultimoActual": {
+        "$slice": [
+          "$dataNotNull", 1
+        ]
+      }, 
+      "dataNotNull": "$$REMOVE"
+    }
+  }, {
+    "$unwind": {
+      "path": "$ultimoActual"
+    }
+  }, {
+    "$unwind": {
+      "path": "$data"
+    }
+  }, {
+    "$addFields": {
+      "data.data.captacionesBs.sinDivisa.mensual": {
+        "$cond": [
+          {
+            "$eq": [
+              "$data.data.fechaProceso", "$ultimoActual._id.fechaProceso"
+            ]
+          }, "$ultimoActual.maxMensual", "$data.data.captacionesBs.sinDivisa.mensual"
+        ]
+      }, 
+      "ultimoActual": "$$REMOVE"
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": "$data.data"
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor"
+    }
+  }
+]

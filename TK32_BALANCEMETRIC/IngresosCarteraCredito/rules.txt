@@ -1,0 +1,1 @@
+Aplicamos ajuste de variación semestral para el campo sal_act

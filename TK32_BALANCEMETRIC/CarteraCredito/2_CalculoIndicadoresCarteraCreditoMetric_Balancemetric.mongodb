@@ -1,0 +1,2024 @@
+[
+  {
+    $match: {
+      $expr: {
+        $eq: [
+          "$fecha_valor",
+          {
+            $subtract: [
+              {
+                $toDate: {
+                  $dateFromString: {
+                    dateString: {
+                      $dateToString: {
+                        format:
+                          "%Y-%m-%dT00:00:00%z",
+                        date: {
+                          $toDate: "$$NOW",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $multiply: [
+                  {
+                    $toInt: "37",
+                    //"{{$json.offSet}}"
+                  },
+                  86400000,
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "CarteraCreditometric",
+      localField: "yesterdayDate",
+      foreignField: "fecha_valor",
+      as: "CarteraCreditometricYesterday",
+    },
+  },
+  {
+    $lookup: {
+      from: "CarteraCreditometric",
+      localField: "previusMonthDate",
+      foreignField: "fecha_valor",
+      as: "CarteraCreditometricpreviusMonth",
+    },
+  },
+  {
+    $lookup: {
+      from: "CarteraCreditometric",
+      localField: "previusMonthLastDate",
+      foreignField: "fecha_valor",
+      as: "CarteraCreditometricpreviusMonthLastDate",
+    },
+  },
+  {
+    $lookup: {
+      from: "CarteraCreditometric",
+      localField: "previusYearDate",
+      foreignField: "fecha_valor",
+      as: "CarteraCreditometricpreviusYear",
+    },
+  },
+  {
+    $lookup: {
+      from: "CarteraCreditometric",
+      localField: "PreviusYearlastDate",
+      foreignField: "fecha_valor",
+      as: "CarteraCreditometricPreviusYearlastDate",
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      fecha_valor: 1,
+      "carteraCreditoBs.total.actual":
+        "$sal_acttotalBs",
+      "carteraCreditoBs.total.anterior":
+        "$sal_anttotalBs",
+      "carteraCreditoBs.total.varMensual": {
+        $subtract: [
+          "$sal_acttotalBs",
+          "$sal_anttotalBs",
+        ],
+      },
+      "carteraCreditoBs.total.netoActual":
+        "$sal_net_acttotalBs",
+      "carteraCreditoBs.total.varAnual": {
+        $subtract: [
+          "$sal_acttotalBs",
+          {
+            $first:
+              "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBs",
+          },
+        ],
+      },
+      "carteraCreditoBs.total.creAnual": {
+        $round: [
+          {
+            $multiply: [
+              100,
+              {
+                $divide: [
+                  {
+                    $subtract: [
+                      "$sal_acttotalBs",
+                      {
+                        $first:
+                          "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBs",
+                      },
+                    ],
+                  },
+                  {
+                    $first:
+                      "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBs",
+                  },
+                ],
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      "carteraCreditoBs.saldoProd.totalBdv.actual":
+        "$sal_acttotalBdvBs",
+      "carteraCreditoBs.saldoProd.totalBdv.anterior":
+        "$sal_anttotalBdvBs",
+      "carteraCreditoBs.saldoProd.totalBdv.varMensual":
+        {
+          $subtract: [
+            "$sal_acttotalBdvBs",
+            "$sal_anttotalBdvBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.totalBdv.netoActual":
+        "$sal_net_acttotalBdvBs",
+      "carteraCreditoBs.saldoProd.totalBdv.varAnual":
+        {
+          $subtract: [
+            "$sal_acttotalBdvBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdvBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.totalBdv.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_acttotalBdvBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdvBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdvBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.totalBdv.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_acttotalBdvBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.totalBdv.nombre":
+        "Total",
+      "carteraCreditoBs.saldoProd.cartTradicional.actual":
+        "$sal_actcartTradicionalBs",
+      "carteraCreditoBs.saldoProd.cartTradicional.anterior":
+        "$sal_antcartTradicionalBs",
+      "carteraCreditoBs.saldoProd.cartTradicional.varMensual":
+        {
+          $subtract: [
+            "$sal_actcartTradicionalBs",
+            "$sal_antcartTradicionalBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.cartTradicional.netoActual":
+        "$sal_net_actcartTradicionalBs",
+      "carteraCreditoBs.saldoProd.cartTradicional.varAnual":
+        {
+          $subtract: [
+            "$sal_actcartTradicionalBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicionalBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.cartTradicional.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actcartTradicionalBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicionalBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicionalBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.cartTradicional.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actcartTradicionalBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.cartTradicional.nombre":
+        "Cartera Tradicional",
+      "carteraCreditoBs.saldoProd.comercialUVC.actual":
+        "$sal_actcomercialUVCBs",
+      "carteraCreditoBs.saldoProd.comercialUVC.anterior":
+        "$sal_antcomercialUVCBs",
+      "carteraCreditoBs.saldoProd.comercialUVC.varMensual":
+        {
+          $subtract: [
+            "$sal_actcomercialUVCBs",
+            "$sal_antcomercialUVCBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.comercialUVC.netoActual":
+        "$sal_net_actcomercialUVCBs",
+      "carteraCreditoBs.saldoProd.comercialUVC.varAnual":
+        {
+          $subtract: [
+            "$sal_actcomercialUVCBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVCBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.comercialUVC.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actcomercialUVCBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVCBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVCBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.comercialUVC.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actcomercialUVCBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.comercialUVC.nombre":
+        "COMERCIAL",
+      "carteraCreditoBs.saldoProd.microCredUVC.actual":
+        "$sal_actmicroCredUVCBs",
+      "carteraCreditoBs.saldoProd.microCredUVC.anterior":
+        "$sal_antmicroCredUVCBs",
+      "carteraCreditoBs.saldoProd.microCredUVC.varMensual":
+        {
+          $subtract: [
+            "$sal_actmicroCredUVCBs",
+            "$sal_antmicroCredUVCBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.microCredUVC.netoActual":
+        "$sal_net_actmicroCredUVCBs",
+      "carteraCreditoBs.saldoProd.microCredUVC.varAnual":
+        {
+          $subtract: [
+            "$sal_actmicroCredUVCBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVCBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.microCredUVC.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actmicroCredUVCBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVCBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVCBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.microCredUVC.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actmicroCredUVCBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.microCredUVC.nombre":
+        "MICROCREDITO",
+      "carteraCreditoBs.saldoProd.productivaUVC.actual":
+        "$sal_actproductivaUVCBs",
+      "carteraCreditoBs.saldoProd.productivaUVC.anterior":
+        "$sal_antproductivaUVCBs",
+      "carteraCreditoBs.saldoProd.productivaUVC.varMensual":
+        {
+          $subtract: [
+            "$sal_actproductivaUVCBs",
+            "$sal_antproductivaUVCBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.productivaUVC.netoActual":
+        "$sal_net_actproductivaUVCBs",
+      "carteraCreditoBs.saldoProd.productivaUVC.varAnual":
+        {
+          $subtract: [
+            "$sal_actproductivaUVCBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVCBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.productivaUVC.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actproductivaUVCBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVCBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVCBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.productivaUVC.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actproductivaUVCBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.productivaUVC.nombre":
+        "PRODUCTIVO",
+      "carteraCreditoBs.saldoProd.emprendBdv.actual":
+        "$sal_actemprendBdvBs",
+      "carteraCreditoBs.saldoProd.emprendBdv.anterior":
+        "$sal_antemprendBdvBs",
+      "carteraCreditoBs.saldoProd.emprendBdv.varMensual":
+        {
+          $subtract: [
+            "$sal_actemprendBdvBs",
+            "$sal_antemprendBdvBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.emprendBdv.netoActual":
+        "$sal_net_actemprendBdvBs",
+      "carteraCreditoBs.saldoProd.emprendBdv.varAnual":
+        {
+          $subtract: [
+            "$sal_actemprendBdvBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdvBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.emprendBdv.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actemprendBdvBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdvBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdvBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.emprendBdv.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actemprendBdvBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.emprendBdv.nombre":
+        "EMPRENDEBDV",
+      "carteraCreditoBs.saldoProd.otros.actual":
+        "$sal_actotrosBs",
+      "carteraCreditoBs.saldoProd.otros.anterior":
+        "$sal_antotrosBs",
+      "carteraCreditoBs.saldoProd.otros.varMensual":
+        {
+          $subtract: [
+            "$sal_actotrosBs",
+            "$sal_antotrosBs",
+          ],
+        },
+      "carteraCreditoBs.saldoProd.otros.netoActual":
+        "$sal_net_actotrosBs",
+      "carteraCreditoBs.saldoProd.otros.varAnual":
+        {
+          $subtract: [
+            "$sal_actotrosBs",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actotrosBs",
+            },
+          ],
+        },
+      "carteraCreditoBs.saldoProd.otros.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actotrosBs",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actotrosBs",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actotrosBs",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.otros.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actotrosBs",
+                    "$sal_acttotalBs",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCreditoBs.saldoProd.otros.nombre":
+        "OTROS",
+      "carteraCredito.total.actual":
+        "$sal_acttotal",
+      "carteraCredito.total.anterior":
+        "$sal_anttotal",
+      "carteraCredito.total.varMensual": {
+        $subtract: [
+          "$sal_acttotal",
+          "$sal_anttotal",
+        ],
+      },
+      "carteraCredito.total.netoActual":
+        "$sal_net_acttotal",
+      "carteraCredito.total.varAnual": {
+        $subtract: [
+          "$sal_acttotal",
+          {
+            $first:
+              "$CarteraCreditometricPreviusYearlastDate.sal_acttotal",
+          },
+        ],
+      },
+      "carteraCredito.total.creAnual": {
+        $round: [
+          {
+            $multiply: [
+              100,
+              {
+                $divide: [
+                  {
+                    $subtract: [
+                      "$sal_acttotal",
+                      {
+                        $first:
+                          "$CarteraCreditometricPreviusYearlastDate.sal_acttotal",
+                      },
+                    ],
+                  },
+                  {
+                    $first:
+                      "$CarteraCreditometricPreviusYearlastDate.sal_acttotal",
+                  },
+                ],
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      "carteraCredito.saldoProd.totalBdv.actual":
+        "$sal_acttotalBdv",
+      "carteraCredito.saldoProd.totalBdv.anterior":
+        "$sal_anttotalBdv",
+      "carteraCredito.saldoProd.totalBdv.varMensual":
+        {
+          $subtract: [
+            "$sal_acttotalBdv",
+            "$sal_anttotalBdv",
+          ],
+        },
+      "carteraCredito.saldoProd.totalBdv.netoActual":
+        "$sal_net_acttotalBdv",
+      "carteraCredito.saldoProd.totalBdv.varAnual":
+        {
+          $subtract: [
+            "$sal_acttotalBdv",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdv",
+            },
+          ],
+        },
+      "carteraCredito.saldoProd.totalBdv.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_acttotalBdv",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdv",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdv",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCredito.saldoProd.totalBdv.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_acttotalBdv",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.totalBdv.nombre":
+        "Total",
+      "carteraCredito.saldoProd.cartTradicional.actual":
+        "$sal_actcartTradicional",
+      "carteraCredito.saldoProd.cartTradicional.anterior":
+        "$sal_antcartTradicional",
+      "carteraCredito.saldoProd.cartTradicional.varMensual":
+        {
+          $subtract: [
+            "$sal_actcartTradicional",
+            "$sal_antcartTradicional",
+          ],
+        },
+      "carteraCredito.saldoProd.cartTradicional.netoActual":
+        "$sal_net_actcartTradicional",
+      "carteraCredito.saldoProd.cartTradicional.varAnual":
+        {
+          $subtract: [
+            "$sal_actcartTradicional",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicional",
+            },
+          ],
+        },
+      "carteraCredito.saldoProd.cartTradicional.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actcartTradicional",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicional",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicional",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCredito.saldoProd.cartTradicional.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actcartTradicional",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.cartTradicional.nombre":
+        "Cartera Tradicional",
+      "carteraCredito.saldoProd.comercialUVC.actual":
+        "$sal_actcomercialUVC",
+      "carteraCredito.saldoProd.comercialUVC.anterior":
+        "$sal_antcomercialUVC",
+      "carteraCredito.saldoProd.comercialUVC.varMensual":
+        {
+          $subtract: [
+            "$sal_actcomercialUVC",
+            "$sal_antcomercialUVC",
+          ],
+        },
+      "carteraCredito.saldoProd.comercialUVC.netoActual":
+        "$sal_net_actcomercialUVC",
+      "carteraCredito.saldoProd.comercialUVC.varAnual":
+        {
+          $subtract: [
+            "$sal_actcomercialUVC",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVC",
+            },
+          ],
+        },
+      "carteraCredito.saldoProd.comercialUVC.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actcomercialUVC",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVC",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVC",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCredito.saldoProd.comercialUVC.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actcomercialUVC",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.comercialUVC.nombre":
+        "COMERCIAL",
+      "carteraCredito.saldoProd.microCredUVC.actual":
+        "$sal_actmicroCredUVC",
+      "carteraCredito.saldoProd.microCredUVC.anterior":
+        "$sal_antmicroCredUVC",
+      "carteraCredito.saldoProd.microCredUVC.varMensual":
+        {
+          $subtract: [
+            "$sal_actmicroCredUVC",
+            "$sal_antmicroCredUVC",
+          ],
+        },
+      "carteraCredito.saldoProd.microCredUVC.netoActual":
+        "$sal_net_actmicroCredUVC",
+      "carteraCredito.saldoProd.microCredUVC.varAnual":
+        {
+          $subtract: [
+            "$sal_actmicroCredUVC",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVC",
+            },
+          ],
+        },
+      "carteraCredito.saldoProd.microCredUVC.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actmicroCredUVC",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVC",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVC",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCredito.saldoProd.microCredUVC.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actmicroCredUVC",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.microCredUVC.nombre":
+        "MICROCREDITO",
+      "carteraCredito.saldoProd.productivaUVC.actual":
+        "$sal_actproductivaUVC",
+      "carteraCredito.saldoProd.productivaUVC.anterior":
+        "$sal_antproductivaUVC",
+      "carteraCredito.saldoProd.productivaUVC.varMensual":
+        {
+          $subtract: [
+            "$sal_actproductivaUVC",
+            "$sal_antproductivaUVC",
+          ],
+        },
+      "carteraCredito.saldoProd.productivaUVC.netoActual":
+        "$sal_net_actproductivaUVC",
+      "carteraCredito.saldoProd.productivaUVC.varAnual":
+        {
+          $subtract: [
+            "$sal_actproductivaUVC",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVC",
+            },
+          ],
+        },
+      "carteraCredito.saldoProd.productivaUVC.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actproductivaUVC",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVC",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVC",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCredito.saldoProd.productivaUVC.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actproductivaUVC",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.productivaUVC.nombre":
+        "PRODUCTIVO",
+      "carteraCredito.saldoProd.emprendBdv.actual":
+        "$sal_actemprendBdv",
+      "carteraCredito.saldoProd.emprendBdv.anterior":
+        "$sal_antemprendBdv",
+      "carteraCredito.saldoProd.emprendBdv.varMensual":
+        {
+          $subtract: [
+            "$sal_actemprendBdv",
+            "$sal_antemprendBdv",
+          ],
+        },
+      "carteraCredito.saldoProd.emprendBdv.netoActual":
+        "$sal_net_actemprendBdv",
+      "carteraCredito.saldoProd.emprendBdv.varAnual":
+        {
+          $subtract: [
+            "$sal_actemprendBdv",
+            {
+              $first:
+                "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdv",
+            },
+          ],
+        },
+      "carteraCredito.saldoProd.emprendBdv.creAnual":
+        {
+          $round: [
+            {
+              $multiply: [
+                100,
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        "$sal_actemprendBdv",
+                        {
+                          $first:
+                            "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdv",
+                        },
+                      ],
+                    },
+                    {
+                      $first:
+                        "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdv",
+                    },
+                  ],
+                },
+              ],
+            },
+            4,
+          ],
+        },
+      "carteraCredito.saldoProd.emprendBdv.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actemprendBdv",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.emprendBdv.nombre":
+        "EMPRENDEBDV",
+      "carteraCredito.saldoProd.otros.actual":
+        "$sal_actotros",
+      "carteraCredito.saldoProd.otros.anterior":
+        "$sal_antotros",
+      "carteraCredito.saldoProd.otros.varMensual":
+        {
+          $subtract: [
+            "$sal_actotros",
+            "$sal_antotros",
+          ],
+        },
+      "carteraCredito.saldoProd.otros.netoActual":
+        "$sal_net_actotros",
+      "carteraCredito.saldoProd.otros.varAnual": {
+        $subtract: [
+          "$sal_actotros",
+          {
+            $first:
+              "$CarteraCreditometricPreviusYearlastDate.sal_actotros",
+          },
+        ],
+      },
+      "carteraCredito.saldoProd.otros.creAnual": {
+        $round: [
+          {
+            $multiply: [
+              100,
+              {
+                $divide: [
+                  {
+                    $subtract: [
+                      "$sal_actotros",
+                      {
+                        $first:
+                          "$CarteraCreditometricPreviusYearlastDate.sal_actotros",
+                      },
+                    ],
+                  },
+                  {
+                    $first:
+                      "$CarteraCreditometricPreviusYearlastDate.sal_actotros",
+                  },
+                ],
+              },
+            ],
+          },
+          4,
+        ],
+      },
+      "carteraCredito.saldoProd.otros.pesoPcrtMens":
+        {
+          $round: [
+            {
+              $multiply: [
+                {
+                  $divide: [
+                    "$sal_actotros",
+                    "$sal_acttotal",
+                  ],
+                },
+                100,
+              ],
+            },
+            2,
+          ],
+        },
+      "carteraCredito.saldoProd.otros.nombre":
+        "OTROS",
+    },
+  },
+  {
+    $merge: {
+      into: "Balancemetric",
+      //into: "Balancemetric",
+      on: "fecha_valor",
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+//N8N
+
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fecha_valor", {
+            "$subtract": [
+              {
+                "$toDate": {
+                  "$dateFromString": {
+                    "dateString": {
+                      "$dateToString": {
+                        "format": "%Y-%m-%dT00:00:00%z", 
+                        "date": {
+                          "$toDate": "$$NOW"
+                        }
+                      }
+                    }
+                  }
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "CarteraCreditometric", 
+      "localField": "yesterdayDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CarteraCreditometricYesterday"
+    }
+  }, {
+    "$lookup": {
+      "from": "CarteraCreditometric", 
+      "localField": "previusMonthDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CarteraCreditometricpreviusMonth"
+    }
+  }, {
+    "$lookup": {
+      "from": "CarteraCreditometric", 
+      "localField": "previusMonthLastDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CarteraCreditometricpreviusMonthLastDate"
+    }
+  }, {
+    "$lookup": {
+      "from": "CarteraCreditometric", 
+      "localField": "previusYearDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CarteraCreditometricpreviusYear"
+    }
+  }, {
+    "$lookup": {
+      "from": "CarteraCreditometric", 
+      "localField": "PreviusYearlastDate", 
+      "foreignField": "fecha_valor", 
+      "as": "CarteraCreditometricPreviusYearlastDate"
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "fecha_valor": 1, 
+      "carteraCreditoBs.total.actual": "$sal_acttotalBs", 
+      "carteraCreditoBs.total.anterior": "$sal_anttotalBs", 
+      "carteraCreditoBs.total.varMensual": {
+        "$subtract": [
+          "$sal_acttotalBs", "$sal_anttotalBs"
+        ]
+      }, 
+      "carteraCreditoBs.total.netoActual": "$sal_net_acttotalBs", 
+      "carteraCreditoBs.total.varAnual": {
+        "$subtract": [
+          "$sal_acttotalBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.total.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_acttotalBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.totalBdv.actual": "$sal_acttotalBdvBs", 
+      "carteraCreditoBs.saldoProd.totalBdv.anterior": "$sal_anttotalBdvBs", 
+      "carteraCreditoBs.saldoProd.totalBdv.varMensual": {
+        "$subtract": [
+          "$sal_acttotalBdvBs", "$sal_anttotalBdvBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.totalBdv.netoActual": "$sal_net_acttotalBdvBs", 
+      "carteraCreditoBs.saldoProd.totalBdv.varAnual": {
+        "$subtract": [
+          "$sal_acttotalBdvBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdvBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.totalBdv.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_acttotalBdvBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdvBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdvBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.totalBdv.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_acttotalBdvBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.totalBdv.nombre": "Total", 
+      "carteraCreditoBs.saldoProd.cartTradicional.actual": "$sal_actcartTradicionalBs", 
+      "carteraCreditoBs.saldoProd.cartTradicional.anterior": "$sal_antcartTradicionalBs", 
+      "carteraCreditoBs.saldoProd.cartTradicional.varMensual": {
+        "$subtract": [
+          "$sal_actcartTradicionalBs", "$sal_antcartTradicionalBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.cartTradicional.netoActual": "$sal_net_actcartTradicionalBs", 
+      "carteraCreditoBs.saldoProd.cartTradicional.varAnual": {
+        "$subtract": [
+          "$sal_actcartTradicionalBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicionalBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.cartTradicional.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actcartTradicionalBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicionalBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicionalBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.cartTradicional.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actcartTradicionalBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.cartTradicional.nombre": "Cartera Tradicional", 
+      "carteraCreditoBs.saldoProd.comercialUVC.actual": "$sal_actcomercialUVCBs", 
+      "carteraCreditoBs.saldoProd.comercialUVC.anterior": "$sal_antcomercialUVCBs", 
+      "carteraCreditoBs.saldoProd.comercialUVC.varMensual": {
+        "$subtract": [
+          "$sal_actcomercialUVCBs", "$sal_antcomercialUVCBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.comercialUVC.netoActual": "$sal_net_actcomercialUVCBs", 
+      "carteraCreditoBs.saldoProd.comercialUVC.varAnual": {
+        "$subtract": [
+          "$sal_actcomercialUVCBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVCBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.comercialUVC.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actcomercialUVCBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVCBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVCBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.comercialUVC.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actcomercialUVCBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.comercialUVC.nombre": "COMERCIAL", 
+      "carteraCreditoBs.saldoProd.microCredUVC.actual": "$sal_actmicroCredUVCBs", 
+      "carteraCreditoBs.saldoProd.microCredUVC.anterior": "$sal_antmicroCredUVCBs", 
+      "carteraCreditoBs.saldoProd.microCredUVC.varMensual": {
+        "$subtract": [
+          "$sal_actmicroCredUVCBs", "$sal_antmicroCredUVCBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.microCredUVC.netoActual": "$sal_net_actmicroCredUVCBs", 
+      "carteraCreditoBs.saldoProd.microCredUVC.varAnual": {
+        "$subtract": [
+          "$sal_actmicroCredUVCBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVCBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.microCredUVC.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actmicroCredUVCBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVCBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVCBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.microCredUVC.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actmicroCredUVCBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.microCredUVC.nombre": "MICROCREDITO", 
+      "carteraCreditoBs.saldoProd.productivaUVC.actual": "$sal_actproductivaUVCBs", 
+      "carteraCreditoBs.saldoProd.productivaUVC.anterior": "$sal_antproductivaUVCBs", 
+      "carteraCreditoBs.saldoProd.productivaUVC.varMensual": {
+        "$subtract": [
+          "$sal_actproductivaUVCBs", "$sal_antproductivaUVCBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.productivaUVC.netoActual": "$sal_net_actproductivaUVCBs", 
+      "carteraCreditoBs.saldoProd.productivaUVC.varAnual": {
+        "$subtract": [
+          "$sal_actproductivaUVCBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVCBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.productivaUVC.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actproductivaUVCBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVCBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVCBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.productivaUVC.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actproductivaUVCBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.productivaUVC.nombre": "PRODUCTIVO", 
+      "carteraCreditoBs.saldoProd.emprendBdv.actual": "$sal_actemprendBdvBs", 
+      "carteraCreditoBs.saldoProd.emprendBdv.anterior": "$sal_antemprendBdvBs", 
+      "carteraCreditoBs.saldoProd.emprendBdv.varMensual": {
+        "$subtract": [
+          "$sal_actemprendBdvBs", "$sal_antemprendBdvBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.emprendBdv.netoActual": "$sal_net_actemprendBdvBs", 
+      "carteraCreditoBs.saldoProd.emprendBdv.varAnual": {
+        "$subtract": [
+          "$sal_actemprendBdvBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdvBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.emprendBdv.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actemprendBdvBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdvBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdvBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.emprendBdv.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actemprendBdvBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.emprendBdv.nombre": "EMPRENDEBDV", 
+      "carteraCreditoBs.saldoProd.otros.actual": "$sal_actotrosBs", 
+      "carteraCreditoBs.saldoProd.otros.anterior": "$sal_antotrosBs", 
+      "carteraCreditoBs.saldoProd.otros.varMensual": {
+        "$subtract": [
+          "$sal_actotrosBs", "$sal_antotrosBs"
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.otros.netoActual": "$sal_net_actotrosBs", 
+      "carteraCreditoBs.saldoProd.otros.varAnual": {
+        "$subtract": [
+          "$sal_actotrosBs", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actotrosBs"
+          }
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.otros.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actotrosBs", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actotrosBs"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actotrosBs"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.otros.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actotrosBs", "$sal_acttotalBs"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCreditoBs.saldoProd.otros.nombre": "OTROS", 
+      "carteraCredito.total.actual": "$sal_acttotal", 
+      "carteraCredito.total.anterior": "$sal_anttotal", 
+      "carteraCredito.total.varMensual": {
+        "$subtract": [
+          "$sal_acttotal", "$sal_anttotal"
+        ]
+      }, 
+      "carteraCredito.total.netoActual": "$sal_net_acttotal", 
+      "carteraCredito.total.varAnual": {
+        "$subtract": [
+          "$sal_acttotal", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotal"
+          }
+        ]
+      }, 
+      "carteraCredito.total.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_acttotal", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotal"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotal"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.totalBdv.actual": "$sal_acttotalBdv", 
+      "carteraCredito.saldoProd.totalBdv.anterior": "$sal_anttotalBdv", 
+      "carteraCredito.saldoProd.totalBdv.varMensual": {
+        "$subtract": [
+          "$sal_acttotalBdv", "$sal_anttotalBdv"
+        ]
+      }, 
+      "carteraCredito.saldoProd.totalBdv.netoActual": "$sal_net_acttotalBdv", 
+      "carteraCredito.saldoProd.totalBdv.varAnual": {
+        "$subtract": [
+          "$sal_acttotalBdv", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdv"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.totalBdv.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_acttotalBdv", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdv"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_acttotalBdv"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.totalBdv.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_acttotalBdv", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.totalBdv.nombre": "Total", 
+      "carteraCredito.saldoProd.cartTradicional.actual": "$sal_actcartTradicional", 
+      "carteraCredito.saldoProd.cartTradicional.anterior": "$sal_antcartTradicional", 
+      "carteraCredito.saldoProd.cartTradicional.varMensual": {
+        "$subtract": [
+          "$sal_actcartTradicional", "$sal_antcartTradicional"
+        ]
+      }, 
+      "carteraCredito.saldoProd.cartTradicional.netoActual": "$sal_net_actcartTradicional", 
+      "carteraCredito.saldoProd.cartTradicional.varAnual": {
+        "$subtract": [
+          "$sal_actcartTradicional", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicional"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.cartTradicional.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actcartTradicional", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicional"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcartTradicional"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.cartTradicional.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actcartTradicional", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.cartTradicional.nombre": "Cartera Tradicional", 
+      "carteraCredito.saldoProd.comercialUVC.actual": "$sal_actcomercialUVC", 
+      "carteraCredito.saldoProd.comercialUVC.anterior": "$sal_antcomercialUVC", 
+      "carteraCredito.saldoProd.comercialUVC.varMensual": {
+        "$subtract": [
+          "$sal_actcomercialUVC", "$sal_antcomercialUVC"
+        ]
+      }, 
+      "carteraCredito.saldoProd.comercialUVC.netoActual": "$sal_net_actcomercialUVC", 
+      "carteraCredito.saldoProd.comercialUVC.varAnual": {
+        "$subtract": [
+          "$sal_actcomercialUVC", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVC"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.comercialUVC.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actcomercialUVC", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVC"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actcomercialUVC"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.comercialUVC.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actcomercialUVC", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.comercialUVC.nombre": "COMERCIAL", 
+      "carteraCredito.saldoProd.microCredUVC.actual": "$sal_actmicroCredUVC", 
+      "carteraCredito.saldoProd.microCredUVC.anterior": "$sal_antmicroCredUVC", 
+      "carteraCredito.saldoProd.microCredUVC.varMensual": {
+        "$subtract": [
+          "$sal_actmicroCredUVC", "$sal_antmicroCredUVC"
+        ]
+      }, 
+      "carteraCredito.saldoProd.microCredUVC.netoActual": "$sal_net_actmicroCredUVC", 
+      "carteraCredito.saldoProd.microCredUVC.varAnual": {
+        "$subtract": [
+          "$sal_actmicroCredUVC", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVC"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.microCredUVC.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actmicroCredUVC", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVC"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actmicroCredUVC"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.microCredUVC.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actmicroCredUVC", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.microCredUVC.nombre": "MICROCREDITO", 
+      "carteraCredito.saldoProd.productivaUVC.actual": "$sal_actproductivaUVC", 
+      "carteraCredito.saldoProd.productivaUVC.anterior": "$sal_antproductivaUVC", 
+      "carteraCredito.saldoProd.productivaUVC.varMensual": {
+        "$subtract": [
+          "$sal_actproductivaUVC", "$sal_antproductivaUVC"
+        ]
+      }, 
+      "carteraCredito.saldoProd.productivaUVC.netoActual": "$sal_net_actproductivaUVC", 
+      "carteraCredito.saldoProd.productivaUVC.varAnual": {
+        "$subtract": [
+          "$sal_actproductivaUVC", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVC"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.productivaUVC.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actproductivaUVC", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVC"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actproductivaUVC"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.productivaUVC.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actproductivaUVC", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.productivaUVC.nombre": "PRODUCTIVO", 
+      "carteraCredito.saldoProd.emprendBdv.actual": "$sal_actemprendBdv", 
+      "carteraCredito.saldoProd.emprendBdv.anterior": "$sal_antemprendBdv", 
+      "carteraCredito.saldoProd.emprendBdv.varMensual": {
+        "$subtract": [
+          "$sal_actemprendBdv", "$sal_antemprendBdv"
+        ]
+      }, 
+      "carteraCredito.saldoProd.emprendBdv.netoActual": "$sal_net_actemprendBdv", 
+      "carteraCredito.saldoProd.emprendBdv.varAnual": {
+        "$subtract": [
+          "$sal_actemprendBdv", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdv"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.emprendBdv.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actemprendBdv", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdv"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actemprendBdv"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.emprendBdv.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actemprendBdv", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.emprendBdv.nombre": "EMPRENDEBDV", 
+      "carteraCredito.saldoProd.otros.actual": "$sal_actotros", 
+      "carteraCredito.saldoProd.otros.anterior": "$sal_antotros", 
+      "carteraCredito.saldoProd.otros.varMensual": {
+        "$subtract": [
+          "$sal_actotros", "$sal_antotros"
+        ]
+      }, 
+      "carteraCredito.saldoProd.otros.netoActual": "$sal_net_actotros", 
+      "carteraCredito.saldoProd.otros.varAnual": {
+        "$subtract": [
+          "$sal_actotros", {
+            "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actotros"
+          }
+        ]
+      }, 
+      "carteraCredito.saldoProd.otros.creAnual": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  {
+                    "$subtract": [
+                      "$sal_actotros", {
+                        "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actotros"
+                      }
+                    ]
+                  }, {
+                    "$first": "$CarteraCreditometricPreviusYearlastDate.sal_actotros"
+                  }
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "carteraCredito.saldoProd.otros.pesoPcrtMens": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$sal_actotros", "$sal_acttotal"
+                ]
+              }, 100
+            ]
+          }, 2
+        ]
+      }, 
+      "carteraCredito.saldoProd.otros.nombre": "OTROS"
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

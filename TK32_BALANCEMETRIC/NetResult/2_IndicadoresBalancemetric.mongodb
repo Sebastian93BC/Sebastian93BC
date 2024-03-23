@@ -1,0 +1,139 @@
+[
+    {
+      "$match": {
+        "$expr": {
+          "$eq": [
+            {
+              "$subtract": [
+                {
+                  "$toDate": {
+                    "$dateFromString": {
+                      "dateString": {
+                        "$dateToString": {
+                          "format": "%Y-%m-%dT00:00:00%z", 
+                          "date": {
+                            "$toDate": "$$NOW"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }, {
+                  "$multiply": [
+                    {
+                      "$toInt": "{{$json.offSet}}"
+                    }, 86400000
+                  ]
+                }
+              ]
+            }, "$fecha_valor"
+          ]
+        }
+      }
+    }, {
+      "$lookup": {
+        "from": "DailyGroupNetResult", 
+        "localField": "previusMonthDate", 
+        "foreignField": "fecha_valor", 
+        "as": "DailyGroupNetResultpreviusMonthDate"
+      }
+    }, {
+      "$lookup": {
+        "from": "DailyGroupNetResult", 
+        "localField": "previusYearDate", 
+        "foreignField": "fecha_valor", 
+        "as": "DailyGroupNetResultpreviusYearDate"
+      }
+    }, {
+      "$lookup": {
+        "from": "Balancemetric", 
+        "localField": "previusMonthDate", 
+        "foreignField": "fecha_valor", 
+        "as": "BalancemetricpreviusMonthDate"
+      }
+    }, {
+      "$lookup": {
+        "from": "Balancemetric", 
+        "localField": "previusYearDate", 
+        "foreignField": "fecha_valor", 
+        "as": "BalancemetricpreviusYearDate"
+      }
+    }, {
+      "$project": {
+        "_id": 0, 
+        "fecha_valor": 1, 
+        "currentBs": {
+          "$cond": [
+            "$firstDayMonth", "$sal_net_actTotalBs", {
+              "$subtract": [
+                "$sal_net_actTotalBs", "$sal_net_actTotalBsyesterday"
+              ]
+            }
+          ]
+        }, 
+        "current": {
+          "$cond": [
+            "$firstDayMonth", "$sal_net_actTotalBsUSD", {
+              "$sum": [
+                "$sal_net_actTotalBsUSD", "$sal_net_actTotalBsUSDyesterday"
+              ]
+            }
+          ]
+        }, 
+        "monthAccBs": {
+          "$sum": [
+            "$sal_net_actTotalBs"
+          ]
+        }, 
+        "monthAcc": {
+          "$sum": [
+            "$sal_net_actTotalBsUSD"
+          ]
+        }, 
+        "monthAccPrevBs": {
+          "$first": "$BalancemetricpreviusMonthDate.netResult.total.monthAcc"
+        }, 
+        "monthAccPrev": {
+          "$first": "$BalancemetricpreviusMonthDate.netResultBs.total.monthAcc"
+        }, 
+        "anualAcAnualBs": {
+          "$sum": [
+            "$sal_actTotalBs", "$smnnlAdjstmntValue"
+          ]
+        }, 
+        "anualAcAnual": {
+          "$sum": [
+            "$sal_actTotalBsUSD", "$smnnlAdjstmntValueUSD"
+          ]
+        }, 
+        "annualAccPrevBs": {
+          "$first": "$BalancemetricpreviusMonthDate.netResultBs.netResultannualAccPrev"
+        }, 
+        "annualAccPrev": {
+          "$first": "$BalancemetricpreviusMonthDate.netResult.total.annualAccPrev"
+        }
+      }
+    }, {
+      "$project": {
+        "_id": 0, 
+        "fecha_valor": 1, 
+        "netResultBs.total.current": "$currentBs", 
+        "netResultBs.total.monthAcc": "$monthAccBs", 
+        "netResultBs.total.monthAccPrev": "$monthAccPrevBs", 
+        "netResultBs.total.anualAcAnual": "$anualAcAnualBs", 
+        "netResultBs.total.annualAccPrev": "$annualAccPrevBs", 
+        "netResult.total.current": "$current", 
+        "netResult.total.monthAcc": "$monthAcc", 
+        "netResult.total.monthAccPrev": "$monthAccPrev", 
+        "netResult.total.anualAcAnual": "$anualAcAnual", 
+        "netResult.total.annualAccPrev": "$annualAccPrev"
+      }
+    }, {
+      "$merge": {
+        "into": "Balancemetric", 
+        "on": "fecha_valor", 
+        "whenMatched": "merge", 
+        "whenNotMatched": "insert"
+      }
+    }
+  ]

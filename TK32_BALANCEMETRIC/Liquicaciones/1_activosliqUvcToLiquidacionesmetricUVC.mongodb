@@ -1,0 +1,1061 @@
+[
+  {
+    "$limit": 1
+  }, {
+    "$lookup": {
+      "from": "Parametricliquidacion", 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$condicion", "VIGENTE"
+                  ]
+                }
+              }, {
+                "$or": [
+                  {
+                    "$expr": {
+                      "$eq": [
+                        "$productoControlGestion", "COMERCIAL"
+                      ]
+                    }
+                  }, {
+                    "$expr": {
+                      "$eq": [
+                        "$productoControlGestion", "PRODUCTIVO"
+                      ]
+                    }
+                  }, {
+                    "$expr": {
+                      "$eq": [
+                        "$productoControlGestion", "EMPRENDEBDV"
+                      ]
+                    }
+                  }, {
+                    "$expr": {
+                      "$eq": [
+                        "$productoControlGestion", "MICROCREDITO"
+                      ]
+                    }
+                  }, {
+                    "$expr": {
+                      "$eq": [
+                        "$productoControlGestion", "HIPOTECARIO"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "_id": 0
+          }
+        }
+      ], 
+      "as": "Parametricliquidacion"
+    }
+  }, {
+    "$lookup": {
+      "from": "Parametricliquidacion", 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$condicion", "VIGENTE"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    {
+                      "$substrCP": [
+                        "$cuentaContable", 0, 3
+                      ]
+                    }, "131"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "_id": 0
+          }
+        }
+      ], 
+      "as": "Parametricliquidacion131"
+    }
+  }, {
+    "$project": {
+      "todayDate": {
+        "$subtract": [
+          {
+            "$toDate": {
+              "$dateFromString": {
+                "dateString": {
+                  "$dateToString": {
+                    "format": "%Y-%m-%dT00:00:00%z", 
+                    "date": {
+                      "$toDate": "$$NOW"
+                    }
+                  }
+                }
+              }
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
+      }, 
+      "cuentasContable": "$Parametricliquidacion.cuentaContable", 
+      "accntngAccnts131": "$Parametricliquidacion131.cuentaContable", 
+      "Parametricliquidacion": 1, 
+      "Parametricliquidacion131": 1
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_activos_liq_uvc", 
+      "let": {
+        "todayDate": "$todayDate", 
+        "currentMonth": {
+          "$month": "$todayDate"
+        }, 
+        "currentYear": {
+          "$year": "$todayDate"
+        }
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$todayDate", "$fecha_valor"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$currentMonth", {
+                      "$month": "$formalizacion"
+                    }
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$currentYear", {
+                      "$year": "$formalizacion"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "_id": 0, 
+            "cuenta_contable": 1, 
+            "mto_credito": 1, 
+            "fecha_vencimiento": 1, 
+            "formalizacion": 1
+          }
+        }
+      ], 
+      "as": "sidis_activos_liq_uvc"
+    }
+  }, {
+    "$addFields": {
+      "avaiableData": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$size": "$sidis_activos_liq_uvc"
+              }, 0
+            ]
+          }, true, false
+        ]
+      }, 
+      "firstDayMonth": {
+        "$eq": [
+          {
+            "$dayOfMonth": "$todayDate"
+          }, 1
+        ]
+      }, 
+      "firstDayYear": {
+        "$and": [
+          {
+            "$eq": [
+              {
+                "$dayOfMonth": "$todayDate"
+              }, 1
+            ]
+          }, {
+            "$eq": [
+              {
+                "$month": "$todayDate"
+              }, 1
+            ]
+          }
+        ]
+      }, 
+      "yesterdayDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": -1
+        }
+      }, 
+      "tomorrowDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": 1
+        }
+      }, 
+      "previusMonthDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "month", 
+          "amount": -1
+        }
+      }, 
+      "previusMonthlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }, 
+              "month": {
+                "$month": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "previusYearDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "year", 
+          "amount": -1
+        }
+      }, 
+      "previusYearlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "sidis_activos_liq_uvc": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$in": [
+              "$$item.cuenta_contable", "$cuentasContable"
+            ]
+          }
+        }
+      }, 
+      "sidis_activos_liq_uvc131": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$in": [
+              "$$item.cuenta_contable", "$accntngAccnts131"
+            ]
+          }
+        }
+      }, 
+      "cuentasContable": "$$REMOVE", 
+      "accntngAccnts131": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "sidis_activos_liq_uvc": {
+        "$map": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "items", 
+          "in": {
+            "$mergeObjects": [
+              "$$items", {
+                "$first": {
+                  "$filter": {
+                    "input": "$Parametricliquidacion", 
+                    "as": "item", 
+                    "cond": {
+                      "$eq": [
+                        "$$item.cuentaContable", "$$items.cuenta_contable"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }, 
+      "sidis_activos_liq_uvc131": {
+        "$map": {
+          "input": "$sidis_activos_liq_uvc131", 
+          "as": "items", 
+          "in": {
+            "$mergeObjects": [
+              "$$items", {
+                "$first": {
+                  "$filter": {
+                    "input": "$Parametricliquidacion131", 
+                    "as": "item", 
+                    "cond": {
+                      "$eq": [
+                        "$$item.cuentaContable", "$$items.cuenta_contable"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "sidis_activos_liq_uvc": {
+        "$map": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "in": {
+            "$mergeObjects": [
+              "$$item", {
+                "plazo": {
+                  "$divide": [
+                    {
+                      "$subtract": [
+                        "$$item.fecha_vencimiento", "$$item.formalizacion"
+                      ]
+                    }, 86400000
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }, 
+      "sidis_activos_liq_uvc131": {
+        "$map": {
+          "input": "$sidis_activos_liq_uvc131", 
+          "as": "item", 
+          "in": {
+            "$mergeObjects": [
+              "$$item", {
+                "plazo": {
+                  "$divide": [
+                    {
+                      "$subtract": [
+                        "$$item.fecha_vencimiento", "$$item.formalizacion"
+                      ]
+                    }, 86400000
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "montoLiqProdVigente": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.condicion", "VIGENTE"
+            ]
+          }
+        }
+      }, 
+      "numLiqProdVigente": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.condicion", "VIGENTE"
+            ]
+          }
+        }
+      }, 
+      "montoLiqProdVigente45d": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$and": [
+              {
+                "$eq": [
+                  "$$item.condicion", "VIGENTE"
+                ]
+              }, {
+                "$lte": [
+                  "$$item.plazo", 46
+                ]
+              }
+            ]
+          }
+        }
+      }, 
+      "montoLiqProdVigente6m": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$and": [
+              {
+                "$eq": [
+                  "$$item.condicion", "VIGENTE"
+                ]
+              }, {
+                "$gt": [
+                  "$$item.plazo", 46
+                ]
+              }, {
+                "$lte": [
+                  "$$item.plazo", 186
+                ]
+              }
+            ]
+          }
+        }
+      }, 
+      "montoLiqProdVigente9m": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$and": [
+              {
+                "$eq": [
+                  "$$item.condicion", "VIGENTE"
+                ]
+              }, {
+                "$gt": [
+                  "$$item.plazo", 186
+                ]
+              }, {
+                "$lte": [
+                  "$$item.plazo", 280
+                ]
+              }
+            ]
+          }
+        }
+      }, 
+      "montoLiqProdVigente1a": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$and": [
+              {
+                "$eq": [
+                  "$$item.condicion", "VIGENTE"
+                ]
+              }, {
+                "$gt": [
+                  "$$item.plazo", 280
+                ]
+              }, {
+                "$lte": [
+                  "$$item.plazo", 360
+                ]
+              }
+            ]
+          }
+        }
+      }, 
+      "montoLiqProdVigenteMas1a": {
+        "$filter": {
+          "input": "$sidis_activos_liq_uvc", 
+          "as": "item", 
+          "cond": {
+            "$and": [
+              {
+                "$eq": [
+                  "$$item.condicion", "VIGENTE"
+                ]
+              }, {
+                "$gt": [
+                  "$$item.plazo", 360
+                ]
+              }
+            ]
+          }
+        }
+      }, 
+      "settlmntAmount": {
+        "$sum": [
+          "$sidis_activos_liq_uvc131.mto_credito"
+        ]
+      }, 
+      "settlmntCount": {
+        "$size": "$sidis_activos_liq_uvc131.mto_credito"
+      }
+    }
+  }, {
+    "$addFields": {
+      "montoLiqProdVigente": {
+        "$sum": "$montoLiqProdVigente.mto_credito"
+      }, 
+      "numLiqProdVigente": {
+        "$size": "$numLiqProdVigente"
+      }, 
+      "montoLiqProdVigente45d": {
+        "$sum": "$montoLiqProdVigente45d.mto_credito"
+      }, 
+      "montoLiqProdVigente6m": {
+        "$sum": "$montoLiqProdVigente6m.mto_credito"
+      }, 
+      "montoLiqProdVigente9m": {
+        "$sum": "$montoLiqProdVigente9m.mto_credito"
+      }, 
+      "montoLiqProdVigente1a": {
+        "$sum": "$montoLiqProdVigente1a.mto_credito"
+      }, 
+      "montoLiqProdVigenteMas1a": {
+        "$sum": "$montoLiqProdVigenteMas1a.mto_credito"
+      }, 
+      "comercialmontoLiqProdVigente": {
+        "$filter": {
+          "input": "$montoLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "comercialnumLiqProdVigente": {
+        "$filter": {
+          "input": "$numLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "comercialmontoLiqProdVigente45d": {
+        "$filter": {
+          "input": "$montoLiqProdVigente45d", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "comercialmontoLiqProdVigente6m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente6m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "comercialmontoLiqProdVigente9m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente9m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "comercialmontoLiqProdVigente1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigente1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "comercialmontoLiqProdVigenteMas1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigenteMas1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "COMERCIAL"
+            ]
+          }
+        }
+      }, 
+      "productivomontoLiqProdVigente": {
+        "$filter": {
+          "input": "$montoLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "productivonumLiqProdVigente": {
+        "$filter": {
+          "input": "$numLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "productivomontoLiqProdVigente45d": {
+        "$filter": {
+          "input": "$montoLiqProdVigente45d", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "productivomontoLiqProdVigente6m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente6m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "productivomontoLiqProdVigente9m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente9m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "productivomontoLiqProdVigente1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigente1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "productivomontoLiqProdVigenteMas1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigenteMas1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "PRODUCTIVO"
+            ]
+          }
+        }
+      }, 
+      "hipotecariomontoLiqProdVigente": {
+        "$filter": {
+          "input": "$montoLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "hipotecarionumLiqProdVigente": {
+        "$filter": {
+          "input": "$numLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "hipotecariomontoLiqProdVigente45d": {
+        "$filter": {
+          "input": "$montoLiqProdVigente45d", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "hipotecariomontoLiqProdVigente6m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente6m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "hipotecariomontoLiqProdVigente9m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente9m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "hipotecariomontoLiqProdVigente1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigente1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "hipotecariomontoLiqProdVigenteMas1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigenteMas1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "HIPOTECARIO"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvmontoLiqProdVigente": {
+        "$filter": {
+          "input": "$montoLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvnumLiqProdVigente": {
+        "$filter": {
+          "input": "$numLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvmontoLiqProdVigente45d": {
+        "$filter": {
+          "input": "$montoLiqProdVigente45d", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvmontoLiqProdVigente6m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente6m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvmontoLiqProdVigente9m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente9m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvmontoLiqProdVigente1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigente1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "emprendeBdvmontoLiqProdVigenteMas1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigenteMas1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "EMPRENDEBDV"
+            ]
+          }
+        }
+      }, 
+      "microCredmontoLiqProdVigente": {
+        "$filter": {
+          "input": "$montoLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }, 
+      "microCrednumLiqProdVigente": {
+        "$filter": {
+          "input": "$numLiqProdVigente", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }, 
+      "microCredmontoLiqProdVigente45d": {
+        "$filter": {
+          "input": "$montoLiqProdVigente45d", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }, 
+      "microCredmontoLiqProdVigente6m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente6m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }, 
+      "microCredmontoLiqProdVigente9m": {
+        "$filter": {
+          "input": "$montoLiqProdVigente9m", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }, 
+      "microCredmontoLiqProdVigente1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigente1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }, 
+      "microCredmontoLiqProdVigenteMas1a": {
+        "$filter": {
+          "input": "$montoLiqProdVigenteMas1a", 
+          "as": "item", 
+          "cond": {
+            "$eq": [
+              "$$item.productoControlGestion", "MICROCREDITO"
+            ]
+          }
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "Parametricliquidacion": "$$REMOVE", 
+      "Parametricliquidacion131": "$$REMOVE", 
+      "sidis_activos_liq_uvc": "$$REMOVE", 
+      "sidis_activos_liq_uvc131": "$$REMOVE", 
+      "todayDate": "$$REMOVE", 
+      "fecha_valor": "$todayDate", 
+      "comercialmontoLiqProdVigente": {
+        "$sum": "$comercialmontoLiqProdVigente.mto_credito"
+      }, 
+      "comercialnumLiqProdVigente": {
+        "$size": "$comercialnumLiqProdVigente.mto_credito"
+      }, 
+      "comercialmontoLiqProdVigente45d": {
+        "$sum": "$comercialmontoLiqProdVigente45d.mto_credito"
+      }, 
+      "comercialmontoLiqProdVigente6m": {
+        "$sum": "$comercialmontoLiqProdVigente6m.mto_credito"
+      }, 
+      "comercialmontoLiqProdVigente9m": {
+        "$sum": "$comercialmontoLiqProdVigente9m.mto_credito"
+      }, 
+      "comercialmontoLiqProdVigente1a": {
+        "$sum": "$comercialmontoLiqProdVigente1a.mto_credito"
+      }, 
+      "comercialmontoLiqProdVigenteMas1a": {
+        "$sum": "$comercialmontoLiqProdVigenteMas1a.mto_credito"
+      }, 
+      "productivomontoLiqProdVigente": {
+        "$sum": "$productivomontoLiqProdVigente.mto_credito"
+      }, 
+      "productivonumLiqProdVigente": {
+        "$size": "$productivonumLiqProdVigente.mto_credito"
+      }, 
+      "productivomontoLiqProdVigente45d": {
+        "$sum": "$productivomontoLiqProdVigente45d.mto_credito"
+      }, 
+      "productivomontoLiqProdVigente6m": {
+        "$sum": "$productivomontoLiqProdVigente6m.mto_credito"
+      }, 
+      "productivomontoLiqProdVigente9m": {
+        "$sum": "$productivomontoLiqProdVigente9m.mto_credito"
+      }, 
+      "productivomontoLiqProdVigente1a": {
+        "$sum": "$productivomontoLiqProdVigente1a.mto_credito"
+      }, 
+      "productivomontoLiqProdVigenteMas1a": {
+        "$sum": "$productivomontoLiqProdVigenteMas1a.mto_credito"
+      }, 
+      "hipotecariomontoLiqProdVigente": {
+        "$sum": "$hipotecariomontoLiqProdVigente.mto_credito"
+      }, 
+      "hipotecarionumLiqProdVigente": {
+        "$size": "$hipotecarionumLiqProdVigente.mto_credito"
+      }, 
+      "hipotecariomontoLiqProdVigente45d": {
+        "$sum": "$hipotecariomontoLiqProdVigente45d.mto_credito"
+      }, 
+      "hipotecariomontoLiqProdVigente6m": {
+        "$sum": "$hipotecariomontoLiqProdVigente6m.mto_credito"
+      }, 
+      "hipotecariomontoLiqProdVigente9m": {
+        "$sum": "$hipotecariomontoLiqProdVigente9m.mto_credito"
+      }, 
+      "hipotecariomontoLiqProdVigente1a": {
+        "$sum": "$hipotecariomontoLiqProdVigente1a.mto_credito"
+      }, 
+      "hipotecariomontoLiqProdVigenteMas1a": {
+        "$sum": "$hipotecariomontoLiqProdVigenteMas1a.mto_credito"
+      }, 
+      "emprendeBdvmontoLiqProdVigente": {
+        "$sum": "$emprendeBdvmontoLiqProdVigente.mto_credito"
+      }, 
+      "emprendeBdvnumLiqProdVigente": {
+        "$size": "$emprendeBdvnumLiqProdVigente.mto_credito"
+      }, 
+      "emprendeBdvmontoLiqProdVigente45d": {
+        "$sum": "$emprendeBdvmontoLiqProdVigente45d.mto_credito"
+      }, 
+      "emprendeBdvmontoLiqProdVigente6m": {
+        "$sum": "$emprendeBdvmontoLiqProdVigente6m.mto_credito"
+      }, 
+      "emprendeBdvmontoLiqProdVigente9m": {
+        "$sum": "$emprendeBdvmontoLiqProdVigente9m.mto_credito"
+      }, 
+      "emprendeBdvmontoLiqProdVigente1a": {
+        "$sum": "$emprendeBdvmontoLiqProdVigente1a.mto_credito"
+      }, 
+      "emprendeBdvmontoLiqProdVigenteMas1a": {
+        "$sum": "$emprendeBdvmontoLiqProdVigenteMas1a.mto_credito"
+      }, 
+      "microCredmontoLiqProdVigente": {
+        "$sum": "$microCredmontoLiqProdVigente.mto_credito"
+      }, 
+      "microCrednumLiqProdVigente": {
+        "$size": "$microCrednumLiqProdVigente.mto_credito"
+      }, 
+      "microCredmontoLiqProdVigente45d": {
+        "$sum": "$microCredmontoLiqProdVigente45d.mto_credito"
+      }, 
+      "microCredmontoLiqProdVigente6m": {
+        "$sum": "$microCredmontoLiqProdVigente6m.mto_credito"
+      }, 
+      "microCredmontoLiqProdVigente9m": {
+        "$sum": "$microCredmontoLiqProdVigente9m.mto_credito"
+      }, 
+      "microCredmontoLiqProdVigente1a": {
+        "$sum": "$microCredmontoLiqProdVigente1a.mto_credito"
+      }, 
+      "microCredmontoLiqProdVigenteMas1a": {
+        "$sum": "$microCredmontoLiqProdVigenteMas1a.mto_credito"
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Liquidacionmetric", 
+      "on": "fecha_valor", 
+      "whenMatched": "replace", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

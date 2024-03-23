@@ -1,0 +1,340 @@
+[
+  {
+    $match: {
+      $expr: {
+        $eq: [
+          "$fecha_valor",
+          {
+            $subtract: [
+              {
+                $toDate: {
+                  $dateFromString: {
+                    dateString: {
+                      $dateToString: {
+                        format:
+                          "%Y-%m-%dT00:00:00%z",
+                        date: {
+                          $toDate: "$$NOW",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $multiply: [
+                  {
+                    $toInt: "1",
+                    //"{{$json.offSet}}"
+                  },
+                  86400000,
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $project: {
+      fecha_valor: 1,
+      sal_acttotalBs: 1,
+      sal_acttotalBdvBs: 1,
+      sal_actcartTradicionalBs: 1,
+      sal_actcomercialUVCBs: 1,
+      sal_actmicroCredUVCBs: 1,
+      sal_actproductivaUVCBs: 1,
+      sal_actemprendBdvBs: 1,
+      sal_actotrosBs: 1,
+      sal_acttotal: 1,
+      sal_acttotalBdv: 1,
+      sal_actcartTradicional: 1,
+      sal_actcomercialUVC: 1,
+      sal_actmicroCredUVC: 1,
+      sal_actproductivaUVC: 1,
+      sal_actemprendBdv: 1,
+      sal_actotros: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "Balancemetric",
+      let: {
+        monthDate: {
+          $month: "$fecha_valor",
+        },
+        yearDate: {
+          $year: "$fecha_valor",
+        },
+      },
+      pipeline: [
+        {
+          $match: {
+            $and: [
+              {
+                $expr: {
+                  $eq: [
+                    {
+                      $year: "$fecha_valor",
+                    },
+                    "$$yearDate",
+                  ],
+                },
+              },
+              {
+                $expr: {
+                  $eq: [
+                    {
+                      $month: "$fecha_valor",
+                    },
+                    "$$monthDate",
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            fecha_valor: 1,
+            carteraCreditoBs: 1,
+            carteraCredito: 1,
+          },
+        },
+      ],
+      as: "Balancemetric",
+    },
+  },
+  {
+    $unwind: {
+      path: "$Balancemetric",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $replaceRoot: {
+      newRoot: {
+        $mergeObjects: [
+          "$$ROOT",
+          "$Balancemetric",
+        ],
+      },
+    },
+  },
+  {
+    $addFields: {
+      sal_acttotalBs: "$$REMOVE",
+      sal_acttotalBdvBs: "$$REMOVE",
+      sal_actcartTradicionalBs: "$$REMOVE",
+      sal_actcomercialUVCBs: "$$REMOVE",
+      sal_actmicroCredUVCBs: "$$REMOVE",
+      sal_actproductivaUVCBs: "$$REMOVE",
+      sal_actemprendBdvBs: "$$REMOVE",
+      sal_actotrosBs: "$$REMOVE",
+      sal_acttotal: "$$REMOVE",
+      sal_acttotalBdv: "$$REMOVE",
+      sal_actcartTradicional: "$$REMOVE",
+      sal_actcomercialUVC: "$$REMOVE",
+      sal_actmicroCredUVC: "$$REMOVE",
+      sal_actproductivaUVC: "$$REMOVE",
+      sal_actemprendBdv: "$$REMOVE",
+      sal_actotros: "$$REMOVE",
+      Balancemetric: "$$REMOVE",
+      _id: "$$REMOVE",
+      "carteraCreditoBs.total.mensual":
+        "$sal_acttotalBs",
+      "carteraCreditoBs.saldoProd.totalBdv.mensual":
+        "$sal_acttotalBdvBs",
+      "carteraCreditoBs.saldoProd.cartTradicional.mensual":
+        "$sal_actcartTradicionalBs",
+      "carteraCreditoBs.saldoProd.comercialUVC.mensual":
+        "$sal_actcomercialUVCBs",
+      "carteraCreditoBs.saldoProd.microCredUVC.mensual":
+        "$sal_actmicroCredUVCBs",
+      "carteraCreditoBs.saldoProd.productivaUVC.mensual":
+        "$sal_actproductivaUVCBs",
+      "carteraCreditoBs.saldoProd.emprendBdv.mensual":
+        "$sal_actemprendBdvBs",
+      "carteraCreditoBs.saldoProd.otros.mensual":
+        "$sal_actotrosBs",
+      "carteraCredito.total.mensual":
+        "$sal_acttotal",
+      "carteraCredito.saldoProd.totalBdv.mensual":
+        "$sal_acttotalBdv",
+      "carteraCredito.saldoProd.cartTradicional.mensual":
+        "$sal_actcartTradicional",
+      "carteraCredito.saldoProd.comercialUVC.mensual":
+        "$sal_actcomercialUVC",
+      "carteraCredito.saldoProd.microCredUVC.mensual":
+        "$sal_actmicroCredUVC",
+      "carteraCredito.saldoProd.productivaUVC.mensual":
+        "$sal_actproductivaUVC",
+      "carteraCredito.saldoProd.emprendBdv.mensual":
+        "$sal_actemprendBdv",
+      "carteraCredito.saldoProd.otros.mensual":
+        "$sal_actotros",
+    },
+  },
+  {
+    $merge: {
+      into: "Balancemetric",
+      on: "fecha_valor",
+    },
+  },
+]
+
+//N8N
+[
+    {
+      "$match": {
+        "$expr": {
+          "$eq": [
+            "$fecha_valor", {
+              "$subtract": [
+                {
+                  "$toDate": {
+                    "$dateFromString": {
+                      "dateString": {
+                        "$dateToString": {
+                          "format": "%Y-%m-%dT00:00:00%z", 
+                          "date": {
+                            "$toDate": "$$NOW"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }, {
+                  "$multiply": [
+                    {
+                      "$toInt": "{{$json.offSet}}"
+                    }, 86400000
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }, {
+      "$project": {
+        "fecha_valor": 1, 
+        "sal_acttotalBs": 1, 
+        "sal_acttotalBdvBs": 1, 
+        "sal_actcartTradicionalBs": 1, 
+        "sal_actcomercialUVCBs": 1, 
+        "sal_actmicroCredUVCBs": 1, 
+        "sal_actproductivaUVCBs": 1, 
+        "sal_actemprendBdvBs": 1, 
+        "sal_actotrosBs": 1, 
+        "sal_acttotal": 1, 
+        "sal_acttotalBdv": 1, 
+        "sal_actcartTradicional": 1, 
+        "sal_actcomercialUVC": 1, 
+        "sal_actmicroCredUVC": 1, 
+        "sal_actproductivaUVC": 1, 
+        "sal_actemprendBdv": 1, 
+        "sal_actotros": 1
+      }
+    }, {
+      "$lookup": {
+        "from": "Balancemetric", 
+        "let": {
+          "monthDate": {
+            "$month": "$fecha_valor"
+          }, 
+          "yearDate": {
+            "$year": "$fecha_valor"
+          }
+        }, 
+        "pipeline": [
+          {
+            "$match": {
+              "$and": [
+                {
+                  "$expr": {
+                    "$eq": [
+                      {
+                        "$year": "$fecha_valor"
+                      }, "$$yearDate"
+                    ]
+                  }
+                }, {
+                  "$expr": {
+                    "$eq": [
+                      {
+                        "$month": "$fecha_valor"
+                      }, "$$monthDate"
+                    ]
+                  }
+                }
+              ]
+            }
+          }, {
+            "$project": {
+              "fecha_valor": 1, 
+              "carteraCreditoBs": 1, 
+              "carteraCredito": 1
+            }
+          }
+        ], 
+        "as": "Balancemetric"
+      }
+    }, {
+      "$unwind": {
+        "path": "$Balancemetric", 
+        "preserveNullAndEmptyArrays": true
+      }
+    }, {
+      "$replaceRoot": {
+        "newRoot": {
+          "$mergeObjects": [
+            "$$ROOT", "$Balancemetric"
+          ]
+        }
+      }
+    }, {
+      "$addFields": {
+        "sal_acttotalBs": "$$REMOVE", 
+        "sal_acttotalBdvBs": "$$REMOVE", 
+        "sal_actcartTradicionalBs": "$$REMOVE", 
+        "sal_actcomercialUVCBs": "$$REMOVE", 
+        "sal_actmicroCredUVCBs": "$$REMOVE", 
+        "sal_actproductivaUVCBs": "$$REMOVE", 
+        "sal_actemprendBdvBs": "$$REMOVE", 
+        "sal_actotrosBs": "$$REMOVE", 
+        "sal_acttotal": "$$REMOVE", 
+        "sal_acttotalBdv": "$$REMOVE", 
+        "sal_actcartTradicional": "$$REMOVE", 
+        "sal_actcomercialUVC": "$$REMOVE", 
+        "sal_actmicroCredUVC": "$$REMOVE", 
+        "sal_actproductivaUVC": "$$REMOVE", 
+        "sal_actemprendBdv": "$$REMOVE", 
+        "sal_actotros": "$$REMOVE", 
+        "Balancemetric": "$$REMOVE", 
+        "_id": "$$REMOVE", 
+        "carteraCreditoBs.total.mensual": "$sal_acttotalBs", 
+        "carteraCreditoBs.saldoProd.totalBdv.mensual": "$sal_acttotalBdvBs", 
+        "carteraCreditoBs.saldoProd.cartTradicional.mensual": "$sal_actcartTradicionalBs", 
+        "carteraCreditoBs.saldoProd.comercialUVC.mensual": "$sal_actcomercialUVCBs", 
+        "carteraCreditoBs.saldoProd.microCredUVC.mensual": "$sal_actmicroCredUVCBs", 
+        "carteraCreditoBs.saldoProd.productivaUVC.mensual": "$sal_actproductivaUVCBs", 
+        "carteraCreditoBs.saldoProd.emprendBdv.mensual": "$sal_actemprendBdvBs", 
+        "carteraCreditoBs.saldoProd.otros.mensual": "$sal_actotrosBs", 
+        "carteraCredito.total.mensual": "$sal_acttotal", 
+        "carteraCredito.saldoProd.totalBdv.mensual": "$sal_acttotalBdv", 
+        "carteraCredito.saldoProd.cartTradicional.mensual": "$sal_actcartTradicional", 
+        "carteraCredito.saldoProd.comercialUVC.mensual": "$sal_actcomercialUVC", 
+        "carteraCredito.saldoProd.microCredUVC.mensual": "$sal_actmicroCredUVC", 
+        "carteraCredito.saldoProd.productivaUVC.mensual": "$sal_actproductivaUVC", 
+        "carteraCredito.saldoProd.emprendBdv.mensual": "$sal_actemprendBdv", 
+        "carteraCredito.saldoProd.otros.mensual": "$sal_actotros"
+      }
+    }, {
+      "$merge": {
+        "into": "Balancemetric", 
+        "on": "fecha_valor"
+      }
+    }
+  ]
