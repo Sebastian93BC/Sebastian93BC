@@ -266,6 +266,10 @@
       "Balancemetric": 1
     }
   }, {
+    "$replaceRoot": {
+      "newRoot": "$Balancemetric"
+    }
+  }, {
     "$merge": {
       "into": "Balancemetric", 
       "on": "fecha_valor", 

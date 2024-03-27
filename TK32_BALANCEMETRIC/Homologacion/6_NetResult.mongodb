@@ -326,5 +326,12 @@
         "$first": "$Balancemetric"
       }
     }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": [
+        "fecha_valor"
+      ]
+    }
   }
 ]

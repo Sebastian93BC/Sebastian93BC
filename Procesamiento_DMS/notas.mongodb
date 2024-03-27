@@ -1,65 +1,35 @@
-[
-  {
-    "$project": {
-      "into": {
-        "$regexFind": {
-          "input": {
-            "$toString": "$aggregate"
-          }, 
-          "regex": "into\":\"([^\"]+)\"",
-          "options": "i"
-        }
-      }, 
-      "description": "$kpi", 
-      "endDate": "$completedAt", 
-      "fromColletion": "$baseCollection", 
-      "processDate": "$fechaProceso", 
-      "processName": "$description", 
-      "runtimeInMinutes": "$timeProcessedMinutes", 
-      "startDate": "$runningAt", 
-      "stage": 1
-    }
-  }, {
-    "$unwind": {
-      "path": "$into.captures"
-    }
-  }, {
-    "$addFields": {
-      "toColletion": "$into.captures", 
-      "into": "$$REMOVE", 
-      "status": {
-        "$switch": {
-          "branches": [
-            {
-              "case": {
-                "$eq": [
-                  "$stage", "idle"
-                ]
-              }, 
-              "then": "Espera"
-            }, {
-              "case": {
-                "$eq": [
-                  "$stage", "running"
-                ]
-              }, 
-              "then": "Ejecucion"
-            }, {
-              "case": {
-                "$eq": [
-                  "$stage", "completed"
-                ]
-              }, 
-              "then": "Finalizado"
-            }
-          ]
-        }
-      }
-    }
-  }, {
-    "$merge": {
-      "into": "Statustransformation", 
-      "on": "_id"
-    }
-  }
-]
+{
+  _id: "$$REMOVE",
+  processName:
+    "E3_Transacciones_ComprasDepositosDivisa",
+  processDate: "nda",
+  processFrequency: "mesnual",
+  fromColletion: "sidis_comprasDepositosDivisa",
+  toColletion: "sidis_comprasDepositosDivisa",
+  description:
+    "Genera las metricas de sidis_comprasDepositosDivisa",
+  startDate: "nda",
+  endDate: "nda",
+  runtimeInMinutes: "nda",
+  status: "nda",
+  subProcess: [
+    {
+      subProcessName: "T02_2_acumuladoYTD",
+      subProcessDate: "nda",
+      description: "",
+      processFrequency: "Mensual",
+      fromColletion: "sidis_comprasDepositosDivisa",
+      toColletion: "sidis_comprasDepositosDivisa",
+      startDate: "nda",
+      endDate: "nda",
+      runtimeInMinutes: "nda",
+      status: "En espera",
+      subStage: "1",
+      activeProcess: true,
+      aggregate: "",
+      parallelizationIndex: [],
+    },
+ 
+  ],
+  updatedAt: "$$NOW",
+}

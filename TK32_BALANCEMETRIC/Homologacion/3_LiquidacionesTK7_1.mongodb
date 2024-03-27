@@ -341,7 +341,7 @@
     }
   }, {
     "$merge": {
-      "into": "sidis_brm", 
+      "into": "Balancemetric", 
       "on": [
         "fecha_valor"
       ]
