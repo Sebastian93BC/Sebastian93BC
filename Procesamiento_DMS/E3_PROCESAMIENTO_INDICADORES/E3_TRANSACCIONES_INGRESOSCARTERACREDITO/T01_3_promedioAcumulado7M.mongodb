@@ -1,0 +1,133 @@
+[
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$gte": [
+                "$fechaProceso", {
+                  "$dateAdd": {
+                    "startDate": {
+                      "$dateAdd": {
+                        "startDate": {
+                          "$dateFromParts": {
+                            "year": {
+                              "$year": {
+                                "$toDate": "{{$json.processDate}}"
+                              }
+                            }, 
+                            "month": {
+                              "$month": {
+                                "$toDate": "{{$json.processDate}}"
+                              }
+                            }
+                          }
+                        }, 
+                        "unit": "month", 
+                        "amount": -5
+                      }
+                    }, 
+                    "unit": "day", 
+                    "amount": -1
+                  }
+                }
+              ]
+            }
+          }, {
+            "$expr": {
+              "$lte": [
+                "$fechaProceso", {
+                  "$toDate": "{{$json.processDate}}"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "rifCedula": "$rifCedula"
+        }, 
+        "rifCedula": {
+          "$first": "$rifCedula"
+        }, 
+        "fechaProceso": {
+          "$max": "$fechaProceso"
+        }, 
+        "totalMesBolivares7m": {
+          "$sum": "$totalMesBolivares"
+        }, 
+        "totalMesDolares7m": {
+          "$sum": "$totalMesDolares"
+        }, 
+        "totalMesEuros7m": {
+          "$sum": "$totalMesEuros"
+        }
+      }
+    }, {
+      "$addFields": {
+        "totalPromBolivares7m": {
+          "$round": [
+            {
+              "$divide": [
+                "$totalMesBolivares7m", 7
+              ]
+            }, 4
+          ]
+        }, 
+        "totalPromDolares7m": {
+          "$round": [
+            {
+              "$divide": [
+                "$totalMesDolares7m", 7
+              ]
+            }, 4
+          ]
+        }, 
+        "totalPromEuros7m": {
+          "$round": [
+            {
+              "$divide": [
+                "$totalMesEuros7m", 7
+              ]
+            }, 4
+          ]
+        }, 
+        "rifCedula": "$rifCedula", 
+        "_id": "$$REMOVE", 
+        "acumuladoBolivares7m": {
+          "$round": [
+            {
+              "$sum": "$totalMesBolivares7m"
+            }, 4
+          ]
+        }, 
+        "acumuladoEuros7m": {
+          "$round": [
+            {
+              "$sum": "$totalMesEuros7m"
+            }, 4
+          ]
+        }, 
+        "acumuladoDolares7m": {
+          "$round": [
+            {
+              "$sum": "$totalMesDolares7m"
+            }, 4
+          ]
+        }, 
+        "totalMesBolivares7m": "$$REMOVE", 
+        "totalMesDolares7m": "$$REMOVE", 
+        "totalMesEuros7m": "$$REMOVE"
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_ingresoCarteraCredito", 
+        "on": [
+          "fechaProceso", "rifCedula"
+        ], 
+        "whenNotMatched": "discard"
+      }
+    }
+  ]

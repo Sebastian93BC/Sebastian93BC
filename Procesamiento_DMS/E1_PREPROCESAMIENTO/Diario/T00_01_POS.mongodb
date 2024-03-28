@@ -1,0 +1,569 @@
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$file_date", {
+                "$toDate": "@processDate"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$project": {
+      "fechaProceso": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$FECHA_INFORMACION", ""
+            ]
+          }, 
+          "then": null, 
+          "else": {
+            "$dateFromParts": {
+              "year": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INFORMACION", 0, 4
+                  ]
+                }
+              }, 
+              "month": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INFORMACION", 4, 2
+                  ]
+                }
+              }, 
+              "day": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INFORMACION", 6, 2
+                  ]
+                }
+              }, 
+              "hour": 0, 
+              "minute": 0, 
+              "second": 0, 
+              "millisecond": 0
+            }
+          }
+        }
+      }, 
+      "codigoAfiliacion": "$CODIGO_AFILIACION", 
+      "nroCuenta": "$NRO_CUENTA", 
+      "rifCedula": "$RIF", 
+      "nombre": "$NOMBRE", 
+      "categoria": "$CATEGORIA", 
+      "descripCategoria": "$DESCRIP_CATEGORIA", 
+      "status": "$STATUS", 
+      "fechaAfiliacion": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$FECHA_AFILIACION", ""
+            ]
+          }, 
+          "then": null, 
+          "else": {
+            "$dateFromParts": {
+              "year": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_AFILIACION", 0, 4
+                  ]
+                }
+              }, 
+              "month": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_AFILIACION", 4, 2
+                  ]
+                }
+              }, 
+              "day": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_AFILIACION", 6, 2
+                  ]
+                }
+              }, 
+              "hour": 0, 
+              "minute": 0, 
+              "second": 0, 
+              "millisecond": 0
+            }
+          }
+        }
+      }, 
+      "fechaDesafiliacion": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$FECHA_DESAFILIACION", ""
+            ]
+          }, 
+          "then": null, 
+          "else": {
+            "$dateFromParts": {
+              "year": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_DESAFILIACION", 0, 4
+                  ]
+                }
+              }, 
+              "month": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_DESAFILIACION", 4, 2
+                  ]
+                }
+              }, 
+              "day": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_DESAFILIACION", 6, 2
+                  ]
+                }
+              }, 
+              "hour": 0, 
+              "minute": 0, 
+              "second": 0, 
+              "millisecond": 0
+            }
+          }
+        }
+      }, 
+      "nroTienda": "$NRO_TIENDA", 
+      "codAgenciaAsoc": "$COD_AGENCIA_ASOC", 
+      "nombAgenciaAsoc": "$NOMB_AGENCIA_ASOC", 
+      "region": "$REGION", 
+      "descripRegion": "$DESCRIP_REGION", 
+      "territorio": {
+        "$replaceAll": {
+          "input": "$TERRITORIO", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "banca": "$BANCA", 
+      "segmento": "$SEGMENTO", 
+      "subSegmento": "$SUB_SEGMENTO", 
+      "tasaDebito": "$TASA_DEBITO", 
+      "tasaCredito": "$TASA_CREDITO", 
+      "tasaCompensacDebito": "$TASA_COMPENSAC_DEBITO", 
+      "tasaCompensacCredito": "$TASA_COMPENSAC_CREDITO", 
+      "nroPos": "$NRO_POS", 
+      "serialPos": "$SERIAL_POS", 
+      "fechaInstalacionPos": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$FECHA_INSTALACION_POS", ""
+            ]
+          }, 
+          "then": null, 
+          "else": {
+            "$dateFromParts": {
+              "year": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INSTALACION_POS", 0, 4
+                  ]
+                }
+              }, 
+              "month": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INSTALACION_POS", 4, 2
+                  ]
+                }
+              }, 
+              "day": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INSTALACION_POS", 6, 2
+                  ]
+                }
+              }, 
+              "hour": 0, 
+              "minute": 0, 
+              "second": 0, 
+              "millisecond": 0
+            }
+          }
+        }
+      }, 
+      "fechaDesintalaciPos": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$FECHA_DESINTALACI_POS", ""
+            ]
+          }, 
+          "then": null, 
+          "else": {
+            "$dateFromParts": {
+              "year": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_DESINTALACI_POS", 0, 4
+                  ]
+                }
+              }, 
+              "month": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_DESINTALACI_POS", 4, 2
+                  ]
+                }
+              }, 
+              "day": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_DESINTALACI_POS", 6, 2
+                  ]
+                }
+              }, 
+              "hour": 0, 
+              "minute": 0, 
+              "second": 0, 
+              "millisecond": 0
+            }
+          }
+        }
+      }, 
+      "tipoPos": "$TIPO_POS", 
+      "modalidadPos": {
+        "$replaceAll": {
+          "input": "$MODALIDAD_POS", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "codModelo1": "$COD_MODELO_1", 
+      "descripModelo1": "$DESCRIP_MODELO_1", 
+      "codComponente1": "$COD_COMPONENTE_1", 
+      "descripComponente1": {
+        "$replaceAll": {
+          "input": "$DESCRIP_COMPONENTE_1", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "cambioComponente1": {
+        "$replaceAll": {
+          "input": "$CAMBIO_COMPONENTE_1", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "statusComponente1": "$STATUS_COMPONENTE_1", 
+      "codModelo2": "$COD_MODELO_2", 
+      "descripModelo2": "$DESCRIP_MODELO_2", 
+      "codComponente2": "$COD_COMPONENTE_2", 
+      "descripComponente2": {
+        "$replaceAll": {
+          "input": "$DESCRIP_COMPONENTE_2", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "cambioComponente2": {
+        "$replaceAll": {
+          "input": "$CAMBIO_COMPONENTE_2", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "statusComponente2": "$STATUS_COMPONENTE_2", 
+      "codModelo3": "$COD_MODELO_3", 
+      "descripModelo3": {
+        "$replaceAll": {
+          "input": "$DESCRIP_MODELO_3", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "codComponente3": "$COD_COMPONENTE_3", 
+      "descripComponente3": {
+        "$replaceAll": {
+          "input": "$DESCRIP_COMPONENTE_3", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "cambioComponente3": {
+        "$replaceAll": {
+          "input": "$CAMBIO_COMPONENTE_3", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "statusComponente3": "$STATUS_COMPONENTE_3", 
+      "codModelo4": "COD_MODELO_4", 
+      "descripModelo4": {
+        "$replaceAll": {
+          "input": "$DESCRIP_MODELO_4", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "codComponente4": "COD_COMPONENTE_4", 
+      "descripComponente4": {
+        "$replaceAll": {
+          "input": "$DESCRIP_COMPONENTE_4", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "cambioComponente4": {
+        "$replaceAll": {
+          "input": "$CAMBIO_COMPONENTE_4", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "statusComponente4": "STATUS_COMPONENTE_4", 
+      "codModelo5": "COD_MODELO_5", 
+      "descripModelo5": {
+        "$replaceAll": {
+          "input": "$DESCRIP_MODELO_5", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "codComponente5": "COD_COMPONENTE_5", 
+      "descripComponente5": {
+        "$replaceAll": {
+          "input": "$DESCRIP_COMPONENTE_5", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "cambioComponente5": {
+        "$replaceAll": {
+          "input": "$CAMBIO_COMPONENTE_5", 
+          "find": "\u0000", 
+          "replacement": ""
+        }
+      }, 
+      "statusComponente5": "$STATUS_COMPONENTE_5", 
+      "extrafi": "$EXTRAFI", 
+      "tranDebito": "$TRAN_DEBITO", 
+      "mtoDebito": "$MTO_DEBITO", 
+      "tranCredito": "$TRAN_CREDITO", 
+      "mtoCredito": "$MTO_CREDITO", 
+      "tranCredVisa": "$TRAN_CRED_VISA", 
+      "mtoCredVisa": "$MTO_CRED_VISA", 
+      "tranCredMaster": "$TRAN_CRED_MASTER", 
+      "mtoCredMaster": "$MTO_CRED_MASTER", 
+      "tranCredAmex": "$TRAN_CRED_AMEX", 
+      "mtoCredAmex": "$MTO_CRED_AMEX", 
+      "tranCredPriv": "$TRAN_CRED_PRIV", 
+      "mtoCredPriv": "$MTO_CRED_PRIV", 
+      "comisionDebito": "$COMISION_DEBITO", 
+      "comisionCobroDeb": "$COMISION_COBRO_DEB", 
+      "comisionCredito": "$COMISION_CREDITO", 
+      "comisionCobroCre": "$COMISION_COBRO_CRE", 
+      "opeNegadasBdv": "$OPE_NEGADAS_BDV", 
+      "mtoNegadasBdv": "$MTO_NEGADAS_BDV", 
+      "opeErradasBdv": "$OPE_ERRADAS_BDV", 
+      "mtoErradasBdv": "$MTO_ERRADAS_BDV", 
+      "opeReversoBdv": "$OPE_REVERSO_BDV", 
+      "mtoReversoBdv": "$MTO_REVERSO_BDV", 
+      "tranDebitoBdv": "$TRAN_DEBITO_BDV", 
+      "mtoDebitoBdv": "$MTO_DEBITO_BDV", 
+      "tranCreditoBdv": "$TRAN_CREDITO_BDV", 
+      "mtoCreditoBdv": "$MTO_CREDITO_BDV", 
+      "tranCredVisaBdv": "$TRAN_CRED_VISA_BDV", 
+      "mtoCredVisaBdv": "$MTO_CRED_VISA_BDV", 
+      "tranCredMasterBdv": "$TRAN_CRED_MASTER_BDV", 
+      "mtoCredMasterBdv": "$MTO_CRED_MASTER_BDV", 
+      "tranCredAmexBdv": "$TRAN_CRED_AMEX_BDV", 
+      "mtoCredAmexBdv": "$MTO_CRED_AMEX_BDV", 
+      "tranCredPrivBdv": "$TRAN_CRED_PRIV_BDV", 
+      "mtoCredPrivBdv": "$MTO_CRED_PRIV_BDV", 
+      "comisionDebitoBdv": "$COMISION_DEBITO_BDV", 
+      "comisionCobroDBdv": "$COMISION_COBRO_D_BDV", 
+      "comisionCredBdv": "$COMISION_CRED_BDV", 
+      "comisionCobroCBdv": "$COMISION_COBRO_C_BDV", 
+      "opeNegadasNBdv": "$OPE_NEGADAS_N_BDV", 
+      "mtoNegadasNBdv": "$MTO_NEGADAS_N_BDV", 
+      "opeErradasNBdv": "$OPE_ERRADAS_N_BDV", 
+      "mtoErradasNBdv": "$MTO_ERRADAS_N_BDV", 
+      "opeReversoNBdv": "$OPE_REVERSO_N_BDV", 
+      "mtoReversoNBdv": "$MTO_REVERSO_N_BDV", 
+      "tranDebitoNBdv": "$TRAN_DEBITO_N_BDV", 
+      "mtoDebitoNBdv": "$MTO_DEBITO_N_BDV", 
+      "tranCreditoNBdv": "$TRAN_CREDITO_N_BDV", 
+      "mtoCreditoNBdv": "$MTO_CREDITO_N_BDV", 
+      "tranCredVisaNBdv": "$TRAN_CRED_VISA_N_BDV", 
+      "mtoCredVisaNBdv": "$MTO_CRED_VISA_N_BDV", 
+      "tranCredMasterNBdv": "$TRAN_CRED_MASTER_N_BDV", 
+      "mtoCredMasterNBdv": "$MTO_CRED_MASTER_N_BDV", 
+      "tranCredAmexNBdv": "$TRAN_CRED_AMEX_N_BDV", 
+      "mtoCredAmexNBdv": "$MTO_CRED_AMEX_N_BDV", 
+      "tranCredPrivNBdv": "$TRAN_CRED_PRIV_N_BDV", 
+      "mtoCredPrivNBdv": "$MTO_CRED_PRIV_N_BDV", 
+      "comisDebitoNBdv": "$COMIS_DEBITO_N_BDV", 
+      "comisCobroDNBdv": "$COMIS_COBRO_D_N_BDV", 
+      "comisCreditoNBdv": "$COMIS_CREDITO_N_BDV", 
+      "comisCobroCNBdv": "$COMIS_COBRO_C_N_BDV", 
+      "liqTranDebito": "$LIQ_TRAN_DEBITO", 
+      "liqMtoDebito": "$LIQ_MTO_DEBITO", 
+      "liqTranCredito": "$LIQ_TRAN_CREDITO", 
+      "liqMtoCredito": "$LIQ_MTO_CREDITO", 
+      "liqTranCredVisa": "$LIQ_TRAN_CRED_VISA", 
+      "liqMtoCredVisa": "$LIQ_MTO_CRED_VISA", 
+      "liqTranCredMaster": "$LIQ_TRAN_CRED_MASTER", 
+      "liqMtoCredMaster": "$LIQ_MTO_CRED_MASTER", 
+      "liqTranCredAmex": "$LIQ_TRAN_CRED_AMEX", 
+      "liqMtoCredAmex": "$LIQ_MTO_CRED_AMEX", 
+      "liqTranCredPriv": "$LIQ_TRAN_CRED_PRIV", 
+      "liqMtoCredPriv": "$LIQ_MTO_CRED_PRIV", 
+      "liqComisDebito": "$LIQ_COMIS_DEBITO", 
+      "liqComisCobroDeb": "$LIQ_COMIS_COBRO_DEB", 
+      "liqComisCredito": "$LIQ_COMIS_CREDITO", 
+      "liqComisCobroCred": "$LIQ_COMIS_COBRO_CRED", 
+      "liqTranDebitoBdv": "$LIQ_TRAN_DEBITO_BDV", 
+      "liqMtoDebitoBdv": "$LIQ_MTO_DEBITO_BDV", 
+      "liqTranCreditoBdv": "$LIQ_TRAN_CREDITO_BDV", 
+      "liqMtoCreditoBdv": "$LIQ_MTO_CREDITO_BDV", 
+      "liqTranCredVBdv": "$LIQ_TRAN_CRED_V_BDV", 
+      "liqMtoCredVBdv": "$LIQ_MTO_CRED_V_BDV", 
+      "liqTranCredMBdv": "$LIQ_TRAN_CRED_M_BDV", 
+      "liqMtoCredMBdv": "$LIQ_MTO_CRED_M_BDV", 
+      "liqTranCredABdv": "$LIQ_TRAN_CRED_A_BDV", 
+      "liqMtoCredABdv": "$LIQ_MTO_CRED_A_BDV", 
+      "liqTranCredPBdv": "$LIQ_TRAN_CRED_P_BDV", 
+      "liqMtoCredPBdv": "$LIQ_MTO_CRED_P_BDV", 
+      "liqComisDebitoBdv": "$LIQ_COMIS_DEBITO_BDV", 
+      "liqComCobroDebBdv": "$LIQ_COM_COBRO_DEB_BDV", 
+      "liqComisCreditoBdv": "$LIQ_COMIS_CREDITO_BDV", 
+      "liqComCobroCredBdv": "$LIQ_COM_COBRO_CRED_BDV", 
+      "liqTranDebitoNBdv": "$LIQ_TRAN_DEBITO_N_BDV", 
+      "liqMtoDebitoNBdv": "$LIQ_MTO_DEBITO_N_BDV", 
+      "liqTranCreditoNBdv": "$LIQ_TRAN_CREDITO_N_BDV", 
+      "liqMtoCreditoNBdv": "$LIQ_MTO_CREDITO_N_BDV", 
+      "liqTranCredVNbdv": "$LIQ_TRAN_CRED_V_N_BDV", 
+      "liqMtoCredVNbdv": "$LIQ_MTO_CRED_V_N_BDV", 
+      "liqTranCredMNbdv": "$LIQ_TRAN_CRED_M_N_BDV", 
+      "liqMtoCredMNbdv": "$LIQ_MTO_CRED_M_N_BDV", 
+      "liqTranCredANbdv": "$LIQ_TRAN_CRED_A_N_BDV", 
+      "liqMtoCredANbdv": "$LIQ_MTO_CRED_A_N_BDV", 
+      "liqTranCredPNbdv": "$LIQ_TRAN_CRED_P_N_BDV", 
+      "liqMtoCredPNbdv": "$LIQ_MTO_CRED_P_N_BDV", 
+      "liqComisDebNBdv": "$LIQ_COMIS_DEB_N_BDV", 
+      "liqCCobroDebNBdv": "$LIQ_C_COBRO_DEB_N_BDV", 
+      "liqComisCredNBdv": "$LIQ_COMIS_CRED_N_BDV", 
+      "liqCCobroCredNBdv": "$LIQ_C_COBRO_CRED_N_BDV", 
+      "tasaElectron": "$TASA_ELECTRON", 
+      "tasaPrivada": "$TASA_PRIVADA", 
+      "tasaMultitasa": "$TASA_MULTITASA", 
+      "tasaFidelizacion": "$TASA_FIDELIZACION", 
+      "tasaTdcExtranje": "$TASA_TDC_EXTRANJE", 
+      "tasaDescCompesac": "$TASA_DESC_COMPESAC", 
+      "tranElectron": "$TRAN_ELECTRON", 
+      "mtoElectron": "$MTO_ELECTRON", 
+      "comisElectronNBdv": "$COMIS_ELECTRON_N_BDV", 
+      "comisCobElectNBdv": "$COMIS_COB_ELECT_N_BDV", 
+      "liqTranElectron": "$LIQ_TRAN_ELECTRON", 
+      "liqMtoElectron": "$LIQ_MTO_ELECTRON", 
+      "liqComisElecNBdv": "$LIQ_COMIS_ELEC_N_BDV", 
+      "liqCCobElectNBdv": "$LIQ_CCOB_ELECT_N_BDV", 
+      "tranFidelizacion": "$TRAN_FIDELIZACION", 
+      "mtoFidelizacion": "$MTO_FIDELIZACION", 
+      "comisFidelizacion": "$COMIS_FIDELIZACION", 
+      "comisCobFidelizacion": "$COMIS_COB_FIDELIZACION", 
+      "liqTranFidelizacion": "$LIQ_TRAN_FIDELIZACION", 
+      "liqMtoFidelizacion": "$LIQ_MTO_FIDELIZACION", 
+      "liqComisFidelizacion": "$LIQ_COMIS_FIDELIZACION", 
+      "liqCCobFidelizacion": "$LIQ_CCOB_FIDELIZACION", 
+      "tranTdcExtranje": "$TRAN_TDC_EXTRANJE", 
+      "mtoTdcExtranje": "$MTO_TDC_EXTRANJE", 
+      "comisTdcExtranje": "$COMIS_TDC_EXTRANJE", 
+      "comisCobTdcExtranje": "$COMIS_COB_TDC_EXTRANJE", 
+      "liqTranTdcExtranje": "$LIQ_TRAN_TDC_EXTRANJE", 
+      "liqMtoTdcExtranje": "$LIQ_MTO_TDC_EXTRANJE", 
+      "liqComisTdcExtraje": "$LIQ_COMIS_TDC_EXTRAJE", 
+      "liqCCobTdcExtranje": "$LIQ_CCOB_TDC_EXTRANJE", 
+      "tranDescuento": "$TRAN_DESCUENTO", 
+      "mtoDescuento": "$MTO_DESCUENTO", 
+      "comisDescuento": "$COMIS_DESCUENTO", 
+      "comisCobDescuento": "$COMIS_COB_DESCUENTO", 
+      "liqTranDescuento": "$LIQ_TRAN_DESCUENTO", 
+      "liqMtoDescuento": "$LIQ_MTO_DESCUENTO", 
+      "liqComisDescuento": "$LIQ_COMIS_DESCUENTO", 
+      "liqCCobDescuto": "$LIQ_CCOB_DESCUTO", 
+      "tranDescuentoN": "$TRAN_DESCUENTO_N", 
+      "mtoDescuentoN": "$MTO_DESCUENTO_N", 
+      "comisDescuentoN": "$COMIS_DESCUENTO_N", 
+      "comisCobDescuentoN": "$COMIS_COB_DESCUENTO_N", 
+      "liqTranDescuentoN": "$LIQ_TRAN_DESCUENTO_N", 
+      "liqMtoDescuentoN": "$LIQ_MTO_DESCUENTO_N", 
+      "liqComisDescuentoN": "$LIQ_COMIS_DESCUENTO_N", 
+      "liqCCobDescutoN": "$LIQ_CCOB_DESCUTO_N", 
+      "fechaIngresoPunto": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              "$FECHA_INGRESO_PUNTO", ""
+            ]
+          }, 
+          "then": null, 
+          "else": {
+            "$dateFromParts": {
+              "year": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INGRESO_PUNTO", 0, 4
+                  ]
+                }
+              }, 
+              "month": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INGRESO_PUNTO", 4, 2
+                  ]
+                }
+              }, 
+              "day": {
+                "$toInt": {
+                  "$substr": [
+                    "$FECHA_INGRESO_PUNTO", 6, 2
+                  ]
+                }
+              }, 
+              "hour": 0, 
+              "minute": 0, 
+              "second": 0, 
+              "millisecond": 0
+            }
+          }
+        }
+      }, 
+      "descPunto": "$DESC_PUNTO", 
+      "fileDate": 1
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "fechaProceso", 
+      "foreignField": "Fecha", 
+      "as": "sidisTasaconversion"
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_puntoa", 
+      "on": [
+        "rifCedula", "fechaProceso", "_id"
+      ]
+    }
+  }
+]

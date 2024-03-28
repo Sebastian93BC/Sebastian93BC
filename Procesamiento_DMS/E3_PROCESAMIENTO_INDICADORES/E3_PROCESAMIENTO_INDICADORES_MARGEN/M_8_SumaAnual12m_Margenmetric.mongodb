@@ -1,0 +1,160 @@
+[
+  // {
+  //   $match: {
+  //only for test
+  //     codigoSegmento: "1",
+  //     rifCedula: "J50019975",
+  //   },
+  // },
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $gte: [
+              "$fechaProceso",
+              {
+                $dateSubtract: {
+                  startDate: {
+                    $toDate:
+                      "2023-10-31T00:00:00.000+00:00",
+                    // "{{$json.fechaProceso}}"
+                  },
+
+                  unit: "month",
+                  amount: 11,
+                },
+              },
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$fechaProceso",
+              {
+                $toDate:
+                  "2023-10-31T00:00:00.000+00:00",
+                // "{{$json.fechaProceso}}"
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: {
+        rifCedula: "$rifCedula",
+      },
+      fechaProceso: {
+        $max: "$fechaProceso",
+      },
+      sumAbonoLiqActivo12M: {
+        $sum: "$abonoLiqActivo",
+      },
+      sumMontoAbonado12M: {
+        $sum: "$montoAbonado",
+      },
+      sumSaldoPromedio12M: {
+        $sum: "$promedioPasivo",
+      },
+    },
+  },
+  {
+    $addFields: {
+      rifCedula: "$_id.rifCedula",
+      _id: "$$REMOVE",
+      saldoPromedio12M: {
+        $round: [
+          {
+            $divide: ["$sumSaldoPromedio12M", 12],
+          },
+          4,
+        ],
+      },
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      on: ["rifCedula", "fechaProceso"],
+      whenNotMatched: "discard",
+    },
+  },
+]
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$gte": [
+              "$fechaProceso", {
+                "$dateSubtract": {
+                  "startDate": {
+                    "$toDate": "{{$json.fechaProceso}}"
+                  }, 
+                  "unit": "month", 
+                  "amount": 11
+                }
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$rifCedula"
+      }, 
+      "fechaProceso": {
+        "$max": "$fechaProceso"
+      }, 
+      "sumAbonoLiqActivo12M": {
+        "$sum": "$abonoLiqActivo"
+      }, 
+      "sumMontoAbonado12M": {
+        "$sum": "$montoAbonado"
+      }, 
+      "sumSaldoPromedio12M": {
+        "$sum": "$promedioPasivo"
+      }
+    }
+  }, {
+    "$addFields": {
+      "rifCedula": "$_id.rifCedula", 
+      "_id": "$$REMOVE", 
+      "saldoPromedio12M": {
+        "$round": [
+          {
+            "$divide": [
+              "$sumSaldoPromedio12M", 12
+            ]
+          }, 4
+        ]
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "rifCedula", "fechaProceso"
+      ], 
+      "whenNotMatched": "discard"
+    }
+  }
+]

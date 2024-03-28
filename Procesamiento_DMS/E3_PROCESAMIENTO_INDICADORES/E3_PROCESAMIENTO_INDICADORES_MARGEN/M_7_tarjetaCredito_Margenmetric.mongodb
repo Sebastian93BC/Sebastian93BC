@@ -1,0 +1,417 @@
+[
+  {
+    $match: {
+      $and: [
+        {
+          mcl_naturaleza_producto: {
+            $in: [1, "1"],
+          },
+        },
+        {
+          mcl_producto: {
+            $in: [
+              9501,
+              9502,
+              9509,
+              9506,
+              "9501",
+              "9502",
+              "9509",
+              "9506",
+            ],
+          },
+        },
+        {
+          $expr: {
+            $lte: [
+              "$mcl_fecha_proceso",
+              {
+                $toDate: "2023-10-31",
+                //"{{$json.fechaProceso}}"
+              },
+            ],
+          },
+        },
+      ],
+      // mcl_rif_cedula: "V11925194",
+    },
+  },
+  {
+    $group: {
+      _id: {
+        tarjeta: {
+          $switch: {
+            branches: [
+              {
+                case: {
+                  $in: [
+                    "$mcl_bin_tarjeta",
+                    [
+                      "455612",
+                      "455613",
+                      "455615",
+                      "448174",
+                      "459347",
+                      "462229",
+                      "455614",
+                    ],
+                  ],
+                },
+                then: "VISA",
+              },
+              {
+                case: {
+                  $in: [
+                    "$mcl_bin_tarjeta",
+                    [
+                      "542037",
+                      "540019",
+                      "546690",
+                      "552292",
+                    ],
+                  ],
+                },
+                then: "MASTERCARD",
+              },
+              {
+                case: {
+                  $eq: [
+                    "$mcl_bin_tarjeta",
+                    "540145",
+                  ],
+                },
+                then: "MASTERCARD_PRE",
+              },
+            ],
+            default: "OTRO",
+          },
+        },
+        rifCedula: "$mcl_rif_cedula",
+        nroTarjetas: {
+          $substr: [
+            "$mcl_documento_asociado",
+            4,
+            16,
+          ],
+        },
+        fechaProceso: "$mcl_fecha_proceso",
+      },
+      fechaProceso: {
+        $first: "$mcl_fecha_proceso",
+      },
+      rifCedula: {
+        $first: "$mcl_rif_cedula",
+      },
+      nombreCliente: {
+        $first: "$mcl_nombre_cliente",
+      },
+      nroTarjeta: {
+        $first: {
+          $substr: [
+            "$mcl_documento_asociado",
+            4,
+            16,
+          ],
+        },
+      },
+      binTarjeta: {
+        $first: "$mcl_bin_tarjeta",
+      },
+      limiteCredito: {
+        $max: {
+          $round: [
+            {
+              $divide: [
+                "$mcl_limite_credito",
+                "$tasa_dolar",
+              ],
+            },
+            4,
+          ],
+        },
+      },
+      limiteCreditoBs: {
+        $max: {
+          $round: ["$mcl_limite_credito", 4],
+        },
+      },
+      saldo: {
+        $sum: {
+          $round: [
+            {
+              $divide: [
+                "$mcl_saldo",
+                "$tasa_dolar",
+              ],
+            },
+            4,
+          ],
+        },
+      },
+      saldoBs: {
+        $sum: {
+          $round: ["$mcl_saldo", 4],
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      rifCedula: 1,
+      fechaProceso: 1,
+      "credictCards.cardType": "$_id.tarjeta",
+      "credictCards.balance": "$saldo",
+      "credictCards.limit": "$limiteCredito",
+      "credictCards.cardNumber": "$nroTarjeta",
+      "credictCards.cardNumMask": {
+        $concat: [
+          {
+            $substrCP: ["$nroTarjeta", 0, 4],
+          },
+          "-",
+          {
+            $substrCP: ["$nroTarjeta", 4, 2],
+          },
+          "xx-xxxx-",
+          {
+            $substrCP: ["$nroTarjeta", 12, 16],
+          },
+        ],
+      },
+    },
+  },
+  // {
+  //   $project: {
+  //     _id: 0,
+  //     rifCedula: 1,
+  //     fechaProceso: 1,
+  //     "credictCards.cardType": "$_id.tarjeta",
+  //     "credictCards.balance": "$saldo",
+  //     "credictCards.balanceBs": "$saldoBs",
+  //     "credictCards.limit": "$limiteCredito",
+  //     "credictCards.limitBs": "$limiteCreditoBs",
+  //     "credictCards.cardNumber": "$nroTarjeta",
+  //   },
+  // },
+  {
+    $group: {
+      _id: {
+        fechaProceso: "$fechaProceso",
+        rifCedula: "$rifCedula",
+      },
+      fechaProceso: {
+        $first: "$fechaProceso",
+      },
+      rifCedula: {
+        $first: "$rifCedula",
+      },
+      credictCards: {
+        $push: "$credictCards",
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+    },
+  },
+  {
+    $merge: {
+      into: "Margenmetric",
+      //into: "Margenmetric_tarjetas",
+      on: ["fechaProceso", "rifCedula"],
+      //on: ["_id"],
+      whenMatched: "merge",
+      whenNotMatched: "insert",
+    },
+  },
+]
+
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "mcl_naturaleza_producto": {
+            "$in": [
+              1, "1"
+            ]
+          }
+        }, {
+          "mcl_producto": {
+            "$in": [
+              9501, 9502, 9509, 9506, "9501", "9502", "9509", "9506"
+            ]
+          }
+        }, {
+          "$expr": {
+            "$lte": [
+              "$mcl_fecha_proceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "tarjeta": {
+          "$switch": {
+            "branches": [
+              {
+                "case": {
+                  "$in": [
+                    "$mcl_bin_tarjeta", [
+                      "455612", "455613", "455615", "448174", "459347", "462229", "455614"
+                    ]
+                  ]
+                }, 
+                "then": "VISA"
+              }, {
+                "case": {
+                  "$in": [
+                    "$mcl_bin_tarjeta", [
+                      "542037", "540019", "546690", "552292"
+                    ]
+                  ]
+                }, 
+                "then": "MASTERCARD"
+              }, {
+                "case": {
+                  "$eq": [
+                    "$mcl_bin_tarjeta", "540145"
+                  ]
+                }, 
+                "then": "MASTERCARD_PRE"
+              }
+            ], 
+            "default": "OTRO"
+          }
+        }, 
+        "rifCedula": "$mcl_rif_cedula", 
+        "nroTarjetas": {
+          "$substr": [
+            "$mcl_documento_asociado", 4, 16
+          ]
+        }, 
+        "fechaProceso": "$mcl_fecha_proceso"
+      }, 
+      "fechaProceso": {
+        "$first": "$mcl_fecha_proceso"
+      }, 
+      "rifCedula": {
+        "$first": "$mcl_rif_cedula"
+      }, 
+      "nombreCliente": {
+        "$first": "$mcl_nombre_cliente"
+      }, 
+      "nroTarjeta": {
+        "$first": {
+          "$substr": [
+            "$mcl_documento_asociado", 4, 16
+          ]
+        }
+      }, 
+      "binTarjeta": {
+        "$first": "$mcl_bin_tarjeta"
+      }, 
+      "limiteCredito": {
+        "$max": {
+          "$round": [
+            {
+              "$divide": [
+                "$mcl_limite_credito", "$tasa_dolar"
+              ]
+            }, 4
+          ]
+        }
+      }, 
+      "limiteCreditoBs": {
+        "$max": {
+          "$round": [
+            "$mcl_limite_credito", 4
+          ]
+        }
+      }, 
+      "saldo": {
+        "$sum": {
+          "$round": [
+            {
+              "$divide": [
+                "$mcl_saldo", "$tasa_dolar"
+              ]
+            }, 4
+          ]
+        }
+      }, 
+      "saldoBs": {
+        "$sum": {
+          "$round": [
+            "$mcl_saldo", 4
+          ]
+        }
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "rifCedula": 1, 
+      "fechaProceso": 1, 
+      "credictCards.cardType": "$_id.tarjeta", 
+      "credictCards.balance": "$saldo", 
+      "credictCards.limit": "$limiteCredito", 
+      "credictCards.cardNumber": "$nroTarjeta", 
+      "credictCards.cardNumMask": {
+        "$concat": [
+          {
+            "$substrCP": [
+              "$nroTarjeta", 0, 4
+            ]
+          }, "-", {
+            "$substrCP": [
+              "$nroTarjeta", 4, 2
+            ]
+          }, "xx-xxxx-", {
+            "$substrCP": [
+              "$nroTarjeta", 12, 16
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "fechaProceso": "$fechaProceso", 
+        "rifCedula": "$rifCedula"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "rifCedula": {
+        "$first": "$rifCedula"
+      }, 
+      "credictCards": {
+        "$push": "$credictCards"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ], 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]
+

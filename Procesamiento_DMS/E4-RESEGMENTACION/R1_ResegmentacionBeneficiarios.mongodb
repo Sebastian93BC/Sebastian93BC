@@ -5,7 +5,7 @@
       "$expr": {
         "$eq": [
           "$fechaProceso", {
-            "$toDate": "{{$json.subProcessDate}}"
+            "$toDate": "@parallelizationIndex"
           }
         ]
       }
@@ -30,7 +30,7 @@
                 "$expr": {
                   "$eq": [
                     "$fechaProceso", {
-                      "$toDate": "{{$json.processDate}}"
+                      "$toDate": "@processDate"
                     }
                   ]
                 }

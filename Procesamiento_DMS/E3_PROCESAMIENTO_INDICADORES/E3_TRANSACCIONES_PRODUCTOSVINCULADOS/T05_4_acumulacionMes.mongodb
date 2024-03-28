@@ -1,0 +1,385 @@
+[
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$gte": [
+                "$fechaProceso", {
+                  "$dateAdd": {
+                    "startDate": {
+                      "$dateTrunc": {
+                        "date": {
+                          "$toDate": "@processDate"
+                        }, 
+                        "unit": "month"
+                      }
+                    }, 
+                    "unit": "month", 
+                    "amount": -1
+                  }
+                }
+              ]
+            }
+          }, {
+            "$expr": {
+              "$lte": [
+                "$fechaProceso", {
+                  "$toDate": "@processDate"
+                }
+              ]
+            }
+          }, {
+            "rifCedula": {
+              "$ne": ""
+            }
+          }
+        ]
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "rifCedula": "$rifCedula"
+        }, 
+        "fechaProceso": {
+          "$max": "$fechaProceso"
+        }, 
+        "tdcVisa": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.tdcProdVisaExist", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$tdcProdVisaExist", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "tdcMaster": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.tdcProdMasterExist", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$tdcProdMasterExist", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "tdcMasterPre": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.tdcProdMasterPreExist", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$tdcProdMasterPreExist", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "tdcOtros": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.tdcProdOtrosExist", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$tdcProdOtrosExist", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "pagoProveedores": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.pagoProveedores", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$pagoProveedores", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "bdvEnLineaEmpresas": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.bdvEnLineaEmpresas", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$bdvEnLineaEmpresas", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "bdvEnLineaPersonas": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.bdvEnLineaPersonas", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$bdvEnLineaPersonas", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "nomina": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.nomina", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$nomina", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "pagoMovil": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.pagoMovil", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$pagoMovil", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "intervencionBancaria": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.intervencionBancaria", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$intervencionBancaria", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "mesaCambio": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.mesaCambio", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$mesaCambio", 0
+                ]
+              }
+            ]
+          }
+        }, 
+        "pos": {
+          "$sum": {
+            "$add": [
+              {
+                "$ifNull": [
+                  "$sidisProducto.pos", 0
+                ]
+              }, {
+                "$ifNull": [
+                  "$pos", 0
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }, {
+      "$addFields": {
+        "sidisProducto.tdcVisa": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$tdcVisa", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.tdcMaster": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$tdcMaster", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.tdcMasterPre": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$tdcMasterPre", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.tdcOtros": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$tdcOtros", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.pagoProveedores": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$pagoProveedores", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.bdvEnLineaEmpresas": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$bdvEnLineaEmpresas", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.bdvEnLineaPersonas": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$bdvEnLineaPersonas", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.nomina": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$nomina", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.pagoMovil": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$pagoMovil", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.intervencionBancaria": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$intervencionBancaria", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.mesaCambio": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$mesaCambio", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "sidisProducto.pos": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$pos", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "rifCedula": "$_id.rifCedula", 
+        "pagoProveedores": "$$REMOVE", 
+        "nomina": "$$REMOVE", 
+        "pagoMovil": "$$REMOVE", 
+        "intervencionBancaria": "$$REMOVE", 
+        "mesaCambio": "$$REMOVE", 
+        "bdvEnLineaEmpresas": "$$REMOVE", 
+        "bdvEnLineaPersonas": "$$REMOVE", 
+        "pos": "$$REMOVE", 
+        "tdcVisa": "$$REMOVE", 
+        "tdcMaster": "$$REMOVE", 
+        "tdcMasterPre": "$$REMOVE", 
+        "tdcOtros": "$$REMOVE", 
+        "_id": "$$REMOVE"
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_productosVinculados", 
+        "on": [
+          "fechaProceso", "rifCedula"
+        ]
+      }
+    }
+  ]

@@ -1,0 +1,83 @@
+[
+    {
+      "$match": {
+        "$or": [
+          {
+            "$expr": {
+              "$eq": [
+                "$fechaProceso", {
+                  "$toDate": "{{$json.processDate}}"
+                }
+              ]
+            }
+          }, {
+            "$expr": {
+              "$eq": [
+                "$fechaProceso", {
+                  "$dateFromString": {
+                    "dateString": {
+                      "$concat": [
+                        "31-01-", {
+                          "$toString": {
+                            "$subtract": [
+                              {
+                                "$year": {
+                                  "$toDate": "{{$json.processDate}}"
+                                }
+                              }, 0
+                            ]
+                          }
+                        }
+                      ]
+                    }, 
+                    "format": "%d-%m-%Y"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "rifCedula": "$rifCedula"
+        }, 
+        "rifCedula": {
+          "$first": "$rifCedula"
+        }, 
+        "fechaProceso": {
+          "$max": "$fechaProceso"
+        }, 
+        "acumComprasDolares": {
+          "$sum": "$comprasDolares"
+        }, 
+        "acumComprasEuros": {
+          "$sum": "$comprasEuros"
+        }, 
+        "acumDepositosDolares": {
+          "$sum": "$depositosDolares"
+        }, 
+        "acumDepositosEuros": {
+          "$sum": "$depositosEuros"
+        }
+      }
+    }, {
+      "$addFields": {
+        "rifCedula": "$rifCedula", 
+        "_id": "$$REMOVE"
+      }
+    }, {
+      "$addFields": {
+        "_id.fechaProceso": "$fechaProceso", 
+        "_id.rifCedula": "$rifCedula"
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_comprasDepositosDivisa", 
+        "on": [
+          "fechaProceso", "rifCedula", "_id"
+        ]
+      }
+    }
+  ]

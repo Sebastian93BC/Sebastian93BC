@@ -1,0 +1,977 @@
+[
+  {
+    $match: {
+      $and: [
+        {
+          $expr: {
+            $eq: [
+              "$mcl_fecha_proceso",
+              {
+                $toDate: "2023-12-31"
+                //"{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        },
+        {
+          tipoConsulta: 1
+        }
+      ]
+      //mcl_rif_cedula: "J50019975",
+    }
+  },
+  {
+    $group: {
+      _id: {
+        fechaProceso: "$mcl_fecha_proceso",
+        rifCedula: "$mcl_rif_cedula",
+        mcl_naturaleza_producto:
+          "$mcl_naturaleza_producto",
+        mcl_producto: "$mcl_producto",
+        mcl_producto_altair:
+          "$mcl_producto_altair",
+        mcl_subproducto_altair:
+          "$mcl_subproducto_altair",
+        mcl_cuenta_contable1:
+          "$mcl_cuenta_contable1"
+      },
+      mcl_banca: {
+        $first: "$mcl_banca"
+      },
+      mcl_segmento: {
+        $first: "$mcl_segmento"
+      },
+      mcl_subsegmento: {
+        $first: "$mcl_subsegmento"
+      },
+      mcl_grupo_economico: {
+        $first: "$mcl_grupo_economico"
+      },
+      mcl_nivel_socioecon: {
+        $first: "$mcl_nivel_socioecon"
+      },
+      estatus: {
+        $first: "$mcl_estatus"
+      },
+      cuentaContable1Indicador: {
+        $first: "$mcl_cuenta_contable1_indicador"
+      },
+      prd_nombre_producto: {
+        $first: "$prd_nombre_producto"
+      },
+      resultSize: {
+        $first: "$resultSize"
+      },
+      sidisLibreconvertibilidadConvenio20: {
+        $first:
+          "$sidisLibreconvertibilidadConvenio20"
+      },
+      sidisProducto: {
+        $first: "$sidisProducto"
+      },
+      sidisTasaconversion: {
+        $first: "$sidisTasaconversion"
+      },
+      tasa_dolar: {
+        $first: "$tasa_dolar"
+      },
+      numeroContratosActivo: {
+        $sum: 1
+      },
+      saldoActivoDivisaOrigen: {
+        $sum: "$mcl_saldo"
+      },
+      promedioActivoDivisaOrigen: {
+        $sum: "$mcl_promedio"
+      },
+      numDebitosActivo: {
+        $sum: "$mcl_numero_debitos"
+      },
+      montoDebitosActivoDivisaOrigen: {
+        $sum: "$mcl_monto_debitos"
+      },
+      numCreditosActivo: {
+        $sum: "$mcl_numero_creditos"
+      },
+      montoCreditosActivoDivisaOrigen: {
+        $sum: "$mcl_monto_creditos"
+      },
+      interesesActivoDivisaOrigen: {
+        $sum: "$mcl_intereses"
+      },
+      abonoLiqActivoDivisaOrigen: {
+        $sum: {
+          $cond: [
+            {
+              $and: [
+                {
+                  $gte: [
+                    "$mcl_fecha_liq_operacion",
+                    {
+                      $dateTrunc: {
+                        date: "$mcl_fecha_proceso",
+                        unit: "month"
+                      }
+                    }
+                  ]
+                },
+                {
+                  $lte: [
+                    "$mcl_fecha_liq_operacion",
+                    "$mcl_fecha_proceso"
+                  ]
+                }
+              ]
+            },
+            "$mcl_monto_apertura",
+            0
+          ]
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      "sidisMargen.codigoBanca": "$mcl_banca",
+      "sidisMargen.codigoSegmento":
+        "$mcl_segmento",
+      "sidisMargen.codigoSubsegmento":
+        "$mcl_subsegmento",
+      "sidisMargen.codigoGrupoeconomico":
+        "$mcl_grupo_economico",
+      "sidisMargen.nombreNSE":
+        "$mcl_nivel_socioecon",
+      denominacion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0]
+              },
+              then: "BOLIVARES"
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0]
+              },
+              then: "$sidisLibreconvertibilidadConvenio20.denominacion"
+            }
+          ]
+        }
+      },
+      condicion: {
+        $switch: {
+          branches: [
+            {
+              case: {
+                $eq: ["$resultSize", 0]
+              },
+              then: ""
+            },
+            {
+              case: {
+                $gt: ["$resultSize", 0]
+              },
+              then: "$sidisLibreconvertibilidadConvenio20.condicion"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      fechaProceso: "$_id.fechaProceso",
+      rifCedula: "$_id.rifCedula",
+      naturalezaProducto:
+        "$_id.mcl_naturaleza_producto",
+      codigoProducto: "$_id.mcl_producto",
+      codigoProductoaAltair:
+        "$_id.mcl_producto_altair",
+      codigoSubProductoAltair:
+        "$_id.mcl_subproducto_altair",
+      cuentaContable1:
+        "$_id.mcl_cuenta_contable1",
+      saldoActivo: {
+        $cond: {
+          if: {
+            $eq: [
+              {
+                $cond: {
+                  if: {
+                    $eq: ["$condicion", ""]
+                  },
+                  then: {
+                    $round: [
+                      {
+                        $divide: [
+                          "$saldoActivoDivisaOrigen",
+                          "$tasa_dolar"
+                        ]
+                      },
+                      4
+                    ]
+                  },
+                  else: null
+                }
+              },
+              null
+            ]
+          },
+          then: "$$REMOVE",
+          else: {
+            $cond: {
+              if: {
+                $eq: ["$condicion", ""]
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$saldoActivoDivisaOrigen",
+                      "$tasa_dolar"
+                    ]
+                  },
+                  4
+                ]
+              },
+              else: null
+            }
+          }
+        }
+      },
+      promedioActivo: {
+        $cond: {
+          if: {
+            $eq: [
+              {
+                $cond: {
+                  if: {
+                    $eq: ["$condicion", ""]
+                  },
+                  then: {
+                    $round: [
+                      {
+                        $divide: [
+                          "$promedioActivoDivisaOrigen",
+                          "$tasa_dolar"
+                        ]
+                      },
+                      4
+                    ]
+                  },
+                  else: null
+                }
+              },
+              null
+            ]
+          },
+          then: "$$REMOVE",
+          else: {
+            $cond: {
+              if: {
+                $eq: ["$condicion", ""]
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$promedioActivoDivisaOrigen",
+                      "$tasa_dolar"
+                    ]
+                  },
+                  4
+                ]
+              },
+              else: null
+            }
+          }
+        }
+      },
+      montoDebitosActivo: {
+        $cond: {
+          if: {
+            $eq: [
+              {
+                $cond: {
+                  if: {
+                    $eq: ["$condicion", ""]
+                  },
+                  then: {
+                    $round: [
+                      {
+                        $divide: [
+                          "$montoDebitosActivoDivisaOrigen",
+                          "$tasa_dolar"
+                        ]
+                      },
+                      4
+                    ]
+                  },
+                  else: null
+                }
+              },
+              null
+            ]
+          },
+          then: "$$REMOVE",
+          else: {
+            $cond: {
+              if: {
+                $eq: ["$condicion", ""]
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$montoDebitosActivoDivisaOrigen",
+                      "$tasa_dolar"
+                    ]
+                  },
+                  4
+                ]
+              },
+              else: null
+            }
+          }
+        }
+      },
+      montoCreditosActivo: {
+        $cond: {
+          if: {
+            $eq: [
+              {
+                $cond: {
+                  if: {
+                    $eq: ["$condicion", ""]
+                  },
+                  then: {
+                    $round: [
+                      {
+                        $divide: [
+                          "$montoCreditosActivoDivisaOrigen",
+                          "$tasa_dolar"
+                        ]
+                      },
+                      4
+                    ]
+                  },
+                  else: null
+                }
+              },
+              null
+            ]
+          },
+          then: "$$REMOVE",
+          else: {
+            $cond: {
+              if: {
+                $eq: ["$condicion", ""]
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$montoCreditosActivoDivisaOrigen",
+                      "$tasa_dolar"
+                    ]
+                  },
+                  4
+                ]
+              },
+              else: null
+            }
+          }
+        }
+      },
+      abonoLiqActivo: {
+        $cond: {
+          if: {
+            $eq: [
+              {
+                $cond: {
+                  if: {
+                    $eq: ["$condicion", ""]
+                  },
+                  then: {
+                    $round: [
+                      {
+                        $divide: [
+                          "$abonoLiqActivoDivisaOrigen",
+                          "$tasa_dolar"
+                        ]
+                      },
+                      4
+                    ]
+                  },
+                  else: null
+                }
+              },
+              null
+            ]
+          },
+          then: "$$REMOVE",
+          else: {
+            $cond: {
+              if: {
+                $eq: ["$condicion", ""]
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$abonoLiqActivoDivisaOrigen",
+                      "$tasa_dolar"
+                    ]
+                  },
+                  4
+                ]
+              },
+              else: null
+            }
+          }
+        }
+      },
+      interesesActivo: {
+        $cond: {
+          if: {
+            $eq: [
+              {
+                $cond: {
+                  if: {
+                    $eq: ["$condicion", ""]
+                  },
+                  then: {
+                    $round: [
+                      {
+                        $divide: [
+                          "$interesesActivoDivisaOrigen",
+                          "$tasa_dolar"
+                        ]
+                      },
+                      4
+                    ]
+                  },
+                  else: null
+                }
+              },
+              null
+            ]
+          },
+          then: "$$REMOVE",
+          else: {
+            $cond: {
+              if: {
+                $eq: ["$condicion", ""]
+              },
+              then: {
+                $round: [
+                  {
+                    $divide: [
+                      "$interesesActivoDivisaOrigen",
+                      "$tasa_dolar"
+                    ]
+                  },
+                  4
+                ]
+              },
+              else: null
+            }
+          }
+        }
+      },
+      origenMargen: true,
+      _id: "$$REMOVE",
+      resultSize: "$$REMOVE"
+    }
+  },
+  {
+    $merge: {
+      into: "Margenactivo",
+      on: [
+        "rifCedula",
+        "naturalezaProducto",
+        "codigoProducto",
+        "codigoProductoaAltair",
+        "codigoSubProductoAltair",
+        "cuentaContable1",
+        "fechaProceso"
+      ],
+      whenNotMatched: "insert"
+    }
+  }
+]
+
+//n8n
+
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$mcl_fecha_proceso", {
+                "$toDate": "{{$json.fechaProceso}}"
+              }
+            ]
+          }
+        }, {
+          "tipoConsulta": 1
+        }
+      ]
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "fechaProceso": "$mcl_fecha_proceso", 
+        "rifCedula": "$mcl_rif_cedula", 
+        "mcl_naturaleza_producto": "$mcl_naturaleza_producto", 
+        "mcl_producto": "$mcl_producto", 
+        "mcl_producto_altair": "$mcl_producto_altair", 
+        "mcl_subproducto_altair": "$mcl_subproducto_altair", 
+        "mcl_cuenta_contable1": "$mcl_cuenta_contable1"
+      }, 
+      "mcl_banca": {
+        "$first": "$mcl_banca"
+      }, 
+      "mcl_segmento": {
+        "$first": "$mcl_segmento"
+      }, 
+      "mcl_subsegmento": {
+        "$first": "$mcl_subsegmento"
+      }, 
+      "mcl_grupo_economico": {
+        "$first": "$mcl_grupo_economico"
+      }, 
+      "mcl_nivel_socioecon": {
+        "$first": "$mcl_nivel_socioecon"
+      }, 
+      "estatus": {
+        "$first": "$mcl_estatus"
+      }, 
+      "cuentaContable1Indicador": {
+        "$first": "$mcl_cuenta_contable1_indicador"
+      }, 
+      "prd_nombre_producto": {
+        "$first": "$prd_nombre_producto"
+      }, 
+      "resultSize": {
+        "$first": "$resultSize"
+      }, 
+      "sidisLibreconvertibilidadConvenio20": {
+        "$first": "$sidisLibreconvertibilidadConvenio20"
+      }, 
+      "sidisProducto": {
+        "$first": "$sidisProducto"
+      }, 
+      "sidisTasaconversion": {
+        "$first": "$sidisTasaconversion"
+      }, 
+      "tasa_dolar": {
+        "$first": "$tasa_dolar"
+      }, 
+      "numeroContratosActivo": {
+        "$sum": 1
+      }, 
+      "saldoActivoDivisaOrigen": {
+        "$sum": "$mcl_saldo"
+      }, 
+      "promedioActivoDivisaOrigen": {
+        "$sum": "$mcl_promedio"
+      }, 
+      "numDebitosActivo": {
+        "$sum": "$mcl_numero_debitos"
+      }, 
+      "montoDebitosActivoDivisaOrigen": {
+        "$sum": "$mcl_monto_debitos"
+      }, 
+      "numCreditosActivo": {
+        "$sum": "$mcl_numero_creditos"
+      }, 
+      "montoCreditosActivoDivisaOrigen": {
+        "$sum": "$mcl_monto_creditos"
+      }, 
+      "interesesActivoDivisaOrigen": {
+        "$sum": "$mcl_intereses"
+      }, 
+      "abonoLiqActivoDivisaOrigen": {
+        "$sum": {
+          "$cond": [
+            {
+              "$and": [
+                {
+                  "$gte": [
+                    "$mcl_fecha_liq_operacion", {
+                      "$dateTrunc": {
+                        "date": "$mcl_fecha_proceso", 
+                        "unit": "month"
+                      }
+                    }
+                  ]
+                }, {
+                  "$lte": [
+                    "$mcl_fecha_liq_operacion", "$mcl_fecha_proceso"
+                  ]
+                }
+              ]
+            }, "$mcl_monto_apertura", 0
+          ]
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "sidisMargen.codigoBanca": "$mcl_banca", 
+      "sidisMargen.codigoSegmento": "$mcl_segmento", 
+      "sidisMargen.codigoSubsegmento": "$mcl_subsegmento", 
+      "sidisMargen.codigoGrupoeconomico": "$mcl_grupo_economico", 
+      "sidisMargen.nombreNSE": "$mcl_nivel_socioecon", 
+      "denominacion": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  "$resultSize", 0
+                ]
+              }, 
+              "then": "BOLIVARES"
+            }, {
+              "case": {
+                "$gt": [
+                  "$resultSize", 0
+                ]
+              }, 
+              "then": "$sidisLibreconvertibilidadConvenio20.denominacion"
+            }
+          ]
+        }
+      }, 
+      "condicion": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  "$resultSize", 0
+                ]
+              }, 
+              "then": ""
+            }, {
+              "case": {
+                "$gt": [
+                  "$resultSize", 0
+                ]
+              }, 
+              "then": "$sidisLibreconvertibilidadConvenio20.condicion"
+            }
+          ]
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "fechaProceso": "$_id.fechaProceso", 
+      "rifCedula": "$_id.rifCedula", 
+      "naturalezaProducto": "$_id.mcl_naturaleza_producto", 
+      "codigoProducto": "$_id.mcl_producto", 
+      "codigoProductoaAltair": "$_id.mcl_producto_altair", 
+      "codigoSubProductoAltair": "$_id.mcl_subproducto_altair", 
+      "cuentaContable1": "$_id.mcl_cuenta_contable1", 
+      "saldoActivo": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$condicion", ""
+                    ]
+                  }, 
+                  "then": {
+                    "$round": [
+                      {
+                        "$divide": [
+                          "$saldoActivoDivisaOrigen", "$tasa_dolar"
+                        ]
+                      }, 4
+                    ]
+                  }, 
+                  "else": null
+                }
+              }, null
+            ]
+          }, 
+          "then": "$$REMOVE", 
+          "else": {
+            "$cond": {
+              "if": {
+                "$eq": [
+                  "$condicion", ""
+                ]
+              }, 
+              "then": {
+                "$round": [
+                  {
+                    "$divide": [
+                      "$saldoActivoDivisaOrigen", "$tasa_dolar"
+                    ]
+                  }, 4
+                ]
+              }, 
+              "else": null
+            }
+          }
+        }
+      }, 
+      "promedioActivo": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$condicion", ""
+                    ]
+                  }, 
+                  "then": {
+                    "$round": [
+                      {
+                        "$divide": [
+                          "$promedioActivoDivisaOrigen", "$tasa_dolar"
+                        ]
+                      }, 4
+                    ]
+                  }, 
+                  "else": null
+                }
+              }, null
+            ]
+          }, 
+          "then": "$$REMOVE", 
+          "else": {
+            "$cond": {
+              "if": {
+                "$eq": [
+                  "$condicion", ""
+                ]
+              }, 
+              "then": {
+                "$round": [
+                  {
+                    "$divide": [
+                      "$promedioActivoDivisaOrigen", "$tasa_dolar"
+                    ]
+                  }, 4
+                ]
+              }, 
+              "else": null
+            }
+          }
+        }
+      }, 
+      "montoDebitosActivo": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$condicion", ""
+                    ]
+                  }, 
+                  "then": {
+                    "$round": [
+                      {
+                        "$divide": [
+                          "$montoDebitosActivoDivisaOrigen", "$tasa_dolar"
+                        ]
+                      }, 4
+                    ]
+                  }, 
+                  "else": null
+                }
+              }, null
+            ]
+          }, 
+          "then": "$$REMOVE", 
+          "else": {
+            "$cond": {
+              "if": {
+                "$eq": [
+                  "$condicion", ""
+                ]
+              }, 
+              "then": {
+                "$round": [
+                  {
+                    "$divide": [
+                      "$montoDebitosActivoDivisaOrigen", "$tasa_dolar"
+                    ]
+                  }, 4
+                ]
+              }, 
+              "else": null
+            }
+          }
+        }
+      }, 
+      "montoCreditosActivo": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$condicion", ""
+                    ]
+                  }, 
+                  "then": {
+                    "$round": [
+                      {
+                        "$divide": [
+                          "$montoCreditosActivoDivisaOrigen", "$tasa_dolar"
+                        ]
+                      }, 4
+                    ]
+                  }, 
+                  "else": null
+                }
+              }, null
+            ]
+          }, 
+          "then": "$$REMOVE", 
+          "else": {
+            "$cond": {
+              "if": {
+                "$eq": [
+                  "$condicion", ""
+                ]
+              }, 
+              "then": {
+                "$round": [
+                  {
+                    "$divide": [
+                      "$montoCreditosActivoDivisaOrigen", "$tasa_dolar"
+                    ]
+                  }, 4
+                ]
+              }, 
+              "else": null
+            }
+          }
+        }
+      }, 
+      "abonoLiqActivo": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$condicion", ""
+                    ]
+                  }, 
+                  "then": {
+                    "$round": [
+                      {
+                        "$divide": [
+                          "$abonoLiqActivoDivisaOrigen", "$tasa_dolar"
+                        ]
+                      }, 4
+                    ]
+                  }, 
+                  "else": null
+                }
+              }, null
+            ]
+          }, 
+          "then": "$$REMOVE", 
+          "else": {
+            "$cond": {
+              "if": {
+                "$eq": [
+                  "$condicion", ""
+                ]
+              }, 
+              "then": {
+                "$round": [
+                  {
+                    "$divide": [
+                      "$abonoLiqActivoDivisaOrigen", "$tasa_dolar"
+                    ]
+                  }, 4
+                ]
+              }, 
+              "else": null
+            }
+          }
+        }
+      }, 
+      "interesesActivo": {
+        "$cond": {
+          "if": {
+            "$eq": [
+              {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$condicion", ""
+                    ]
+                  }, 
+                  "then": {
+                    "$round": [
+                      {
+                        "$divide": [
+                          "$interesesActivoDivisaOrigen", "$tasa_dolar"
+                        ]
+                      }, 4
+                    ]
+                  }, 
+                  "else": null
+                }
+              }, null
+            ]
+          }, 
+          "then": "$$REMOVE", 
+          "else": {
+            "$cond": {
+              "if": {
+                "$eq": [
+                  "$condicion", ""
+                ]
+              }, 
+              "then": {
+                "$round": [
+                  {
+                    "$divide": [
+                      "$interesesActivoDivisaOrigen", "$tasa_dolar"
+                    ]
+                  }, 4
+                ]
+              }, 
+              "else": null
+            }
+          }
+        }
+      }, 
+      "origenMargen": true, 
+      "_id": "$$REMOVE", 
+      "resultSize": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Margenactivo", 
+      "on": [
+        "rifCedula", "naturalezaProducto", "codigoProducto", "codigoProductoaAltair", "codigoSubProductoAltair", "cuentaContable1", "fechaProceso"
+      ], 
+      "whenNotMatched": "insert"
+    }
+  }
+]

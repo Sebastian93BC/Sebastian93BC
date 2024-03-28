@@ -1,0 +1,231 @@
+[
+  {
+    "$match": {
+      "persona": "Jurídica", 
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.processDate}}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$lookup": {
+      "from": "Company", 
+      "let": {
+        "rif": "$rifCedula"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$$rif", "$vat"
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "integrationIds": 1, 
+            "peopleIds": 1, 
+            "createdAt": 1
+          }
+        }
+      ], 
+      "as": "result"
+    }
+  }, {
+    "$addFields": {
+      "integrationIds": {
+        "$ifNull": [
+          {
+            "$first": "$result.integrationIds"
+          }, {
+            "Margenmetricnatural": "$rifCedula"
+          }
+        ]
+      }, 
+      "peopleIds": {
+        "$ifNull": [
+          {
+            "$first": "$result.peopleIds"
+          }, {
+            "Margenmetricnatural": [
+              "$_id"
+            ]
+          }
+        ]
+      }, 
+      "_id": "$$REMOVE", 
+      "vat": "$rifCedula", 
+      "name": "$nombreCliente", 
+      "stage": "client", 
+      "nivelSocioEconomico": "$nombreNSE", 
+      "updatedAt": "$$NOW", 
+      "createdAt": {
+        "$ifNull": [
+          {
+            "$first": "$result.createdAt"
+          }, "$$NOW"
+        ]
+      }, 
+      "feve": "$sidisBaseCliente.mbc_feve", 
+      "UAI": "$sidisBaseCliente.mbc_uai", 
+      "address": "$sidisCliente.cli_direccion", 
+      "billingAddress": "$sidisCliente.cli_direccion", 
+      "billingName": "$sidisCliente.cli_nom_cliente", 
+      "city": "$sidisCliente.cli_cdef_ciudad", 
+      "codigoejecutivo": "$sidisCliente.cli_cod_ejecutivo", 
+      "email": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$lte": [
+                  {
+                    "$first": "$result.email"
+                  }, null
+                ]
+              }, 
+              "then": {
+                "$toLower": "$sidisCliente.cli_cdef_email"
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  {
+                    "$first": "$result.email"
+                  }, ""
+                ]
+              }, 
+              "then": {
+                "$toLower": "$sidisCliente.cli_cdef_email"
+              }
+            }
+          ], 
+          "default": {
+            "$first": "$result.email"
+          }
+        }
+      }, 
+      "emailHist": {
+        "$setUnion": [
+          [
+            {
+              "$toLower": "$sidisCliente.cli_cdef_email"
+            }
+          ], {
+            "$ifNull": [
+              {
+                "$first": "$result.emailHist"
+              }, {
+                "$first": "$result.emailHist"
+              }, []
+            ]
+          }
+        ]
+      }, 
+      "externalCode": "$sidisCliente.cli_num_per", 
+      "lastName": "$sidisCliente.cli_nom_cliente", 
+      "maritalstatus": "$sidisCliente.cli_cdef_estadocivil", 
+      "nombreejecutivo": "$sidisCliente.cli_nom_ejecut_cuenta", 
+      "ocupation": "$sidisCliente.cli_desc_act_econ", 
+      "ocupationId": "$sidisCliente.cli_actividad_econ", 
+      "personNumber": "$sidisCliente.cli_num_per", 
+      "phone": "$sidisCliente.cli_cdef_telefono1", 
+      "secondaryPhone": "$sidisCliente.cli_cdef_telefono2", 
+      "sex": "$sidisCliente.cli_cdef_sexo", 
+      "state": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  "$sidisCliente.cli_estado", "DEPENDENCIAS FE"
+                ]
+              }, 
+              "then": "DEPENDENCIAS FEDERALES"
+            }, {
+              "case": {
+                "$eq": [
+                  "$sidisCliente.cli_estado", "DISTRITO CAPITA"
+                ]
+              }, 
+              "then": "DISTRITO CAPITAL"
+            }
+          ], 
+          "default": "$sidisCliente.cli_estado"
+        }
+      }, 
+      "dateOfBirth": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$sidisCliente.cli_fec_nac"
+          }, 
+          "month": {
+            "$month": "$sidisCliente.cli_fec_nac"
+          }, 
+          "day": {
+            "$dayOfMonth": "$sidisCliente.cli_fec_nac"
+          }, 
+          "hour": 12
+        }
+      }, 
+      "fechaUltimaTransacPasivo": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$fechaUltimaTransacPasivo"
+          }, 
+          "month": {
+            "$month": "$fechaUltimaTransacPasivo"
+          }, 
+          "day": {
+            "$dayOfMonth": "$fechaUltimaTransacPasivo"
+          }, 
+          "hour": 12
+        }
+      }, 
+      "officeCode": "$sidisSegmentacion.seg_oficina_tutora", 
+      "officeName": "$sidisSegmentacion.seg_nombre_oficina", 
+      "regionCode": "$sidisSegmentacion.seg_territorio", 
+      "regionName": "$sidisSegmentacion.seg_nombre_territorio", 
+      "clientDate": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$sidisSegmentacion.seg_fecha_alta"
+          }, 
+          "month": {
+            "$month": "$sidisSegmentacion.seg_fecha_alta"
+          }, 
+          "day": {
+            "$dayOfMonth": "$sidisSegmentacion.seg_fecha_alta"
+          }, 
+          "hour": 12
+        }
+      }, 
+      "country": "Venezuela", 
+      "stage": "Client", 
+      "credictCards": "$credictCards", 
+      "codigobanca": "$codigoBanca", 
+      "codigosegmento": "$codigoSegmento", 
+      "codigosubSegmento": "$codigoSubsegmento", 
+      "nivelSocioEconomico": "$nombreNSE", 
+      "nombrebanca": "$nombreBanca", 
+      "nombresegmento": "$nombreSegmento", 
+      "nombresubSegmento": "$nombreSubsegmento", 
+      "result": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "Company", 
+      "on": "vat", 
+      "whenNotMatched": "insert", 
+      "whenMatched": "merge"
+    }
+  }
+]
