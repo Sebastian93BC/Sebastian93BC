@@ -374,12 +374,7 @@
           }
         }
       }, 
-      "primeraLetraRif": {
-        "$substr": [
-          "$tra_rif", 0, 1
-        ]
-      }, 
-      "ultimaLetraRif": {
+      "lastDigRif": {
         "$substr": [
           "$tra_rif", 8, -1
         ]

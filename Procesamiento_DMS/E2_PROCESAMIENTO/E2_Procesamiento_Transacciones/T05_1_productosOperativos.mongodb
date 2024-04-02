@@ -1,0 +1,195 @@
+[
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$eq": [
+                "$lastDigRif", "@parallelizationIndex"
+              ]
+            }
+          }, {
+            "$expr": {
+              "$eq": [
+                "$fechaProceso", {
+                  "$toDate": "@processDate"
+                }
+              ]
+            }
+          }, {
+            "tra_cod_op": {
+              "$in": [
+                6513, 8540, 9780, 6512, 1436, 4008, 3652, 1436, 4008, 3652, 9162, 9733, 4025, 7602, 8926, 4659, 1328
+              ]
+            }
+          }
+        ]
+      }
+    }, {
+      "$project": {
+        "tra_rif": 1, 
+        "tra_fecha_contable": 1, 
+        "tra_cod_op": 1, 
+        "tra_ind_cre_deb": 1, 
+        "fechaProceso": 1
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "rif": "$tra_rif", 
+          "fechaProceso": "$fechaProceso"
+        }, 
+        "countPagoProveedores": {
+          "$sum": {
+            "$cond": {
+              "if": {
+                "$in": [
+                  "$tra_cod_op", [
+                    6513, 8540, 9780
+                  ]
+                ]
+              }, 
+              "then": 1, 
+              "else": 0
+            }
+          }
+        }, 
+        "countNomina": {
+          "$sum": {
+            "$cond": {
+              "if": {
+                "$in": [
+                  "$tra_cod_op", [
+                    6512
+                  ]
+                ]
+              }, 
+              "then": 1, 
+              "else": 0
+            }
+          }
+        }, 
+        "countPagoMovil": {
+          "$sum": {
+            "$cond": {
+              "if": {
+                "$in": [
+                  "$tra_cod_op", [
+                    1436, 4008, 3652
+                  ]
+                ]
+              }, 
+              "then": 1, 
+              "else": 0
+            }
+          }
+        }, 
+        "countIntervencionBancaria": {
+          "$sum": {
+            "$cond": {
+              "if": {
+                "$in": [
+                  "$tra_cod_op", [
+                    9162, 9733
+                  ]
+                ]
+              }, 
+              "then": 1, 
+              "else": 0
+            }
+          }
+        }, 
+        "countMesaCambio": {
+          "$sum": {
+            "$cond": {
+              "if": {
+                "$in": [
+                  "$tra_cod_op", [
+                    4025, 7602, 8926
+                  ]
+                ]
+              }, 
+              "then": 1, 
+              "else": 0
+            }
+          }
+        }
+      }
+    }, {
+      "$addFields": {
+        "rifCedula": "$_id.rif", 
+        "fechaProceso": "$_id.fechaProceso"
+      }
+    }, {
+      "$addFields": {
+        "pagoProveedores": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$countPagoProveedores", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "nomina": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$countNomina", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "pagoMovil": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$countPagoMovil", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "intervencionBancaria": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$countIntervencionBancaria", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "mesaCambio": {
+          "$cond": {
+            "if": {
+              "$gt": [
+                "$countMesaCambio", 0
+              ]
+            }, 
+            "then": 1, 
+            "else": 0
+          }
+        }, 
+        "_id": "$$REMOVE", 
+        "countPagoProveedores": "$$REMOVE", 
+        "countNomina": "$$REMOVE", 
+        "countPagoMovil": "$$REMOVE", 
+        "countIntervencionBancaria": "$$REMOVE", 
+        "countMesaCambio": "$$REMOVE"
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_productosVinculados", 
+        "on": [
+          "fechaProceso", "rifCedula"
+        ]
+      }
+    }
+  ]

@@ -1,94 +1,89 @@
 [
-    {
-      "$match": {
-        "$and": [
-          {
-            "$expr": {
-              "$eq": [
-                {
-                  "$substr": [
-                    "$tra_rif", 8, -1
-                  ]
-                }, "@parallelizationIndex"
-              ]
-            }
-          }, {
-            "$expr": {
-              "$eq": [
-                "$file_date", {
-                  "$toDate": "@processDate"
-                }
-              ]
-            }
-          }, {
-            "tra_banca": {
-              "$nin": [
-                "5", 5, "4", 4, "0", 0, "1", 1
-              ]
-            }
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              {
+                "$substr": [
+                  "$tra_rif", 8, -1
+                ]
+              }, "@parallelizationIndex"
+            ]
           }
+        }, {
+          "$expr": {
+            "$eq": [
+              "$file_date", {
+                "$toDate": "@processDate"
+              }
+            ]
+          }
+        }, {
+          "tra_banca": {
+            "$nin": [
+              "5", 5, "4", 4, "0", 0, "1", 1
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$addFields": {
+      "fechaProceso": {
+        "$dateFromParts": {
+          "year": {
+            "$year": "$tra_fecha_operacion"
+          }, 
+          "month": {
+            "$add": [
+              {
+                "$month": "$tra_fecha_operacion"
+              }, 1
+            ]
+          }, 
+          "day": {
+            "$subtract": [
+              {
+                "$dayOfMonth": {
+                  "$dateFromParts": {
+                    "year": {
+                      "$year": "$tra_fecha_operacion"
+                    }, 
+                    "month": {
+                      "$add": [
+                        {
+                          "$month": "$tra_fecha_operacion"
+                        }, 1
+                      ]
+                    }, 
+                    "day": 1
+                  }
+                }
+              }, 1
+            ]
+          }, 
+          "hour": 0, 
+          "minute": 0, 
+          "second": 0, 
+          "millisecond": 0
+        }
+      }, 
+      "lastDigRif": {
+        "$substr": [
+          "$tra_rif", 8, -1
         ]
       }
-    }, {
-      "$addFields": {
-        "fechaProceso": {
-          "$dateFromParts": {
-            "year": {
-              "$year": "$tra_fecha_operacion"
-            }, 
-            "month": {
-              "$add": [
-                {
-                  "$month": "$tra_fecha_operacion"
-                }, 1
-              ]
-            }, 
-            "day": {
-              "$subtract": [
-                {
-                  "$dayOfMonth": {
-                    "$dateFromParts": {
-                      "year": {
-                        "$year": "$tra_fecha_operacion"
-                      }, 
-                      "month": {
-                        "$add": [
-                          {
-                            "$month": "$tra_fecha_operacion"
-                          }, 1
-                        ]
-                      }, 
-                      "day": 1
-                    }
-                  }
-                }, 1
-              ]
-            }, 
-            "hour": 0, 
-            "minute": 0, 
-            "second": 0, 
-            "millisecond": 0
-          }
-        }, 
-        "firstDigRif": {
-          "$substr": [
-            "$tra_rif", 0, 1
-          ]
-        }, 
-        "lastDigRif": {
-          "$substr": [
-            "$tra_rif", 8, -1
-          ]
-        }
-      }
-    }, {
-      "$merge": {
-        "into": "sidis_transaccionesComisiones", 
-        "on": [
-          "tra_rif", "fechaProceso", "tra_cuenta_contable", "tra_cod_op", "_id"
-        ], 
-        "whenMatched": "replace", 
-        "whenNotMatched": "insert"
-      }
     }
-  ]
+  }, {
+    "$merge": {
+      "into": "sidis_transaccionesComisiones", 
+      "on": [
+        "tra_rif", "fechaProceso", "tra_cuenta_contable", "tra_cod_op", "_id"
+      ], 
+      "whenMatched": "replace", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

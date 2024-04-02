@@ -1,0 +1,33 @@
+//hashed
+db.createCollection("sidis_transaccionesOperativas")
+
+sh.shardCollection("bdv.sidis_transaccionesOperativas", {
+  tra_rif: 'hashed',
+  tra_serial_de_operacion: 1,
+  tra_cuenta_contrato: 1,
+})
+
+db.sidis_transaccionesOperativas.createIndex(
+  {
+    tra_rif: 1,
+    tra_serial_de_operacion: 1,
+    tra_cuenta_contrato: 1,
+    tra_cod_op: 1,
+    tra_nro_mov:1,
+    tra_fecha_contable:1,
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+db.sidis_transaccionesOperativas.createIndex(
+  {
+    lastDigRif: 1,
+    fechaProceso: 1,
+
+  },
+  { name: "parelizacion" },
+)
+
+
+
+

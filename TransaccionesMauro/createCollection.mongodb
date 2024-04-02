@@ -1,93 +1,70 @@
-//hashed
-db.createCollection("sidis_transaccionesComisionesNew")
 
-sh.shardCollection("bdv.sidis_transaccionesComisionesNew", {
+
+//hashed
+db.createCollection("rawTransaccionesOperativas")
+
+sh.shardCollection("bdv.rawTransaccionesOperativas", {
   tra_rif: 'hashed',
-  fechaProceso:1,
-  tra_cuenta_contable:1,
+  tra_serial_de_operacion: 1,
+  tra_cuenta_contrato: 1,
 })
 
-db.sidis_transaccionesComisionesNew.createIndex(
+db.rawTransaccionesOperativas.createIndex(
   {
-    tra_rif:1,
-    fechaProceso:1,
-    tra_cuenta_contable:1,
-    tra_cod_op:1,
-    _id:1,
+    tra_rif: 1,
+    tra_serial_de_operacion: 1,
+    tra_cuenta_contrato: 1,
+    tra_cod_op: 1,
+    tra_nro_mov: 1,
+    tra_fecha_contable: 1,
+    tra_fecha_operacion: 1,
+    tra_banca: 1,
+    tra_producto: 1,
+    tra_ristra_contable: 1,
+    _id: 1
   },
   { unique: true, name: "mergeIndex" },
 )
 
-"tra_rif",
-"fechaProceso",
-"tra_cuenta_contable",
-"tra_cod_op",
-
-
-
-var indexes = [
+db.rawTransaccionesOperativas.createIndex(
   {
-    v: 2,
-    key: { mcl_fecha_proceso: -1, tipoConsulta: 1 },
-    name: 'consultaAtivosPasivos'
+    file_date: 1,
+
+
   },
+  { name: "parelizacion" },
+)
 
+
+//hashed
+db.createCollection("sidis_transaccionesComisiones")
+
+sh.shardCollection("bdv.sidis_transaccionesComisiones", {
+  tra_rif: 'hashed',
+  fechaProceso: 1,
+  tra_cuenta_contable: 1,
+})
+
+db.sidis_transaccionesComisiones.createIndex(
   {
-    v: 2,
-    key: {
-      mcl_rif_cedula: 1,
-      mcl_fecha_proceso: 1,
-      tipoConsulta: 1,
-      mcl_naturaleza_producto: 1,
-      mcl_producto: 1,
-      mcl_producto_altair: 1,
-      mcl_subproducto_altair: 1,
-      mcl_cuenta_contable1: 1
-    },
-    name: 'Consulta'
+    tra_rif: 1,
+    fechaProceso: 1,
+    tra_cuenta_contable: 1,
+    tra_cod_op: 1,
+    _id: 1,
   },
-  {
-    v: 2,
-    key: {
-      mcl_rif_cedula: 1,
-      mcl_fecha_proceso: 1,
-      mcl_naturaleza_producto: -1,
-      mcl_estatus: 1,
-      mcl_banca: 1,
+  { unique: true, name: "mergeIndex" },
+)
 
-    },
-    name: 'Consulta Tasa Interes'
+db.sidis_transaccionesComisiones.createIndex(
+  {
+    lastDigRif: 1,
+    fechaProceso: 1,
+
   },
-  {
-    v: 2,
-    key: {
-      mcl_rif_cedula: 1,
-      mcl_fecha_proceso: -1,
-      mcl_naturaleza_producto: 1,
-      mcl_producto: 1,
-      mcl_bin_tarjeta: 1,
+  { name: "parelizacion" },
+)
 
-    },
-    name: 'ConsultaProdutosTarjetaCredito'
-  },
-  {
-    v: 2,
-    key: {
-      rifCedula: 1,
-      mcl_fecha_proceso: -1,
-      mcl_banca: 1,
-      'sidisProducto.prd_codigo_producto': 1,
 
-    },
-    name: 'relatedProducts'
-  }
-]
 
-indexes.forEach(function (index) {
-  delete index.v;
-  delete index.ns;
-  var key = index.key;
-  delete index.key
 
-  db.sidis_margen.createIndex(key, index);
-});
