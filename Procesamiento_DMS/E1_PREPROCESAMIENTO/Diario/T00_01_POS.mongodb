@@ -4,9 +4,15 @@
       "$and": [
         {
           "$expr": {
-            "$eq": [
+            "$gte": [
               "$file_date", {
-                "$toDate": "@processDate"
+                "$dateSubtract": {
+                  "startDate": {
+                    "$toDate": "@processDate"
+                  }, 
+                  "unit": "day", 
+                  "amount": 10
+                }
               }
             ]
           }
