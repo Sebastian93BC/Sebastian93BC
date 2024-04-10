@@ -1,0 +1,34 @@
+//hashed
+db.createCollection("sidis_cliente_base_segmentacion_hist")
+
+sh.shardCollection("bdv.sidis_cliente_base_segmentacion_hist", {
+  rifCedula: 'hashed',
+  fechaProceso: 1,
+
+})
+
+db.sidis_cliente_base_segmentacion_hist.createIndex(
+  {
+    rifCedula: 1,
+    fechaProceso: 1,
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+
+db.sidis_cliente_base_segmentacion_hist.createIndex(
+  {
+    lastDigRif: 1,
+    fechaProceso: 1,
+  },
+  {name: "ParalellIndex" },
+)
+
+
+[ 
+  "file_date",
+  "tra_cod_op",
+  "tra_fecha_hora",
+  "tra_rif",
+  "_id",
+]

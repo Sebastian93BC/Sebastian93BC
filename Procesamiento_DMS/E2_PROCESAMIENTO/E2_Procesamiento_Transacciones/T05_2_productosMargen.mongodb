@@ -1,0 +1,76 @@
+[
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$eq": [
+                "$lastDigRif", "@parallelizationIndex"
+              ]
+            }
+          }, {
+            "$expr": {
+              "$eq": [
+                "$mcl_fecha_proceso", {
+                  "$toDate": "@processDate"
+                }
+              ]
+            }
+          }, {
+            "mcl_banca": {
+              "$nin": [
+                "5", 5, "4", 4, "0", 0, "1", 1
+              ]
+            }
+          }, {
+            "$or": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$sidisProducto.prd_codigo_producto", 1122
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$sidisProducto.prd_codigo_producto", 1117
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }, {
+      "$project": {
+        "_id": 0, 
+        "bdvEnLineaEmpresas": {
+          "$cond": [
+            {
+              "$eq": [
+                "$sidisProducto.prd_codigo_producto", 1122
+              ]
+            }, 1, 0
+          ]
+        }, 
+        "bdvEnLineaPersonas": {
+          "$cond": [
+            {
+              "$eq": [
+                "$sidisProducto.prd_codigo_producto", 1117
+              ]
+            }, 1, 0
+          ]
+        }, 
+        "fechaProceso": "$mcl_fecha_proceso", 
+        "rifCedula": "$mcl_rif_cedula"
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_productosVinculados", 
+        "on": [
+          "fechaProceso", "rifCedula"
+        ]
+      }
+    }
+  ]

@@ -1,0 +1,1 @@
+[\r\n  {\r\n    \"$match\": {\r\n      \"$and\": [\r\n        {\r\n          \"$expr\": {\r\n            \"$eq\": [\r\n              \"$lastDigRif\", {\r\n                \"$toString\": \"@parallelizationIndex\"\r\n              }\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }\r\n]

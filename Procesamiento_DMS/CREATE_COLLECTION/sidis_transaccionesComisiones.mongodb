@@ -1,13 +1,13 @@
 //hashed
-db.createCollection("sidis_transaccionesComisiones")
+db.createCollection("sidis_transaccionesComisiones_hist")
 
-sh.shardCollection("bdv.sidis_transaccionesComisiones", {
+sh.shardCollection("bdv.sidis_transaccionesComisiones_hist", {
   tra_rif: 'hashed',
   fechaProceso: 1,
   tra_cuenta_contable: 1,
 })
 
-db.sidis_transaccionesComisiones.createIndex(
+db.sidis_transaccionesComisiones_hist.createIndex(
   {
     tra_rif: 1,
     fechaProceso: 1,
@@ -18,7 +18,7 @@ db.sidis_transaccionesComisiones.createIndex(
   { unique: true, name: "mergeIndex" },
 )
 
-db.sidis_transaccionesComisiones.createIndex(
+db.sidis_transaccionesComisiones_hist.createIndex(
   {
     lastDigRif: 1,
     fechaProceso: 1,

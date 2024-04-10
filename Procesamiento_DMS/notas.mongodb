@@ -1,289 +1,57 @@
-{
-  processName: "E1_Preprocesamiento_Diario",
-  processDate: "nda",
-  processFrequency: "diaria",
-  fromCollection: "nda",
-  toCollection: "nda",
-  description:
-    "Formateo diario de varias colecciones",
-  startDate: "nda",
-  endDate: "nda",
-  runtimeInMinutes: "nda",
-  status: "nda",
-  subProcess: [
-    {
-      subProcessName:
-        "T21_1_transaccionesComisiones",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection:
-        "rawTransaccionesComisiones",
-      toCollection:
-        "sidis_transaccionesComisiones",
-      description:
-        "Formatea la coleccion rawTransaccionesComisiones",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$and": [\r\n        {\r\n          "$expr": {\r\n            "$eq": [\r\n              {\r\n                "$substr": [\r\n                  "$tra_rif", 8, -1\r\n                ]\r\n              }, "@parallelizationIndex"\r\n            ]\r\n          }\r\n        }, {\r\n          "$expr": {\r\n            "$eq": [\r\n              "$file_date", {\r\n                "$toDate": "@processDate"\r\n              }\r\n            ]\r\n          }\r\n        }, {\r\n          "tra_banca": {\r\n            "$nin": [\r\n              "5", 5, "4", 4, "0", 0, "1", 1\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$tra_fecha_operacion"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$tra_fecha_operacion"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$tra_fecha_operacion"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$tra_fecha_operacion"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }, \r\n      "lastDigRif": {\r\n        "$substr": [\r\n          "$tra_rif", 8, -1\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_transaccionesComisiones", \r\n      "on": [\r\n        "tra_rif", "fechaProceso", "tra_cuenta_contable", "tra_cod_op", "_id"\r\n      ], \r\n      "whenMatched": "replace", \r\n      "whenNotMatched": "insert"\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-      ],
-    },
-    {
-      subProcessName:
-        "T20_1_transaccionesOperativas",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection:
-        "rawTransaccionesOperativas",
-      toCollection:
-        "sidis_transaccionesOperativas",
-      description:
-        "Formatea la coleccion rawTransaccionesOperativas",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$and": [\r\n        {\r\n          "$expr": {\r\n            "$eq": [\r\n              {\r\n                "$substr": [\r\n                  "$tra_rif", 8, -1\r\n                ]\r\n              }, "@parallelizationIndex"\r\n            ]\r\n          }\r\n        }, {\r\n          "tra_banca": {\r\n            "$nin": [\r\n              "5", 5, "4", 4, "0", 0, "1", 1\r\n            ]\r\n          }\r\n        }, {\r\n          "$expr": {\r\n            "$eq": [\r\n              "$file_date", {\r\n                "$toDate": "@processDate"\r\n              }\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }, {\r\n    "$group": {\r\n      "_id": {\r\n        "tra_rif": "$tra_rif", \r\n        "tra_serial_de_operacion": "$tra_serial_de_operacion", \r\n        "tra_cuenta_contrato": "$tra_cuenta_contrato", \r\n        "tra_cod_op": "$tra_cod_op", \r\n        "tra_nro_mov": "$tra_nro_mov", \r\n        "tra_fecha_contable": "$tra_fecha_contable"\r\n      }, \r\n      "tra_rif": {\r\n        "$first": "$tra_rif"\r\n      }, \r\n      "tra_fecha_operacion": {\r\n        "$first": "$tra_fecha_operacion"\r\n      }, \r\n      "tra_cuenta_contrato": {\r\n        "$first": "$tra_cuenta_contrato"\r\n      }, \r\n      "tra_cod_op": {\r\n        "$first": "$tra_cod_op"\r\n      }, \r\n      "tra_nro_mov": {\r\n        "$first": "$tra_nro_mov"\r\n      }, \r\n      "tra_fecha_contable": {\r\n        "$first": "$tra_fecha_contable"\r\n      }, \r\n      "tra_entidad": {\r\n        "$first": "$tra_entidad"\r\n      }, \r\n      "tra_oficina_operante": {\r\n        "$first": "$tra_oficina_operante"\r\n      }, \r\n      "tra_oficina_origen": {\r\n        "$first": "$tra_oficina_origen"\r\n      }, \r\n      "tra_oficina_destino": {\r\n        "$first": "$tra_oficina_destino"\r\n      }, \r\n      "tra_desc_oficina": {\r\n        "$first": "$tra_desc_oficina"\r\n      }, \r\n      "tra_canal": {\r\n        "$first": "$tra_canal"\r\n      }, \r\n      "tra_desc_canal": {\r\n        "$first": "$tra_desc_canal"\r\n      }, \r\n      "tra_usuario": {\r\n        "$first": "$tra_usuario"\r\n      }, \r\n      "tra_cargo": {\r\n        "$first": "$tra_cargo"\r\n      }, \r\n      "tra_fecha_hora": {\r\n        "$first": "$tra_fecha_hora"\r\n      }, \r\n      "tra_transaccion": {\r\n        "$first": "$tra_transaccion"\r\n      }, \r\n      "tra_desc_transaccion": {\r\n        "$first": "$tra_desc_transaccion"\r\n      }, \r\n      "tra_oper_valida": {\r\n        "$first": "$tra_oper_valida"\r\n      }, \r\n      "tra_terminal": {\r\n        "$first": "$tra_terminal"\r\n      }, \r\n      "tra_desc_cod_op": {\r\n        "$first": "$tra_desc_cod_op"\r\n      }, \r\n      "tra_aplicacion_origen": {\r\n        "$first": "$tra_aplicacion_origen"\r\n      }, \r\n      "tra_aplicacion_destino": {\r\n        "$first": "$tra_aplicacion_destino"\r\n      }, \r\n      "tra_cod_interfa": {\r\n        "$first": "$tra_cod_interfa"\r\n      }, \r\n      "tra_serial_de_operacion": {\r\n        "$first": "$tra_serial_de_operacion"\r\n      }, \r\n      "tra_sector_economico": {\r\n        "$first": "$tra_sector_economico"\r\n      }, \r\n      "tra_desc_sector_economico": {\r\n        "$first": "$tra_desc_sector_economico"\r\n      }, \r\n      "tra_ind_juridico_fisico": {\r\n        "$first": "$tra_ind_juridico_fisico"\r\n      }, \r\n      "tra_tipo_taquilla": {\r\n        "$first": "$tra_tipo_taquilla"\r\n      }, \r\n      "tra_terminal_fisico": {\r\n        "$first": "$tra_terminal_fisico"\r\n      }, \r\n      "tra_varios_ristra": {\r\n        "$first": "$tra_varios_ristra"\r\n      }, \r\n      "tra_tasa2": {\r\n        "$first": "$tra_tasa2"\r\n      }, \r\n      "tra_monto_comision": {\r\n        "$first": "$tra_monto_comision"\r\n      }, \r\n      "tra_cuenta_contable2": {\r\n        "$first": "$tra_cuenta_contable2"\r\n      }, \r\n      "tra_producto": {\r\n        "$first": "$tra_producto"\r\n      }, \r\n      "tra_banca": {\r\n        "$first": "$tra_banca"\r\n      }, \r\n      "tra_segmento": {\r\n        "$first": "$tra_segmento"\r\n      }, \r\n      "tra_ind_cre_deb": {\r\n        "$first": "$tra_ind_cre_deb"\r\n      }, \r\n      "cuentaContable": {\r\n        "$push": {\r\n          "tra_ind_cre_deb": "$tra_ind_cre_deb", \r\n          "tra_cuenta_contable": "$tra_cuenta_contable"\r\n        }\r\n      }, \r\n      "ristraContable": {\r\n        "$push": {\r\n          "tra_ind_cre_deb": "$tra_ind_cre_deb", \r\n          "tra_ristra_contable": "$tra_ristra_contable"\r\n        }\r\n      }, \r\n      "monto": {\r\n        "$sum": "$tra_monto_debe"\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$tra_fecha_operacion"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$tra_fecha_operacion"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$tra_fecha_operacion"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$tra_fecha_operacion"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }, \r\n      "cuentaContableHaber": {\r\n        "$let": {\r\n          "vars": {\r\n            "haber": {\r\n              "$arrayElemAt": [\r\n                "$cuentaContable.tra_cuenta_contable", {\r\n                  "$indexOfArray": [\r\n                    "$cuentaContable.tra_ind_cre_deb", "C"\r\n                  ]\r\n                }\r\n              ]\r\n            }\r\n          }, \r\n          "in": {\r\n            "$cond": {\r\n              "if": {\r\n                "$ne": [\r\n                  "$$haber", null\r\n                ]\r\n              }, \r\n              "then": "$$haber", \r\n              "else": null\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      "cuentaContableDebe": {\r\n        "$let": {\r\n          "vars": {\r\n            "debe": {\r\n              "$arrayElemAt": [\r\n                "$cuentaContable.tra_cuenta_contable", {\r\n                  "$indexOfArray": [\r\n                    "$cuentaContable.tra_ind_cre_deb", "D"\r\n                  ]\r\n                }\r\n              ]\r\n            }\r\n          }, \r\n          "in": {\r\n            "$cond": {\r\n              "if": {\r\n                "$ne": [\r\n                  "$$debe", null\r\n                ]\r\n              }, \r\n              "then": "$$debe", \r\n              "else": null\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      "ristraContableHaber": {\r\n        "$let": {\r\n          "vars": {\r\n            "haber": {\r\n              "$arrayElemAt": [\r\n                "$ristraContable.tra_ristra_contable", {\r\n                  "$indexOfArray": [\r\n                    "$ristraContable.tra_ind_cre_deb", "C"\r\n                  ]\r\n                }\r\n              ]\r\n            }\r\n          }, \r\n          "in": {\r\n            "$cond": {\r\n              "if": {\r\n                "$ne": [\r\n                  "$$haber", null\r\n                ]\r\n              }, \r\n              "then": "$$haber", \r\n              "else": null\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      "ristraContableDebe": {\r\n        "$let": {\r\n          "vars": {\r\n            "debe": {\r\n              "$arrayElemAt": [\r\n                "$ristraContable.tra_ristra_contable", {\r\n                  "$indexOfArray": [\r\n                    "$ristraContable.tra_ind_cre_deb", "D"\r\n                  ]\r\n                }\r\n              ]\r\n            }\r\n          }, \r\n          "in": {\r\n            "$cond": {\r\n              "if": {\r\n                "$ne": [\r\n                  "$$debe", null\r\n                ]\r\n              }, \r\n              "then": "$$debe", \r\n              "else": null\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      "ristraContableHaberMoneda": {\r\n        "$let": {\r\n          "vars": {\r\n            "haber": {\r\n              "$arrayElemAt": [\r\n                "$ristraContable.tra_ristra_contable", {\r\n                  "$indexOfArray": [\r\n                    "$ristraContable.tra_ind_cre_deb", "C"\r\n                  ]\r\n                }\r\n              ]\r\n            }\r\n          }, \r\n          "in": {\r\n            "$cond": {\r\n              "if": {\r\n                "$ne": [\r\n                  "$$haber", null\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$substr": [\r\n                  "$$haber", 37, 3\r\n                ]\r\n              }, \r\n              "else": null\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      "ristraContableDebeMoneda": {\r\n        "$let": {\r\n          "vars": {\r\n            "debe": {\r\n              "$arrayElemAt": [\r\n                "$ristraContable.tra_ristra_contable", {\r\n                  "$indexOfArray": [\r\n                    "$ristraContable.tra_ind_cre_deb", "D"\r\n                  ]\r\n                }\r\n              ]\r\n            }\r\n          }, \r\n          "in": {\r\n            "$cond": {\r\n              "if": {\r\n                "$ne": [\r\n                  "$$debe", null\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$substr": [\r\n                  "$$debe", 37, 3\r\n                ]\r\n              }, \r\n              "else": null\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      "lastDigRif": {\r\n        "$substr": [\r\n          "$tra_rif", 8, -1\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "tra_cuenta_contable": "$cuentaContableHaber", \r\n      "_id": "$$REMOVE"\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_transaccionesOperativas", \r\n      "on": [\r\n        "tra_rif", "tra_serial_de_operacion", "tra_cuenta_contrato", "tra_cod_op", "tra_nro_mov", "tra_fecha_contable"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-      ],
-    },
-    {
-      subProcessName: "T22_1_transacciones",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "rawTransacciones",
-      toCollection: "sidis_transacciones",
-      description:
-        "Formatea la coleccion rawTransacciones",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: false,
-      aggregate: "[]",
-      parallelizationIndex: [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-      ],
-    },
-    {
-      subProcessName: "T00_01_POS",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "puntoa",
-      toCollection: "sidis_puntoa",
-      description: "Formatea la coleccion puntoa",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    \"$match\": {\r\n      \"$and\": [\r\n        {\r\n          \"$expr\": {\r\n            \"$gte\": [\r\n              \"$file_date\", {\r\n                \"$dateSubtract\": {\r\n                  \"startDate\": {\r\n                    \"$toDate\": \"@processDate\"\r\n                  }, \r\n                  \"unit\": \"day\", \r\n                  \"amount\": 10\r\n                }\r\n              }\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }, {\r\n    \"$project\": {\r\n      \"fechaProceso\": {\r\n        \"$cond\": {\r\n          \"if\": {\r\n            \"$eq\": [\r\n              \"$FECHA_INFORMACION\", \"\"\r\n            ]\r\n          }, \r\n          \"then\": null, \r\n          \"else\": {\r\n            \"$dateFromParts\": {\r\n              \"year\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INFORMACION\", 0, 4\r\n                  ]\r\n                }\r\n              }, \r\n              \"month\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INFORMACION\", 4, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"day\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INFORMACION\", 6, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"hour\": 0, \r\n              \"minute\": 0, \r\n              \"second\": 0, \r\n              \"millisecond\": 0\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      \"codigoAfiliacion\": \"$CODIGO_AFILIACION\", \r\n      \"nroCuenta\": \"$NRO_CUENTA\", \r\n      \"rifCedula\": \"$RIF\", \r\n      \"nombre\": \"$NOMBRE\", \r\n      \"categoria\": \"$CATEGORIA\", \r\n      \"descripCategoria\": \"$DESCRIP_CATEGORIA\", \r\n      \"status\": \"$STATUS\", \r\n      \"fechaAfiliacion\": {\r\n        \"$cond\": {\r\n          \"if\": {\r\n            \"$eq\": [\r\n              \"$FECHA_AFILIACION\", \"\"\r\n            ]\r\n          }, \r\n          \"then\": null, \r\n          \"else\": {\r\n            \"$dateFromParts\": {\r\n              \"year\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_AFILIACION\", 0, 4\r\n                  ]\r\n                }\r\n              }, \r\n              \"month\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_AFILIACION\", 4, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"day\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_AFILIACION\", 6, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"hour\": 0, \r\n              \"minute\": 0, \r\n              \"second\": 0, \r\n              \"millisecond\": 0\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      \"fechaDesafiliacion\": {\r\n        \"$cond\": {\r\n          \"if\": {\r\n            \"$eq\": [\r\n              \"$FECHA_DESAFILIACION\", \"\"\r\n            ]\r\n          }, \r\n          \"then\": null, \r\n          \"else\": {\r\n            \"$dateFromParts\": {\r\n              \"year\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_DESAFILIACION\", 0, 4\r\n                  ]\r\n                }\r\n              }, \r\n              \"month\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_DESAFILIACION\", 4, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"day\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_DESAFILIACION\", 6, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"hour\": 0, \r\n              \"minute\": 0, \r\n              \"second\": 0, \r\n              \"millisecond\": 0\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      \"nroTienda\": \"$NRO_TIENDA\", \r\n      \"codAgenciaAsoc\": \"$COD_AGENCIA_ASOC\", \r\n      \"nombAgenciaAsoc\": \"$NOMB_AGENCIA_ASOC\", \r\n      \"region\": \"$REGION\", \r\n      \"descripRegion\": \"$DESCRIP_REGION\", \r\n      \"territorio\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$TERRITORIO\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"banca\": \"$BANCA\", \r\n      \"segmento\": \"$SEGMENTO\", \r\n      \"subSegmento\": \"$SUB_SEGMENTO\", \r\n      \"tasaDebito\": \"$TASA_DEBITO\", \r\n      \"tasaCredito\": \"$TASA_CREDITO\", \r\n      \"tasaCompensacDebito\": \"$TASA_COMPENSAC_DEBITO\", \r\n      \"tasaCompensacCredito\": \"$TASA_COMPENSAC_CREDITO\", \r\n      \"nroPos\": \"$NRO_POS\", \r\n      \"serialPos\": \"$SERIAL_POS\", \r\n      \"fechaInstalacionPos\": {\r\n        \"$cond\": {\r\n          \"if\": {\r\n            \"$eq\": [\r\n              \"$FECHA_INSTALACION_POS\", \"\"\r\n            ]\r\n          }, \r\n          \"then\": null, \r\n          \"else\": {\r\n            \"$dateFromParts\": {\r\n              \"year\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INSTALACION_POS\", 0, 4\r\n                  ]\r\n                }\r\n              }, \r\n              \"month\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INSTALACION_POS\", 4, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"day\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INSTALACION_POS\", 6, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"hour\": 0, \r\n              \"minute\": 0, \r\n              \"second\": 0, \r\n              \"millisecond\": 0\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      \"fechaDesintalaciPos\": {\r\n        \"$cond\": {\r\n          \"if\": {\r\n            \"$eq\": [\r\n              \"$FECHA_DESINTALACI_POS\", \"\"\r\n            ]\r\n          }, \r\n          \"then\": null, \r\n          \"else\": {\r\n            \"$dateFromParts\": {\r\n              \"year\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_DESINTALACI_POS\", 0, 4\r\n                  ]\r\n                }\r\n              }, \r\n              \"month\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_DESINTALACI_POS\", 4, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"day\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_DESINTALACI_POS\", 6, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"hour\": 0, \r\n              \"minute\": 0, \r\n              \"second\": 0, \r\n              \"millisecond\": 0\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      \"tipoPos\": \"$TIPO_POS\", \r\n      \"modalidadPos\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$MODALIDAD_POS\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"codModelo1\": \"$COD_MODELO_1\", \r\n      \"descripModelo1\": \"$DESCRIP_MODELO_1\", \r\n      \"codComponente1\": \"$COD_COMPONENTE_1\", \r\n      \"descripComponente1\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_COMPONENTE_1\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"cambioComponente1\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$CAMBIO_COMPONENTE_1\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"statusComponente1\": \"$STATUS_COMPONENTE_1\", \r\n      \"codModelo2\": \"$COD_MODELO_2\", \r\n      \"descripModelo2\": \"$DESCRIP_MODELO_2\", \r\n      \"codComponente2\": \"$COD_COMPONENTE_2\", \r\n      \"descripComponente2\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_COMPONENTE_2\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"cambioComponente2\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$CAMBIO_COMPONENTE_2\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"statusComponente2\": \"$STATUS_COMPONENTE_2\", \r\n      \"codModelo3\": \"$COD_MODELO_3\", \r\n      \"descripModelo3\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_MODELO_3\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"codComponente3\": \"$COD_COMPONENTE_3\", \r\n      \"descripComponente3\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_COMPONENTE_3\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"cambioComponente3\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$CAMBIO_COMPONENTE_3\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"statusComponente3\": \"$STATUS_COMPONENTE_3\", \r\n      \"codModelo4\": \"COD_MODELO_4\", \r\n      \"descripModelo4\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_MODELO_4\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"codComponente4\": \"COD_COMPONENTE_4\", \r\n      \"descripComponente4\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_COMPONENTE_4\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"cambioComponente4\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$CAMBIO_COMPONENTE_4\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"statusComponente4\": \"STATUS_COMPONENTE_4\", \r\n      \"codModelo5\": \"COD_MODELO_5\", \r\n      \"descripModelo5\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_MODELO_5\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"codComponente5\": \"COD_COMPONENTE_5\", \r\n      \"descripComponente5\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$DESCRIP_COMPONENTE_5\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"cambioComponente5\": {\r\n        \"$replaceAll\": {\r\n          \"input\": \"$CAMBIO_COMPONENTE_5\", \r\n          \"find\": \"\\u0000\", \r\n          \"replacement\": \"\"\r\n        }\r\n      }, \r\n      \"statusComponente5\": \"$STATUS_COMPONENTE_5\", \r\n      \"extrafi\": \"$EXTRAFI\", \r\n      \"tranDebito\": \"$TRAN_DEBITO\", \r\n      \"mtoDebito\": \"$MTO_DEBITO\", \r\n      \"tranCredito\": \"$TRAN_CREDITO\", \r\n      \"mtoCredito\": \"$MTO_CREDITO\", \r\n      \"tranCredVisa\": \"$TRAN_CRED_VISA\", \r\n      \"mtoCredVisa\": \"$MTO_CRED_VISA\", \r\n      \"tranCredMaster\": \"$TRAN_CRED_MASTER\", \r\n      \"mtoCredMaster\": \"$MTO_CRED_MASTER\", \r\n      \"tranCredAmex\": \"$TRAN_CRED_AMEX\", \r\n      \"mtoCredAmex\": \"$MTO_CRED_AMEX\", \r\n      \"tranCredPriv\": \"$TRAN_CRED_PRIV\", \r\n      \"mtoCredPriv\": \"$MTO_CRED_PRIV\", \r\n      \"comisionDebito\": \"$COMISION_DEBITO\", \r\n      \"comisionCobroDeb\": \"$COMISION_COBRO_DEB\", \r\n      \"comisionCredito\": \"$COMISION_CREDITO\", \r\n      \"comisionCobroCre\": \"$COMISION_COBRO_CRE\", \r\n      \"opeNegadasBdv\": \"$OPE_NEGADAS_BDV\", \r\n      \"mtoNegadasBdv\": \"$MTO_NEGADAS_BDV\", \r\n      \"opeErradasBdv\": \"$OPE_ERRADAS_BDV\", \r\n      \"mtoErradasBdv\": \"$MTO_ERRADAS_BDV\", \r\n      \"opeReversoBdv\": \"$OPE_REVERSO_BDV\", \r\n      \"mtoReversoBdv\": \"$MTO_REVERSO_BDV\", \r\n      \"tranDebitoBdv\": \"$TRAN_DEBITO_BDV\", \r\n      \"mtoDebitoBdv\": \"$MTO_DEBITO_BDV\", \r\n      \"tranCreditoBdv\": \"$TRAN_CREDITO_BDV\", \r\n      \"mtoCreditoBdv\": \"$MTO_CREDITO_BDV\", \r\n      \"tranCredVisaBdv\": \"$TRAN_CRED_VISA_BDV\", \r\n      \"mtoCredVisaBdv\": \"$MTO_CRED_VISA_BDV\", \r\n      \"tranCredMasterBdv\": \"$TRAN_CRED_MASTER_BDV\", \r\n      \"mtoCredMasterBdv\": \"$MTO_CRED_MASTER_BDV\", \r\n      \"tranCredAmexBdv\": \"$TRAN_CRED_AMEX_BDV\", \r\n      \"mtoCredAmexBdv\": \"$MTO_CRED_AMEX_BDV\", \r\n      \"tranCredPrivBdv\": \"$TRAN_CRED_PRIV_BDV\", \r\n      \"mtoCredPrivBdv\": \"$MTO_CRED_PRIV_BDV\", \r\n      \"comisionDebitoBdv\": \"$COMISION_DEBITO_BDV\", \r\n      \"comisionCobroDBdv\": \"$COMISION_COBRO_D_BDV\", \r\n      \"comisionCredBdv\": \"$COMISION_CRED_BDV\", \r\n      \"comisionCobroCBdv\": \"$COMISION_COBRO_C_BDV\", \r\n      \"opeNegadasNBdv\": \"$OPE_NEGADAS_N_BDV\", \r\n      \"mtoNegadasNBdv\": \"$MTO_NEGADAS_N_BDV\", \r\n      \"opeErradasNBdv\": \"$OPE_ERRADAS_N_BDV\", \r\n      \"mtoErradasNBdv\": \"$MTO_ERRADAS_N_BDV\", \r\n      \"opeReversoNBdv\": \"$OPE_REVERSO_N_BDV\", \r\n      \"mtoReversoNBdv\": \"$MTO_REVERSO_N_BDV\", \r\n      \"tranDebitoNBdv\": \"$TRAN_DEBITO_N_BDV\", \r\n      \"mtoDebitoNBdv\": \"$MTO_DEBITO_N_BDV\", \r\n      \"tranCreditoNBdv\": \"$TRAN_CREDITO_N_BDV\", \r\n      \"mtoCreditoNBdv\": \"$MTO_CREDITO_N_BDV\", \r\n      \"tranCredVisaNBdv\": \"$TRAN_CRED_VISA_N_BDV\", \r\n      \"mtoCredVisaNBdv\": \"$MTO_CRED_VISA_N_BDV\", \r\n      \"tranCredMasterNBdv\": \"$TRAN_CRED_MASTER_N_BDV\", \r\n      \"mtoCredMasterNBdv\": \"$MTO_CRED_MASTER_N_BDV\", \r\n      \"tranCredAmexNBdv\": \"$TRAN_CRED_AMEX_N_BDV\", \r\n      \"mtoCredAmexNBdv\": \"$MTO_CRED_AMEX_N_BDV\", \r\n      \"tranCredPrivNBdv\": \"$TRAN_CRED_PRIV_N_BDV\", \r\n      \"mtoCredPrivNBdv\": \"$MTO_CRED_PRIV_N_BDV\", \r\n      \"comisDebitoNBdv\": \"$COMIS_DEBITO_N_BDV\", \r\n      \"comisCobroDNBdv\": \"$COMIS_COBRO_D_N_BDV\", \r\n      \"comisCreditoNBdv\": \"$COMIS_CREDITO_N_BDV\", \r\n      \"comisCobroCNBdv\": \"$COMIS_COBRO_C_N_BDV\", \r\n      \"liqTranDebito\": \"$LIQ_TRAN_DEBITO\", \r\n      \"liqMtoDebito\": \"$LIQ_MTO_DEBITO\", \r\n      \"liqTranCredito\": \"$LIQ_TRAN_CREDITO\", \r\n      \"liqMtoCredito\": \"$LIQ_MTO_CREDITO\", \r\n      \"liqTranCredVisa\": \"$LIQ_TRAN_CRED_VISA\", \r\n      \"liqMtoCredVisa\": \"$LIQ_MTO_CRED_VISA\", \r\n      \"liqTranCredMaster\": \"$LIQ_TRAN_CRED_MASTER\", \r\n      \"liqMtoCredMaster\": \"$LIQ_MTO_CRED_MASTER\", \r\n      \"liqTranCredAmex\": \"$LIQ_TRAN_CRED_AMEX\", \r\n      \"liqMtoCredAmex\": \"$LIQ_MTO_CRED_AMEX\", \r\n      \"liqTranCredPriv\": \"$LIQ_TRAN_CRED_PRIV\", \r\n      \"liqMtoCredPriv\": \"$LIQ_MTO_CRED_PRIV\", \r\n      \"liqComisDebito\": \"$LIQ_COMIS_DEBITO\", \r\n      \"liqComisCobroDeb\": \"$LIQ_COMIS_COBRO_DEB\", \r\n      \"liqComisCredito\": \"$LIQ_COMIS_CREDITO\", \r\n      \"liqComisCobroCred\": \"$LIQ_COMIS_COBRO_CRED\", \r\n      \"liqTranDebitoBdv\": \"$LIQ_TRAN_DEBITO_BDV\", \r\n      \"liqMtoDebitoBdv\": \"$LIQ_MTO_DEBITO_BDV\", \r\n      \"liqTranCreditoBdv\": \"$LIQ_TRAN_CREDITO_BDV\", \r\n      \"liqMtoCreditoBdv\": \"$LIQ_MTO_CREDITO_BDV\", \r\n      \"liqTranCredVBdv\": \"$LIQ_TRAN_CRED_V_BDV\", \r\n      \"liqMtoCredVBdv\": \"$LIQ_MTO_CRED_V_BDV\", \r\n      \"liqTranCredMBdv\": \"$LIQ_TRAN_CRED_M_BDV\", \r\n      \"liqMtoCredMBdv\": \"$LIQ_MTO_CRED_M_BDV\", \r\n      \"liqTranCredABdv\": \"$LIQ_TRAN_CRED_A_BDV\", \r\n      \"liqMtoCredABdv\": \"$LIQ_MTO_CRED_A_BDV\", \r\n      \"liqTranCredPBdv\": \"$LIQ_TRAN_CRED_P_BDV\", \r\n      \"liqMtoCredPBdv\": \"$LIQ_MTO_CRED_P_BDV\", \r\n      \"liqComisDebitoBdv\": \"$LIQ_COMIS_DEBITO_BDV\", \r\n      \"liqComCobroDebBdv\": \"$LIQ_COM_COBRO_DEB_BDV\", \r\n      \"liqComisCreditoBdv\": \"$LIQ_COMIS_CREDITO_BDV\", \r\n      \"liqComCobroCredBdv\": \"$LIQ_COM_COBRO_CRED_BDV\", \r\n      \"liqTranDebitoNBdv\": \"$LIQ_TRAN_DEBITO_N_BDV\", \r\n      \"liqMtoDebitoNBdv\": \"$LIQ_MTO_DEBITO_N_BDV\", \r\n      \"liqTranCreditoNBdv\": \"$LIQ_TRAN_CREDITO_N_BDV\", \r\n      \"liqMtoCreditoNBdv\": \"$LIQ_MTO_CREDITO_N_BDV\", \r\n      \"liqTranCredVNbdv\": \"$LIQ_TRAN_CRED_V_N_BDV\", \r\n      \"liqMtoCredVNbdv\": \"$LIQ_MTO_CRED_V_N_BDV\", \r\n      \"liqTranCredMNbdv\": \"$LIQ_TRAN_CRED_M_N_BDV\", \r\n      \"liqMtoCredMNbdv\": \"$LIQ_MTO_CRED_M_N_BDV\", \r\n      \"liqTranCredANbdv\": \"$LIQ_TRAN_CRED_A_N_BDV\", \r\n      \"liqMtoCredANbdv\": \"$LIQ_MTO_CRED_A_N_BDV\", \r\n      \"liqTranCredPNbdv\": \"$LIQ_TRAN_CRED_P_N_BDV\", \r\n      \"liqMtoCredPNbdv\": \"$LIQ_MTO_CRED_P_N_BDV\", \r\n      \"liqComisDebNBdv\": \"$LIQ_COMIS_DEB_N_BDV\", \r\n      \"liqCCobroDebNBdv\": \"$LIQ_C_COBRO_DEB_N_BDV\", \r\n      \"liqComisCredNBdv\": \"$LIQ_COMIS_CRED_N_BDV\", \r\n      \"liqCCobroCredNBdv\": \"$LIQ_C_COBRO_CRED_N_BDV\", \r\n      \"tasaElectron\": \"$TASA_ELECTRON\", \r\n      \"tasaPrivada\": \"$TASA_PRIVADA\", \r\n      \"tasaMultitasa\": \"$TASA_MULTITASA\", \r\n      \"tasaFidelizacion\": \"$TASA_FIDELIZACION\", \r\n      \"tasaTdcExtranje\": \"$TASA_TDC_EXTRANJE\", \r\n      \"tasaDescCompesac\": \"$TASA_DESC_COMPESAC\", \r\n      \"tranElectron\": \"$TRAN_ELECTRON\", \r\n      \"mtoElectron\": \"$MTO_ELECTRON\", \r\n      \"comisElectronNBdv\": \"$COMIS_ELECTRON_N_BDV\", \r\n      \"comisCobElectNBdv\": \"$COMIS_COB_ELECT_N_BDV\", \r\n      \"liqTranElectron\": \"$LIQ_TRAN_ELECTRON\", \r\n      \"liqMtoElectron\": \"$LIQ_MTO_ELECTRON\", \r\n      \"liqComisElecNBdv\": \"$LIQ_COMIS_ELEC_N_BDV\", \r\n      \"liqCCobElectNBdv\": \"$LIQ_CCOB_ELECT_N_BDV\", \r\n      \"tranFidelizacion\": \"$TRAN_FIDELIZACION\", \r\n      \"mtoFidelizacion\": \"$MTO_FIDELIZACION\", \r\n      \"comisFidelizacion\": \"$COMIS_FIDELIZACION\", \r\n      \"comisCobFidelizacion\": \"$COMIS_COB_FIDELIZACION\", \r\n      \"liqTranFidelizacion\": \"$LIQ_TRAN_FIDELIZACION\", \r\n      \"liqMtoFidelizacion\": \"$LIQ_MTO_FIDELIZACION\", \r\n      \"liqComisFidelizacion\": \"$LIQ_COMIS_FIDELIZACION\", \r\n      \"liqCCobFidelizacion\": \"$LIQ_CCOB_FIDELIZACION\", \r\n      \"tranTdcExtranje\": \"$TRAN_TDC_EXTRANJE\", \r\n      \"mtoTdcExtranje\": \"$MTO_TDC_EXTRANJE\", \r\n      \"comisTdcExtranje\": \"$COMIS_TDC_EXTRANJE\", \r\n      \"comisCobTdcExtranje\": \"$COMIS_COB_TDC_EXTRANJE\", \r\n      \"liqTranTdcExtranje\": \"$LIQ_TRAN_TDC_EXTRANJE\", \r\n      \"liqMtoTdcExtranje\": \"$LIQ_MTO_TDC_EXTRANJE\", \r\n      \"liqComisTdcExtraje\": \"$LIQ_COMIS_TDC_EXTRAJE\", \r\n      \"liqCCobTdcExtranje\": \"$LIQ_CCOB_TDC_EXTRANJE\", \r\n      \"tranDescuento\": \"$TRAN_DESCUENTO\", \r\n      \"mtoDescuento\": \"$MTO_DESCUENTO\", \r\n      \"comisDescuento\": \"$COMIS_DESCUENTO\", \r\n      \"comisCobDescuento\": \"$COMIS_COB_DESCUENTO\", \r\n      \"liqTranDescuento\": \"$LIQ_TRAN_DESCUENTO\", \r\n      \"liqMtoDescuento\": \"$LIQ_MTO_DESCUENTO\", \r\n      \"liqComisDescuento\": \"$LIQ_COMIS_DESCUENTO\", \r\n      \"liqCCobDescuto\": \"$LIQ_CCOB_DESCUTO\", \r\n      \"tranDescuentoN\": \"$TRAN_DESCUENTO_N\", \r\n      \"mtoDescuentoN\": \"$MTO_DESCUENTO_N\", \r\n      \"comisDescuentoN\": \"$COMIS_DESCUENTO_N\", \r\n      \"comisCobDescuentoN\": \"$COMIS_COB_DESCUENTO_N\", \r\n      \"liqTranDescuentoN\": \"$LIQ_TRAN_DESCUENTO_N\", \r\n      \"liqMtoDescuentoN\": \"$LIQ_MTO_DESCUENTO_N\", \r\n      \"liqComisDescuentoN\": \"$LIQ_COMIS_DESCUENTO_N\", \r\n      \"liqCCobDescutoN\": \"$LIQ_CCOB_DESCUTO_N\", \r\n      \"fechaIngresoPunto\": {\r\n        \"$cond\": {\r\n          \"if\": {\r\n            \"$eq\": [\r\n              \"$FECHA_INGRESO_PUNTO\", \"\"\r\n            ]\r\n          }, \r\n          \"then\": null, \r\n          \"else\": {\r\n            \"$dateFromParts\": {\r\n              \"year\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INGRESO_PUNTO\", 0, 4\r\n                  ]\r\n                }\r\n              }, \r\n              \"month\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INGRESO_PUNTO\", 4, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"day\": {\r\n                \"$toInt\": {\r\n                  \"$substr\": [\r\n                    \"$FECHA_INGRESO_PUNTO\", 6, 2\r\n                  ]\r\n                }\r\n              }, \r\n              \"hour\": 0, \r\n              \"minute\": 0, \r\n              \"second\": 0, \r\n              \"millisecond\": 0\r\n            }\r\n          }\r\n        }\r\n      }, \r\n      \"descPunto\": \"$DESC_PUNTO\", \r\n      \"fileDate\": 1\r\n    }\r\n  }, {\r\n    \"$lookup\": {\r\n      \"from\": \"sidis_tasaconversion\", \r\n      \"localField\": \"fechaProceso\", \r\n      \"foreignField\": \"Fecha\", \r\n      \"as\": \"sidisTasaconversion\"\r\n    }\r\n  }, {\r\n    \"$merge\": {\r\n      \"into\": \"sidis_puntoa\", \r\n      \"on\": [\r\n        \"rifCedula\", \"fechaProceso\", \"_id\"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName: "T00_1_activosId",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "activos_id",
-      toCollection: "sidis_activosId",
-      description:
-        "Formatea la coleccion activos_id",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$and": [\r\n        {\r\n          "$expr": {\r\n            "$eq": [\r\n              "$file_date", {\r\n                "$toDate": "@processDate"\r\n              }\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$concat": [\r\n          "$petipdoc", {\r\n            "$substr": [\r\n              "$penumdoc", {\r\n                "$subtract": [\r\n                  {\r\n                    "$strLenCP": "$penumdoc"\r\n                  }, 8\r\n                ]\r\n              }, 8\r\n            ]\r\n          }\r\n        ]\r\n      }, \r\n      "contrato": {\r\n        "$concat": [\r\n          "$entidad", "$oficina", "$cuenta"\r\n        ]\r\n      }, \r\n      "feforma": {\r\n        "$dateFromString": {\r\n          "dateString": "$feforma", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }, \r\n      "feoper": {\r\n        "$dateFromString": {\r\n          "dateString": "$feoper", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }, \r\n      "fevalor": {\r\n        "$dateFromString": {\r\n          "dateString": "$fevalor", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }, \r\n      "feliq": {\r\n        "$dateFromString": {\r\n          "dateString": "$feliq", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$feoper"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$feoper"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$feoper"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$feoper"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }, \r\n      "codEvento": "$cod_evento", \r\n      "impCps": "$imp_cps", \r\n      "idiForm": "$idi_form", \r\n      "idiUvc": "$idi_uvc", \r\n      "diasVencido": "$dias_vencido", \r\n      "montoPago": "$monto_pago", \r\n      "montoPaguvc": "$monto_paguvc", \r\n      "impMora": "$imp_mora", \r\n      "fileDate": "$file_date", \r\n      "codUsuario": "$cod_usuario", \r\n      "ctaContable": "$cta_contable", \r\n      "cod_evento": "$$REMOVE", \r\n      "imp_cps": "$$REMOVE", \r\n      "idi_form": "$$REMOVE", \r\n      "idi_uvc": "$$REMOVE", \r\n      "dias_vencido": "$$REMOVE", \r\n      "monto_pago": "$$REMOVE", \r\n      "monto_paguvc": "$$REMOVE", \r\n      "imp_mora": "$$REMOVE", \r\n      "file_date": "$$REMOVE", \r\n      "cod_usuario": "$$REMOVE", \r\n      "cta_contable": "$$REMOVE"\r\n    }\r\n  }, {\r\n    "$group": {\r\n      "_id": {\r\n        "rifCedula": "$rifCedula", \r\n        "codEvento": "$codEvento", \r\n        "codUsuario": "$codUsuario", \r\n        "contrato": "$contrato", \r\n        "ctaContable": "$ctaContable", \r\n        "cuenta": "$cuenta", \r\n        "entidad": "$entidad", \r\n        "feforma": "$feforma", \r\n        "feoper": "$feoper", \r\n        "fevalor": "$fevalor", \r\n        "formpago": "$formpago", \r\n        "indretro": "$indretro", \r\n        "oficina": "$oficina", \r\n        "oftit": "$oftit", \r\n        "producto": "$producto", \r\n        "sitdeuct": "$sitdeuct", \r\n        "sitdeuda": "$sitdeuda", \r\n        "sitpres": "$sitpres", \r\n        "subpro": "$subpro", \r\n        "monto_pago": "$monto_pago"\r\n      }, \r\n      "doc": {\r\n        "$first": "$$ROOT"\r\n      }\r\n    }\r\n  }, {\r\n    "$replaceRoot": {\r\n      "newRoot": "$doc"\r\n    }\r\n  }, {\r\n    "$lookup": {\r\n      "from": "sidis_tasaconversion", \r\n      "localField": "fechaProceso", \r\n      "foreignField": "Fecha", \r\n      "as": "sidisTasaconversion"\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_activosId", \r\n      "on": [\r\n        "rifCedula", "fechaProceso", "_id"\r\n      ], \r\n      "whenMatched": "replace", \r\n      "whenNotMatched": "insert"\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName:
-        "T07_1_transferenciaDataCrudaTemporalSidisVgp",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "vgp",
-      toCollection: "sidis_vgp",
-      description: "Formatea la coleccion vgp",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$and": [\r\n        {\r\n          "$expr": {\r\n            "$eq": [\r\n              "$file_date", {\r\n                "$toDate": "@processDate"\r\n              }\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fieldWithoutZeros": {\r\n        "$ltrim": {\r\n          "input": "$identificacion", \r\n          "chars": "0"\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "identificacionBase": "$identificacion", \r\n      "longitudIdentificacionSinCero": {\r\n        "$strLenCP": "$fieldWithoutZeros"\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "cedula": {\r\n        "$switch": {\r\n          "branches": [\r\n            {\r\n              "case": {\r\n                "$gte": [\r\n                  "$longitudIdentificacionSinCero", 8\r\n                ]\r\n              }, \r\n              "then": "$fieldWithoutZeros"\r\n            }, {\r\n              "case": {\r\n                "$eq": [\r\n                  "$longitudIdentificacionSinCero", 7\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$concat": [\r\n                  "0", "$fieldWithoutZeros"\r\n                ]\r\n              }\r\n            }, {\r\n              "case": {\r\n                "$eq": [\r\n                  "$longitudIdentificacionSinCero", 6\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$concat": [\r\n                  "00", "$fieldWithoutZeros"\r\n                ]\r\n              }\r\n            }\r\n          ]\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$concat": [\r\n          "$nacionalidad", "$cedula"\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "montoAprobado": "$montoAprovado", \r\n      "fileDate": "$REMOVE", \r\n      "fechaSolicitud": {\r\n        "$dateFromString": {\r\n          "dateString": "$fechaSolicitud"\r\n        }\r\n      }, \r\n      "montoAprovado": "$$REMOVE", \r\n      "fieldWithoutZeros": "$$REMOVE", \r\n      "identificacionBase": "$REMOVE", \r\n      "cedula": "$REMOVE"\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_vgp", \r\n      "on": [\r\n        "fechaSolicitud", "codigoEstado", "_id"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName:
-        "T10_1_transferenciaDataCrudaTemporalSidisBsm",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "bsm",
-      toCollection: "sidis_bsm",
-      description: "Formatea la coleccion bsm",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n    {\r\n      "$match": {\r\n        "$and": [\r\n          {\r\n            "$expr": {\r\n              "$eq": [\r\n                "$file_date", {\r\n                  "$toDate": "@processDate"\r\n                }\r\n              ]\r\n            }\r\n          }\r\n        ]\r\n      }\r\n    }, {\r\n      "$addFields": {\r\n        "fechaProceso": {\r\n          "$dateFromParts": {\r\n            "year": {\r\n              "$year": "$fecha_odate"\r\n            }, \r\n            "month": {\r\n              "$add": [\r\n                {\r\n                  "$month": "$fecha_odate"\r\n                }, 1\r\n              ]\r\n            }, \r\n            "day": {\r\n              "$subtract": [\r\n                {\r\n                  "$dayOfMonth": {\r\n                    "$dateFromParts": {\r\n                      "year": {\r\n                        "$year": "$fecha_odate"\r\n                      }, \r\n                      "month": {\r\n                        "$add": [\r\n                          {\r\n                            "$month": "$fecha_odate"\r\n                          }, 1\r\n                        ]\r\n                      }, \r\n                      "day": 1\r\n                    }\r\n                  }\r\n                }, 1\r\n              ]\r\n            }, \r\n            "hour": 0, \r\n            "minute": 0, \r\n            "second": 0, \r\n            "millisecond": 0\r\n          }\r\n        }\r\n      }\r\n    }, {\r\n      "$merge": {\r\n        "into": "sidis_bsm", \r\n        "on": [\r\n          "fecha_odate", "nucta"\r\n        ]\r\n      }\r\n    }\r\n  ]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName:
-        "T11_1_transferenciaDataCrudaHistoricaTemporalSidisBsm",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "bsm_hist",
-      toCollection: "",
-      description:
-        "Formatea la coleccion bsm_hist",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$expr": {\r\n        "$eq": [\r\n          "$file_date", {\r\n            "$toDate": "@processDate"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$fecha_odate"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$fecha_odate"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$fecha_odate"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$fecha_odate"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_bsm", \r\n      "on": [\r\n        "fecha_odate", "nucta"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName:
-        "T12_1_transferenciaDataCrudaTemporalSidisBrm",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "brm",
-      toCollection: "sidis_brm",
-      description: "Formatea la coleccion brm",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n    {\r\n      "$match": {\r\n        "$and": [\r\n          {\r\n            "$expr": {\r\n              "$eq": [\r\n                "$file_date", {\r\n                  "$toDate": "@processDate"\r\n                }\r\n              ]\r\n            }\r\n          }\r\n        ]\r\n      }\r\n    }, {\r\n      "$addFields": {\r\n        "fechaProceso": {\r\n          "$dateFromParts": {\r\n            "year": {\r\n              "$year": "$fecha_odate"\r\n            }, \r\n            "month": {\r\n              "$add": [\r\n                {\r\n                  "$month": "$fecha_odate"\r\n                }, 1\r\n              ]\r\n            }, \r\n            "day": {\r\n              "$subtract": [\r\n                {\r\n                  "$dayOfMonth": {\r\n                    "$dateFromParts": {\r\n                      "year": {\r\n                        "$year": "$fecha_odate"\r\n                      }, \r\n                      "month": {\r\n                        "$add": [\r\n                          {\r\n                            "$month": "$fecha_odate"\r\n                          }, 1\r\n                        ]\r\n                      }, \r\n                      "day": 1\r\n                    }\r\n                  }\r\n                }, 1\r\n              ]\r\n            }, \r\n            "hour": 0, \r\n            "minute": 0, \r\n            "second": 0, \r\n            "millisecond": 0\r\n          }\r\n        }\r\n      }\r\n    }, {\r\n      "$merge": {\r\n        "into": "sidis_brm", \r\n        "on": [\r\n          "fecha_odate", "nucta"\r\n        ]\r\n      }\r\n    }\r\n  ]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName:
-        "T13_1_transferenciaDataCrudaHistoricaTemporalSidisBrm",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "brm_hist",
-      toCollection: "sidis_brm_hist",
-      description:
-        "Formatea la coleccion brm_hist",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$expr": {\r\n        "$eq": [\r\n          "$file_date", {\r\n            "$toDate": "@processDate"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$fecha_odate"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$fecha_odate"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$fecha_odate"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$fecha_odate"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_brm", \r\n      "on": [\r\n        "fecha_odate", "nucta"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName: "T14_1_activosIa",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "activos_ia",
-      toCollection: "sidis_activosIa",
-      description:
-        "Formatea la coleccion activos_ia",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$expr": {\r\n        "$eq": [\r\n          "$fileDate", {\r\n            "$toDate": "@processDate"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$concat": [\r\n          "$petipdoc", {\r\n            "$substr": [\r\n              "$penumdoc", {\r\n                "$subtract": [\r\n                  {\r\n                    "$strLenCP": "$penumdoc"\r\n                  }, 8\r\n                ]\r\n              }, 8\r\n            ]\r\n          }\r\n        ]\r\n      }, \r\n      "contrato": {\r\n        "$concat": [\r\n          "$entidad", "$oficina", "$cuenta"\r\n        ]\r\n      }, \r\n      "feforma": {\r\n        "$dateFromString": {\r\n          "dateString": "$feforma", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }, \r\n      "feoper": {\r\n        "$dateFromString": {\r\n          "dateString": "$feoper", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }, \r\n      "fevalor": {\r\n        "$dateFromString": {\r\n          "dateString": "$fevalor", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }, \r\n      "feliq": {\r\n        "$dateFromString": {\r\n          "dateString": "$feliq", \r\n          "format": "%Y-%m-%d", \r\n          "onNull": null, \r\n          "onError": null\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$feoper"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$feoper"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$feoper"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$feoper"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$group": {\r\n      "_id": {\r\n        "rifCedula": "$rifCedula", \r\n        "cod_evento": "$cod_evento", \r\n        "cod_usuario": "$cod_usuario", \r\n        "contrato": "$contrato", \r\n        "cta_contable": "$cta_contable", \r\n        "cuenta": "$cuenta", \r\n        "entidad": "$entidad", \r\n        "feforma": "$feforma", \r\n        "feoper": "$feoper", \r\n        "fevalor": "$fevalor", \r\n        "formpago": "$formpago", \r\n        "indretro": "$indretro", \r\n        "oficina": "$oficina", \r\n        "oftit": "$oftit", \r\n        "producto": "$producto", \r\n        "sitdeuct": "$sitdeuct", \r\n        "sitdeuda": "$sitdeuda", \r\n        "sitpres": "$sitpres", \r\n        "subpro": "$subpro", \r\n        "monto_pago": "$monto_pago"\r\n      }, \r\n      "doc": {\r\n        "$first": "$$ROOT"\r\n      }\r\n    }\r\n  }, {\r\n    "$replaceRoot": {\r\n      "newRoot": "$doc"\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_activosIa", \r\n      "on": [\r\n        "rifCedula", "cod_evento", "cod_usuario", "contrato", "cta_contable", "cuenta", "entidad", "feforma", "feoper", "fevalor", "formpago", "indretro", "oficina", "oftit", "producto", "sitdeuct", "sitdeuda", "sitpres", "subpro", "monto_pago"\r\n      ], \r\n      "whenMatched": "replace", \r\n      "whenNotMatched": "insert"\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName: "T18_1_liquidacionesUVC",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "activos_liq_uvc",
-      toCollection: "sidis_activos_liq_uvc",
-      description:
-        "Formatea la coleccion activos_liq_uvc",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$expr": {\r\n        "$eq": [\r\n          "$file_date", {\r\n            "$toDate": "@processDate"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$fec_valor"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$fec_valor"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$fec_valor"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$fec_valor"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }, \r\n      "rifCedula": {\r\n        "$trim": {\r\n          "input": {\r\n            "$substr": [\r\n              "$ced_identidad", 1, {\r\n                "$strLenCP": "$ced_identidad"\r\n              }\r\n            ]\r\n          }, \r\n          "chars": " "\r\n        }\r\n      }, \r\n      "primeraLetraRif": {\r\n        "$substr": [\r\n          "$ced_identidad", 0, 1\r\n        ]\r\n      }, \r\n      "fecha_valor": "$fec_valor"\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$ltrim": {\r\n          "input": "$rifCedula", \r\n          "chars": "0"\r\n        }\r\n      }, \r\n      "fec_valor": "$$REMOVE"\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "longitudIdentificacionSinCero": {\r\n        "$strLenCP": "$rifCedula"\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$switch": {\r\n          "branches": [\r\n            {\r\n              "case": {\r\n                "$gte": [\r\n                  "$longitudIdentificacionSinCero", 8\r\n                ]\r\n              }, \r\n              "then": "$rifCedula"\r\n            }, {\r\n              "case": {\r\n                "$eq": [\r\n                  "$longitudIdentificacionSinCero", 7\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$concat": [\r\n                  "0", "$rifCedula"\r\n                ]\r\n              }\r\n            }, {\r\n              "case": {\r\n                "$eq": [\r\n                  "$longitudIdentificacionSinCero", 6\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$concat": [\r\n                  "00", "$rifCedula"\r\n                ]\r\n              }\r\n            }\r\n          ], \r\n          "default": {\r\n            "$concat": [\r\n              "000", "$rifCedula"\r\n            ]\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$concat": [\r\n          "$primeraLetraRif", "$rifCedula"\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$project": {\r\n      "primeraLetraRif": 0, \r\n      "longitudIdentificacionSinCero": 0, \r\n      "ced_identidad": 0, \r\n      "_id": 0\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_activos_liq_uvc", \r\n      "on": [\r\n        "fecha_valor", "rifCedula", "cta_cre"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-    {
-      subProcessName: "T19_1_liquidacionesBs",
-      subProcessDate: "nda",
-      ProcessFrequency: "diaria",
-      fromCollection: "activos_liq_bs",
-      toCollection: "sidis_activos_liq_bs",
-      description:
-        "Formatea la coleccion activos_liq_bs",
-      startDate: "nda",
-      endDate: "nda",
-      runtimeInMinutes: "nda",
-      status: "nda",
-      subStage: "1",
-      activeProcess: true,
-      aggregate:
-        '[\r\n  {\r\n    "$match": {\r\n      "$expr": {\r\n        "$eq": [\r\n          "$file_date", {\r\n            "$toDate": "@processDate"\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "fechaProceso": {\r\n        "$dateFromParts": {\r\n          "year": {\r\n            "$year": "$fecha_formalizacion"\r\n          }, \r\n          "month": {\r\n            "$add": [\r\n              {\r\n                "$month": "$fecha_formalizacion"\r\n              }, 1\r\n            ]\r\n          }, \r\n          "day": {\r\n            "$subtract": [\r\n              {\r\n                "$dayOfMonth": {\r\n                  "$dateFromParts": {\r\n                    "year": {\r\n                      "$year": "$fecha_formalizacion"\r\n                    }, \r\n                    "month": {\r\n                      "$add": [\r\n                        {\r\n                          "$month": "$fecha_formalizacion"\r\n                        }, 1\r\n                      ]\r\n                    }, \r\n                    "day": 1\r\n                  }\r\n                }\r\n              }, 1\r\n            ]\r\n          }, \r\n          "hour": 0, \r\n          "minute": 0, \r\n          "second": 0, \r\n          "millisecond": 0\r\n        }\r\n      }, \r\n      "rifCedula": {\r\n        "$trim": {\r\n          "input": {\r\n            "$substr": [\r\n              "$cedula_identidad", 1, {\r\n                "$strLenCP": "$cedula_identidad"\r\n              }\r\n            ]\r\n          }, \r\n          "chars": " "\r\n        }\r\n      }, \r\n      "primeraLetraRif": {\r\n        "$substr": [\r\n          "$cedula_identidad", 0, 1\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$ltrim": {\r\n          "input": "$rifCedula", \r\n          "chars": "0"\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "longitudIdentificacionSinCero": {\r\n        "$strLenCP": "$rifCedula"\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$switch": {\r\n          "branches": [\r\n            {\r\n              "case": {\r\n                "$gte": [\r\n                  "$longitudIdentificacionSinCero", 8\r\n                ]\r\n              }, \r\n              "then": "$rifCedula"\r\n            }, {\r\n              "case": {\r\n                "$eq": [\r\n                  "$longitudIdentificacionSinCero", 7\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$concat": [\r\n                  "0", "$rifCedula"\r\n                ]\r\n              }\r\n            }, {\r\n              "case": {\r\n                "$eq": [\r\n                  "$longitudIdentificacionSinCero", 6\r\n                ]\r\n              }, \r\n              "then": {\r\n                "$concat": [\r\n                  "00", "$rifCedula"\r\n                ]\r\n              }\r\n            }\r\n          ], \r\n          "default": {\r\n            "$concat": [\r\n              "000", "$rifCedula"\r\n            ]\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }, {\r\n    "$addFields": {\r\n      "rifCedula": {\r\n        "$concat": [\r\n          "$primeraLetraRif", "$rifCedula"\r\n        ]\r\n      }\r\n    }\r\n  }, {\r\n    "$project": {\r\n      "primeraLetraRif": 0, \r\n      "longitudIdentificacionSinCero": 0, \r\n      "ced_identidad": 0, \r\n      "_id": 0\r\n    }\r\n  }, {\r\n    "$merge": {\r\n      "into": "sidis_activos_liq_bs", \r\n      "on": [\r\n        "fecha_valor", "cuenta_credito"\r\n      ]\r\n    }\r\n  }\r\n]',
-      parallelizationIndex: [],
-    },
-  ],
-  updatedAt: "$$NOW",
-}
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$lte": [
+              "$fechaProceso", {
+                "$dateSubtract": {
+                  "startDate": {
+                    "$dateSubtract": {
+                      "startDate": {
+                        "$dateAdd": {
+                          "startDate": {
+                            "$dateTrunc": {
+                              "date": {
+                                "$toDate": "@processDate"
+                              }, 
+                              "unit": "month"
+                            }
+                          }, 
+                          "unit": "month", 
+                          "amount": 1
+                        }
+                      }, 
+                      "unit": "month", 
+                      "amount": {
+                        "$toInt": "@timingInMonth"
+                      }
+                    }
+                  }, 
+                  "unit": "day", 
+                  "amount": 1
+                }
+              }
+            ]
+          }
+        }, {
+          "$expr": {
+            "$eq": [
+              "$lastDigRif", {
+                "$toString": "@parallelizationIndex"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_transaccionesOperativas_hist", 
+      "on": [
+        "tra_fecha_contable", "tra_cod_op", "tra_cuenta_contable", "tra_cuenta_contrato", "_id"
+      ]
+    }
+  }
+]
