@@ -1,0 +1,5638 @@
+[
+  {
+    "$limit": 1
+  }, {
+    "$project": {
+      "_id": 0, 
+      "todayDate": {
+        "$subtract": [
+          {
+            "$toDate": {
+              "$dateFromString": {
+                "dateString": {
+                  "$dateToString": {
+                    "format": "%Y-%m-%dT00:00:00%z", 
+                    "date": {
+                      "$toDate": "$$NOW"
+                    }
+                  }
+                }
+              }
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_brm", 
+      "let": {
+        "todayDate": "$todayDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$$todayDate", "$fecha_odate"
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "nucta": 1, 
+            "sal_act": {
+              "$multiply": [
+                "$sal_act", 1
+              ]
+            }, 
+            "sal_ant": {
+              "$multiply": [
+                "$sal_ant", 1
+              ]
+            }, 
+            "sal_net_act": {
+              "$multiply": [
+                "$sal_net_act", 1
+              ]
+            }
+          }
+        }
+      ], 
+      "as": "sidis_brm"
+    }
+  }, {
+    "$addFields": {
+      "avaiableData": {
+        "$cond": [
+          {
+            "$gt": [
+              {
+                "$size": "$sidis_brm"
+              }, 0
+            ]
+          }, true, false
+        ]
+      }, 
+      "firstDayMonth": {
+        "$eq": [
+          {
+            "$dayOfMonth": "$todayDate"
+          }, 1
+        ]
+      }, 
+      "firstDayYear": {
+        "$and": [
+          {
+            "$eq": [
+              {
+                "$dayOfMonth": "$todayDate"
+              }, 1
+            ]
+          }, {
+            "$eq": [
+              {
+                "$month": "$todayDate"
+              }, 1
+            ]
+          }
+        ]
+      }, 
+      "condLastDayOfMonth": {
+        "$cond": [
+          {
+            "$eq": [
+              "$todayDate", {
+                "$subtract": [
+                  {
+                    "$dateFromParts": {
+                      "year": {
+                        "$year": "$todayDate"
+                      }, 
+                      "month": {
+                        "$sum": [
+                          {
+                            "$month": "$todayDate"
+                          }, 1
+                        ]
+                      }
+                    }
+                  }, 86400000
+                ]
+              }
+            ]
+          }, true, false
+        ]
+      }, 
+      "yesterdayDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": -1
+        }
+      }, 
+      "tomorrowDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "day", 
+          "amount": 1
+        }
+      }, 
+      "previusMonthDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "month", 
+          "amount": -1
+        }
+      }, 
+      "previusMonthlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }, 
+              "month": {
+                "$month": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "previusYearDate": {
+        "$dateAdd": {
+          "startDate": "$todayDate", 
+          "unit": "year", 
+          "amount": -1
+        }
+      }, 
+      "previusYearlastDate": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }
+            }
+          }, 86400000
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "DailyGroupPerdidasGanaciasNR", 
+      "localField": "yesterdayDate", 
+      "foreignField": "fecha_valor", 
+      "as": "yesterdayDate"
+    }
+  }, {
+    "$addFields": {
+      "sidis_brm": "$$REMOVE", 
+      "sidis_tasaconversion": "$$REMOVE", 
+      "fecha_valor": "$todayDate", 
+      "sal_net_actincomeTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "512", "513", "531", "511", "514", "519", "52", "532", "534", "536", "538", "539"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincInvestPortfBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "512"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincCreditPortfBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "513"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "531"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincOperacOtherBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "511", "514", "519", "52", "532", "534", "536", "538"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincOperOthVarBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "539"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincAvailableBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "511"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincOtherRecvBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "514"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincOtherFinanceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "519"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincRecvAssetsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "52"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincForexDerivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "532"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincInvestSubdivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "534"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincInvestBranchBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "536"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actincSecuTitleBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "538"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpensesTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "411", "413", "414", "415", "431", "434", "439", "441", "442", "443", "444", "445", "446", "447", "448", "449", "42", "45"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpPublicCapBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "411"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpOtherFinancBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "413", "414", "415"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "431", "434"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpAdminBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "442", "443", "444", "445", "446", "447", "448", "449"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpEmployeesBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "441"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpOperOthVarBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "439"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpOthersBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "42", "45"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpTaxIslrBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "47"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpBanvihCapBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "413"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpOthObtFinancBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "414"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpOthFinInterBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "415"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpServComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "431"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpInvestSubdivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "434"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpExtServiceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "442"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpCommTransBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "443"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpInsuranceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "444"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpTaxContributBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "445"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpMaintRepBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "446"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpUseAssetDepBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "447"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpDefAmortBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "448"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpOtherAdminBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "449"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpFinAssetDeprBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "42"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actexpExtraordinaryBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "45"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincomeTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "512", "513", "531", "511", "514", "519", "52", "532", "534", "536", "538", "539"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincInvestPortfBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "512"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincCreditPortfBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "513"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "531"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincOperacOtherBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "511", "514", "519", "52", "532", "534", "536", "538"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincOperOthVarBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "539"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincAvailableBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "511"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincOtherRecvBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "514"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincOtherFinanceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "519"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincRecvAssetsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "52"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincForexDerivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "532"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincInvestSubdivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "534"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincInvestBranchBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "536"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actincSecuTitleBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "538"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpensesTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "411", "413", "414", "415", "431", "434", "439", "441", "442", "443", "444", "445", "446", "447", "448", "449", "42", "45"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpPublicCapBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "411"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpOtherFinancBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "413", "414", "415"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "431", "434"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpAdminBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "442", "443", "444", "445", "446", "447", "448", "449"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpEmployeesBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "441"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpOperOthVarBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "439"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpOthersBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "42", "45"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpTaxIslrBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "47"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpBanvihCapBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "413"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpOthObtFinancBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "414"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpOthFinInterBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "415"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpServComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "431"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpInvestSubdivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "434"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpExtServiceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "442"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpCommTransBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "443"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpInsuranceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "444"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpTaxContributBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "445"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpMaintRepBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "446"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpUseAssetDepBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "447"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpDefAmortBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "448"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpOtherAdminBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "449"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpFinAssetDeprBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "42"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actexpExtraordinaryBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "45"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincomeTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "512", "513", "531", "511", "514", "519", "52", "532", "534", "536", "538", "539"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincInvestPortfBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "512"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincCreditPortfBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "513"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "531"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincOperacOtherBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "511", "514", "519", "52", "532", "534", "536", "538"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincOperOthVarBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "539"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincAvailableBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "511"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincOtherRecvBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "514"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincOtherFinanceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "519"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincRecvAssetsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "52"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincForexDerivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "532"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincInvestSubdivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "534"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincInvestBranchBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "536"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antincSecuTitleBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "538"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpensesTotalBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "411", "413", "414", "415", "431", "434", "439", "441", "442", "443", "444", "445", "446", "447", "448", "449", "42", "45"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpPublicCapBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "411"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpOtherFinancBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "413", "414", "415"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "431", "434"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpAdminBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "442", "443", "444", "445", "446", "447", "448", "449"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpEmployeesBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "441"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpOperOthVarBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "439"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpOthersBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "42", "45"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpTaxIslrBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "47"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpBanvihCapBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "413"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpOthObtFinancBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "414"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpOthFinInterBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "415"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpServComissionBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "431"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpInvestSubdivBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "434"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpExtServiceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "442"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpCommTransBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "443"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpInsuranceBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "444"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpTaxContributBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "445"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpMaintRepBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "446"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpUseAssetDepBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "447"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpDefAmortBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "448"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpOtherAdminBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "449"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpFinAssetDeprBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "42"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antexpExtraordinaryBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "45"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_tasaconversion", 
+      "localField": "todayDate", 
+      "foreignField": "Fecha", 
+      "as": "sidis_tasaconversion"
+    }
+  }, {
+    "$addFields": {
+      "sal_net_actincomeTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincomeTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincInvestPortf": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincInvestPortfBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincCreditPortf": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincCreditPortfBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincOperacOther": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincOperacOtherBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincOperOthVar": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincOperOthVarBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincAvailable": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincAvailableBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincOtherRecv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincOtherRecvBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincOtherFinance": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincOtherFinanceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincRecvAssets": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincRecvAssetsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincForexDeriv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincForexDerivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincInvestSubdiv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincInvestSubdivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincInvestBranch": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincInvestBranchBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actincSecuTitle": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actincSecuTitleBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpensesTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpensesTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpPublicCap": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpPublicCapBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpOtherFinanc": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpOtherFinancBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpAdmin": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpAdminBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpEmployees": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpEmployeesBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpOperOthVar": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpOperOthVarBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpOthers": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpOthersBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpTaxIslr": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpTaxIslrBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpBanvihCap": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpBanvihCapBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpOthObtFinanc": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpOthObtFinancBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpOthFinInter": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpOthFinInterBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpServComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpServComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpInvestSubdiv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpInvestSubdivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpExtService": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpExtServiceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpCommTrans": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpCommTransBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpInsurance": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpInsuranceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpTaxContribut": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpTaxContributBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpMaintRep": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpMaintRepBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpUseAssetDep": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpUseAssetDepBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpDefAmort": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpDefAmortBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpOtherAdmin": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpOtherAdminBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpFinAssetDepr": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpFinAssetDeprBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actexpExtraordinary": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actexpExtraordinaryBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincomeTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincomeTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincInvestPortf": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincInvestPortfBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincCreditPortf": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincCreditPortfBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincOperacOther": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincOperacOtherBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincOperOthVar": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincOperOthVarBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincAvailable": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincAvailableBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincOtherRecv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincOtherRecvBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincOtherFinance": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincOtherFinanceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincRecvAssets": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincRecvAssetsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincForexDeriv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincForexDerivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincInvestSubdiv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincInvestSubdivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincInvestBranch": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincInvestBranchBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actincSecuTitle": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actincSecuTitleBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpensesTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpensesTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpPublicCap": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpPublicCapBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpOtherFinanc": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpOtherFinancBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpAdmin": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpAdminBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpEmployees": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpEmployeesBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpOperOthVar": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpOperOthVarBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpOthers": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpOthersBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpTaxIslr": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpTaxIslrBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpBanvihCap": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpBanvihCapBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpOthObtFinanc": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpOthObtFinancBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpOthFinInter": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpOthFinInterBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpServComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpServComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpInvestSubdiv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpInvestSubdivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpExtService": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpExtServiceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpCommTrans": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpCommTransBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpInsurance": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpInsuranceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpTaxContribut": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpTaxContributBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpMaintRep": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpMaintRepBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpUseAssetDep": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpUseAssetDepBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpDefAmort": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpDefAmortBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpOtherAdmin": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpOtherAdminBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpFinAssetDepr": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpFinAssetDeprBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actexpExtraordinary": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actexpExtraordinaryBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincomeTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincomeTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincInvestPortf": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincInvestPortfBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincCreditPortf": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincCreditPortfBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincOperacOther": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincOperacOtherBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincOperOthVar": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincOperOthVarBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincAvailable": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincAvailableBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincOtherRecv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincOtherRecvBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincOtherFinance": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincOtherFinanceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincRecvAssets": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincRecvAssetsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincForexDeriv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincForexDerivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincInvestSubdiv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincInvestSubdivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincInvestBranch": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincInvestBranchBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antincSecuTitle": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antincSecuTitleBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpensesTotal": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpensesTotalBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpPublicCap": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpPublicCapBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpOtherFinanc": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpOtherFinancBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpAdmin": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpAdminBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpEmployees": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpEmployeesBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpOperOthVar": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpOperOthVarBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpOthers": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpOthersBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpTaxIslr": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpTaxIslrBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpBanvihCap": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpBanvihCapBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpOthObtFinanc": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpOthObtFinancBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpOthFinInter": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpOthFinInterBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpServComission": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpServComissionBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpInvestSubdiv": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpInvestSubdivBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpExtService": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpExtServiceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpCommTrans": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpCommTransBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpInsurance": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpInsuranceBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpTaxContribut": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpTaxContributBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpMaintRep": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpMaintRepBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpUseAssetDep": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpUseAssetDepBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpDefAmort": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpDefAmortBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpOtherAdmin": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpOtherAdminBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpFinAssetDepr": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpFinAssetDeprBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antexpExtraordinary": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antexpExtraordinaryBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "condVarJuly": {
+        "$cond": [
+          {
+            "$and": [
+              {
+                "$or": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$todayDate"
+                      }, 7
+                    ]
+                  }
+                ]
+              }, {
+                "$gte": [
+                  {
+                    "$round": [
+                      {
+                        "$divide": [
+                          {
+                            "$abs": {
+                              "$subtract": [
+                                "$sal_actincomeTotalBs", {
+                                  "$first": "$yesterdayDate.sal_actincomeTotalBs"
+                                }
+                              ]
+                            }
+                          }, {
+                            "$cond": [
+                              {
+                                "$eq": [
+                                  "$sal_actincomeTotalBs", 0
+                                ]
+                              }, 0.00001, "$sal_actincomeTotalBs"
+                            ]
+                          }
+                        ]
+                      }, 4
+                    ]
+                  }, 3.5
+                ]
+              }
+            ]
+          }, true, false
+        ]
+      }, 
+      "condVarJanuary": {
+        "$cond": [
+          {
+            "$and": [
+              {
+                "$or": [
+                  {
+                    "$eq": [
+                      {
+                        "$month": "$todayDate"
+                      }, 1
+                    ]
+                  }
+                ]
+              }, {
+                "$gte": [
+                  {
+                    "$round": [
+                      {
+                        "$divide": [
+                          {
+                            "$abs": {
+                              "$subtract": [
+                                "$sal_actincomeTotalBs", {
+                                  "$first": "$yesterdayDate.sal_actincomeTotalBs"
+                                }
+                              ]
+                            }
+                          }, {
+                            "$cond": [
+                              {
+                                "$eq": [
+                                  "$sal_actincomeTotalBs", 0
+                                ]
+                              }, 0.00001, "$sal_actincomeTotalBs"
+                            ]
+                          }
+                        ]
+                      }, 4
+                    ]
+                  }, 3.5
+                ]
+              }
+            ]
+          }, true, false
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "yesterdayDate": "$$REMOVE", 
+      "sal_actincomeTotalBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincomeTotalBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincomeTotalBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincomeTotalBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincInvestPortfBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincInvestPortfBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincInvestPortfBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincInvestPortfBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincCreditPortfBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincCreditPortfBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincCreditPortfBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincCreditPortfBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincComissionBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincComissionBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincComissionBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincComissionBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOperacOtherBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOperacOtherBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOperacOtherBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOperacOtherBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOperOthVarBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOperOthVarBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOperOthVarBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOperOthVarBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincAvailableBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincAvailableBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincAvailableBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincAvailableBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOtherRecvBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOtherRecvBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOtherRecvBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOtherRecvBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOtherFinanceBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOtherFinanceBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOtherFinanceBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOtherFinanceBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincRecvAssetsBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincRecvAssetsBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincRecvAssetsBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincRecvAssetsBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincForexDerivBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincForexDerivBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincForexDerivBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincForexDerivBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincInvestSubdivBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincInvestSubdivBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincInvestSubdivBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincInvestSubdivBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincInvestBranchBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincInvestBranchBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincInvestBranchBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincInvestBranchBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincSecuTitleBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincSecuTitleBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincSecuTitleBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincSecuTitleBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpensesTotalBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpensesTotalBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpensesTotalBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpensesTotalBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpPublicCapBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpPublicCapBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpPublicCapBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpPublicCapBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOtherFinancBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOtherFinancBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOtherFinancBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOtherFinancBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpComissionBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpComissionBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpComissionBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpComissionBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpAdminBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpAdminBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpAdminBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpAdminBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpEmployeesBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpEmployeesBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpEmployeesBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpEmployeesBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOperOthVarBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOperOthVarBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOperOthVarBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOperOthVarBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOthersBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOthersBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOthersBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOthersBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpTaxIslrBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpTaxIslrBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpTaxIslrBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpTaxIslrBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpBanvihCapBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpBanvihCapBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpBanvihCapBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpBanvihCapBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOthObtFinancBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOthObtFinancBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOthObtFinancBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOthObtFinancBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOthFinInterBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOthFinInterBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOthFinInterBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOthFinInterBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpServComissionBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpServComissionBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpServComissionBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpServComissionBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpInvestSubdivBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpInvestSubdivBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpInvestSubdivBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpInvestSubdivBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpExtServiceBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpExtServiceBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpExtServiceBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpExtServiceBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpCommTransBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpCommTransBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpCommTransBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpCommTransBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpInsuranceBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpInsuranceBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpInsuranceBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpInsuranceBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpTaxContributBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpTaxContributBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpTaxContributBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpTaxContributBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpMaintRepBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpMaintRepBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpMaintRepBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpMaintRepBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpUseAssetDepBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpUseAssetDepBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpUseAssetDepBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpUseAssetDepBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpDefAmortBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpDefAmortBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpDefAmortBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpDefAmortBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOtherAdminBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOtherAdminBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOtherAdminBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOtherAdminBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpFinAssetDeprBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpFinAssetDeprBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpFinAssetDeprBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpFinAssetDeprBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpExtraordinaryBsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpExtraordinaryBs"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpExtraordinaryBsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpExtraordinaryBsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincomeTotalAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincomeTotal"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincomeTotalAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincomeTotalAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincInvestPortfAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincInvestPortf"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincInvestPortfAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincInvestPortfAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincCreditPortfAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincCreditPortf"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincCreditPortfAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincCreditPortfAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincComissionAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincComission"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincComissionAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincComissionAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOperacOtherAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOperacOther"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOperacOtherAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOperacOtherAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOperOthVarAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOperOthVar"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOperOthVarAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOperOthVarAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincAvailableAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincAvailable"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincAvailableAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincAvailableAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOtherRecvAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOtherRecv"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOtherRecvAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOtherRecvAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincOtherFinanceAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincOtherFinance"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincOtherFinanceAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincOtherFinanceAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincRecvAssetsAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincRecvAssets"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincRecvAssetsAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincRecvAssetsAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincForexDerivAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincForexDeriv"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincForexDerivAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincForexDerivAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincInvestSubdivAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincInvestSubdiv"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincInvestSubdivAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincInvestSubdivAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincInvestBranchAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincInvestBranch"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincInvestBranchAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincInvestBranchAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actincSecuTitleAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actincSecuTitle"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actincSecuTitleAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actincSecuTitleAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpensesTotalAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpensesTotal"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpensesTotalAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpensesTotalAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpPublicCapAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpPublicCap"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpPublicCapAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpPublicCapAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOtherFinancAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOtherFinanc"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOtherFinancAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOtherFinancAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpComissionAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpComission"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpComissionAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpComissionAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpAdminAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpAdmin"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpAdminAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpAdminAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpEmployeesAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpEmployees"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpEmployeesAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpEmployeesAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOperOthVarAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOperOthVar"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOperOthVarAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOperOthVarAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOthersAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOthers"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOthersAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOthersAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpTaxIslrAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpTaxIslr"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpTaxIslrAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpTaxIslrAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpBanvihCapAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpBanvihCap"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpBanvihCapAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpBanvihCapAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOthObtFinancAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOthObtFinanc"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOthObtFinancAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOthObtFinancAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOthFinInterAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOthFinInter"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOthFinInterAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOthFinInterAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpServComissionAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpServComission"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpServComissionAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpServComissionAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpInvestSubdivAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpInvestSubdiv"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpInvestSubdivAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpInvestSubdivAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpExtServiceAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpExtService"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpExtServiceAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpExtServiceAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpCommTransAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpCommTrans"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpCommTransAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpCommTransAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpInsuranceAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpInsurance"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpInsuranceAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpInsuranceAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpTaxContributAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpTaxContribut"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpTaxContributAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpTaxContributAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpMaintRepAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpMaintRep"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpMaintRepAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpMaintRepAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpUseAssetDepAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpUseAssetDep"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpUseAssetDepAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpUseAssetDepAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpDefAmortAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpDefAmort"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpDefAmortAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpDefAmortAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpOtherAdminAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpOtherAdmin"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpOtherAdminAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpOtherAdminAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpFinAssetDeprAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpFinAssetDepr"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpFinAssetDeprAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpFinAssetDeprAdjstmntValue"
+          }
+        }
+      }, 
+      "sal_actexpExtraordinaryAdjstmntValue": {
+        "$switch": {
+          "branches": [
+            {
+              "case": "$condVarJuly", 
+              "then": {
+                "$first": "$yesterdayDate.sal_actexpExtraordinary"
+              }
+            }, {
+              "case": "$condVarJanuary", 
+              "then": 0
+            }, {
+              "case": {
+                "$lte": [
+                  "$yesterdayDate.sal_actexpExtraordinaryAdjstmntValue", null
+                ]
+              }, 
+              "then": 0
+            }
+          ], 
+          "default": {
+            "$first": "$yesterdayDate.sal_actexpExtraordinaryAdjstmntValue"
+          }
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "DailyGroupPerdidasGanaciasNR", 
+      "on": "fecha_valor", 
+      "whenMatched": "replace"
+    }
+  }
+]

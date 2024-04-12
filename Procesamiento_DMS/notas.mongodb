@@ -4,42 +4,15 @@
       "$and": [
         {
           "$expr": {
-            "$lte": [
-              "$fechaProceso", {
-                "$dateSubtract": {
-                  "startDate": {
-                    "$dateSubtract": {
-                      "startDate": {
-                        "$dateAdd": {
-                          "startDate": {
-                            "$dateTrunc": {
-                              "date": {
-                                "$toDate": "@processDate"
-                              }, 
-                              "unit": "month"
-                            }
-                          }, 
-                          "unit": "month", 
-                          "amount": 1
-                        }
-                      }, 
-                      "unit": "month", 
-                      "amount": {
-                        "$toInt": "@timingInMonth"
-                      }
-                    }
-                  }, 
-                  "unit": "day", 
-                  "amount": 1
-                }
-              }
+            "$eq": [
+              "$processName", "{{$json.processName}}"
             ]
           }
         }, {
           "$expr": {
             "$eq": [
-              "$lastDigRif", {
-                "$toString": "@parallelizationIndex"
+              "$processDate", {
+                "$toDate": "{{$json.processDate}}"
               }
             ]
           }
@@ -47,11 +20,47 @@
       ]
     }
   }, {
-    "$merge": {
-      "into": "sidis_transaccionesOperativas_hist", 
-      "on": [
-        "tra_fecha_contable", "tra_cod_op", "tra_cuenta_contable", "tra_cuenta_contrato", "_id"
-      ]
+    "$unwind": {
+      "path": "$subProcess"
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": "$subProcess"
+    }
+  }, {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$subStage", "{{$json.subStage}}"
+        ]
+      }
+    }
+  }, {
+    "$project": {
+      "processName": "{{$json.processName}}",
+      "processDate": {
+        "$toString": "{{$json.processDate}}"
+      }, 
+      "offSet": "{{$json.offSet}}",
+      "subProcessName": "$subProcessName", 
+      "subProcessDate": {
+        "$substr": [
+          {
+            "$toString": "$subProcessDate"
+          }, 0, 10
+        ]
+      }, 
+      "fromCollection": 1, 
+      "toCollection": 1, 
+      "status": 1, 
+      "aggregate": 1, 
+      "parallelizationIndex": 1, 
+      "subStage": 1, 
+      "activeProcess": 1, 
+      "numeroAleatorio": {
+        "$toInt": "{{$json.numeroAleatorio}}"
+      }, 
+      "timingInMonth": 1
     }
   }
 ]
