@@ -167,6 +167,9 @@
       }, 
       "monto": {
         "$sum": "$tra_monto_debe"
+      }, 
+      "file_date": {
+        "$min": "$file_date"
       }
     }
   }, {

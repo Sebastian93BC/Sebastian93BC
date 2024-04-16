@@ -14,7 +14,6 @@ db.sidis_TransaccionesTipo_hist.createIndex(
     tra_cod_op: 1,
     tra_fecha_hora: 1,
     tra_rif:1,
-    _id:1,
   },
   { unique: true, name: "mergeIndex" },
 )
@@ -28,6 +27,8 @@ db.sidis_TransaccionesTipo_hist.createIndex(
   {name: "ParalellIndex" },
 )
 
+
+merge  On:
 
 [ 
   "file_date",

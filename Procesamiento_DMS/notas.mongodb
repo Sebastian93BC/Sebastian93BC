@@ -1,66 +1,54 @@
 [
   {
     "$match": {
-      "$and": [
-        {
-          "$expr": {
-            "$eq": [
-              "$processName", "{{$json.processName}}"
-            ]
-          }
-        }, {
-          "$expr": {
-            "$eq": [
-              "$processDate", {
-                "$toDate": "{{$json.processDate}}"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  }, {
-    "$unwind": {
-      "path": "$subProcess"
-    }
-  }, {
-    "$replaceRoot": {
-      "newRoot": "$subProcess"
-    }
-  }, {
-    "$match": {
       "$expr": {
         "$eq": [
-          "$subStage", "{{$json.subStage}}"
+          "$tra_fecha_contable", {
+            "$dateSubtract": {
+              "startDate": {
+                "$dateSubtract": {
+                  "startDate": {
+                    "$dateAdd": {
+                      "startDate": {
+                        "$dateTrunc": {
+                          "date": {
+                            "$toDate": "{{$json.processDate}}"
+                          }, 
+                          "unit": "day"
+                        }
+                      }, 
+                      "unit": "month", 
+                      "amount": 0
+                    }
+                  }, 
+                  "unit": "day", 
+                  "amount": {
+                    "$toInt": "{{$json.offSet}}"
+                  }
+                }
+              }, 
+              "unit": "day", 
+              "amount": 0
+            }
+          }
         ]
       }
     }
   }, {
-    "$project": {
-      "processName": "{{$json.processName}}",
-      "processDate": {
-        "$toString": "{{$json.processDate}}"
-      }, 
-      "offSet": "{{$json.offSet}}",
-      "subProcessName": "$subProcessName", 
-      "subProcessDate": {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "lastDigRif": {
         "$substr": [
-          {
-            "$toString": "$subProcessDate"
-          }, 0, 10
+          "$tra_rif", 8, -1
         ]
-      }, 
-      "fromCollection": 1, 
-      "toCollection": 1, 
-      "status": 1, 
-      "aggregate": 1, 
-      "parallelizationIndex": 1, 
-      "subStage": 1, 
-      "activeProcess": 1, 
-      "numeroAleatorio": {
-        "$toInt": "{{$json.numeroAleatorio}}"
-      }, 
-      "timingInMonth": 1
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_Transacciones_hist", 
+      "on": [
+        "tra_cod_op", "tra_nro_mov", "tra_cuenta_contrato", "tra_fecha_contable"
+      ]
     }
   }
 ]
