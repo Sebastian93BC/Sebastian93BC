@@ -13,17 +13,27 @@
             ]
           }
         }, {
-          "tra_banca": {
-            "$nin": [
-              "5", 5, "4", 4, "0", 0, "1", 1
-            ]
-          }
-        }, {
           "$expr": {
             "$eq": [
               "$file_date", {
-                "$toDate": "@processDate"
+                "$subtract": [
+                  {
+                    "$toDate": "@processDate"
+                  }, {
+                    "$multiply": [
+                      {
+                        "$toInt": "0"
+                      }, 86400000
+                    ]
+                  }
+                ]
               }
+            ]
+          }
+        }, {
+          "tra_banca": {
+            "$nin": [
+              "5", 5, "4", 4, "0", 0, "1", 1
             ]
           }
         }
@@ -167,9 +177,6 @@
       }, 
       "monto": {
         "$sum": "$tra_monto_debe"
-      }, 
-      "file_date": {
-        "$min": "$file_date"
       }
     }
   }, {

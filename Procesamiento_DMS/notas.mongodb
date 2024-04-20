@@ -1,54 +1,40 @@
 [
-  {
-    "$match": {
-      "$expr": {
-        "$eq": [
-          "$tra_fecha_contable", {
-            "$dateSubtract": {
-              "startDate": {
-                "$dateSubtract": {
-                  "startDate": {
-                    "$dateAdd": {
-                      "startDate": {
-                        "$dateTrunc": {
-                          "date": {
-                            "$toDate": "{{$json.processDate}}"
-                          }, 
-                          "unit": "day"
-                        }
-                      }, 
-                      "unit": "month", 
-                      "amount": 0
-                    }
-                  }, 
-                  "unit": "day", 
-                  "amount": {
-                    "$toInt": "{{$json.offSet}}"
-                  }
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$eq": [
+                "$processName", "{{$json.processName}}"
+              ]
+            }
+          }, {
+            "$expr": {
+              "$eq": [
+                "$processDate", {
+                  "$toDate": "{{$json.processDate}}"
                 }
-              }, 
-              "unit": "day", 
-              "amount": 0
+              ]
             }
           }
         ]
       }
-    }
-  }, {
-    "$addFields": {
-      "_id": "$$REMOVE", 
-      "lastDigRif": {
-        "$substr": [
-          "$tra_rif", 8, -1
-        ]
+    }, {
+      "$unwind": {
+        "path": "$subProcess"
+      }
+    }, {
+      "$match": {
+        "$expr": {
+          "$eq": [
+            "$subProcess.subProcessName", "{{$json.subProcessName}}"
+          ]
+        }
+      }
+    }, {
+      "$project": {
+        "_id": 0, 
+        "status": "$subProcess.status"
       }
     }
-  }, {
-    "$merge": {
-      "into": "sidis_Transacciones_hist", 
-      "on": [
-        "tra_cod_op", "tra_nro_mov", "tra_cuenta_contrato", "tra_fecha_contable"
-      ]
-    }
-  }
-]
+  ]

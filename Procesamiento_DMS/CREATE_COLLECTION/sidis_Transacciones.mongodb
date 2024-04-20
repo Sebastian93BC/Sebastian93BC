@@ -1,14 +1,14 @@
 //hashed
-db.createCollection("sidis_Transacciones_hist")
+db.createCollection("sidis_Transacciones")
 
-sh.shardCollection("bdv.sidis_Transacciones_hist", {
+sh.shardCollection("bdv.sidis_Transacciones", {
   tra_cod_op: 'hashed',
   tra_nro_mov: 1,
   tra_cuenta_contrato: 1,
 
 })
 
-db.sidis_Transacciones_hist.createIndex(
+db.sidis_Transacciones.createIndex(
   {
     tra_cod_op: 1,
     tra_nro_mov: 1,
@@ -19,7 +19,7 @@ db.sidis_Transacciones_hist.createIndex(
 )
 
 
-db.sidis_Transacciones_hist.createIndex(
+db.sidis_Transacciones.createIndex(
   {
     tra_rif: 1,
     fechaProceso: 1,

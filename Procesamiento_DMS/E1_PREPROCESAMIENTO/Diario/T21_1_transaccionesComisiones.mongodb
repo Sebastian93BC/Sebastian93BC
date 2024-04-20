@@ -16,7 +16,17 @@
           "$expr": {
             "$eq": [
               "$file_date", {
-                "$toDate": "@processDate"
+                "$subtract": [
+                  {
+                    "$toDate": "@processDate"
+                  }, {
+                    "$multiply": [
+                      {
+                        "$toInt": "0"
+                      }, 86400000
+                    ]
+                  }
+                ]
               }
             ]
           }

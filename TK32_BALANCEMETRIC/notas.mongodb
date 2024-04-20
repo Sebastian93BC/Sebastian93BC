@@ -1,12 +1,71 @@
+
 [
     {
       "$match": {
         "$and": [
           {
             "$expr": {
-              "$eq": [
-                "$file_date", {
-                  "$toDate": "@processDate"
+              "$lte": [
+                "$tra_fecha_contable", {
+                  "$dateSubtract": {
+                    "startDate": {
+                      "$dateSubtract": {
+                        "startDate": {
+                          "$dateAdd": {
+                            "startDate": {
+                              "$dateTrunc": {
+                                "date": {
+                                  "$toDate": "2024-02-29"
+                                }, 
+                                "unit": "day"
+                              }
+                            }, 
+                            "unit": "month", 
+                            "amount": 0
+                          }
+                        }, 
+                        "unit": "day", 
+                        "amount": {
+                          "$toInt": "358"
+                        }
+                      }
+                    }, 
+                    "unit": "day", 
+                    "amount": 0
+                  }
+                }
+              ]
+            }
+          }, {
+            "$expr": {
+              "$gte": [
+                "$tra_fecha_contable", {
+                  "$dateSubtract": {
+                    "startDate": {
+                      "$dateSubtract": {
+                        "startDate": {
+                          "$dateAdd": {
+                            "startDate": {
+                              "$dateTrunc": {
+                                "date": {
+                                  "$toDate": "2024-02-29"
+                                }, 
+                                "unit": "day"
+                              }
+                            }, 
+                            "unit": "month", 
+                            "amount": 0
+                          }
+                        }, 
+                        "unit": "day", 
+                        "amount": {
+                          "$toInt": "400"
+                        }
+                      }
+                    }, 
+                    "unit": "day", 
+                    "amount": 0
+                  }
                 }
               ]
             }
@@ -15,170 +74,19 @@
       }
     }, {
       "$addFields": {
-        "rifCedula": {
-          "$concat": [
-            "$petipdoc", {
-              "$substr": [
-                "$penumdoc", {
-                  "$subtract": [
-                    {
-                      "$strLenCP": "$penumdoc"
-                    }, 8
-                  ]
-                }, 8
-              ]
-            }
+        "_id": "$$REMOVE", 
+        "lastDigRif": {
+          "$substr": [
+            "$tra_rif", 8, -1
           ]
-        }, 
-        "contrato": {
-          "$concat": [
-            "$entidad", "$oficina", "$cuenta"
-          ]
-        }, 
-        "feforma": {
-          "$dateFromString": {
-            "dateString": "$feforma", 
-            "format": "%Y-%m-%d", 
-            "onNull": null, 
-            "onError": null
-          }
-        }, 
-        "feoper": {
-          "$dateFromString": {
-            "dateString": "$feoper", 
-            "format": "%Y-%m-%d", 
-            "onNull": null, 
-            "onError": null
-          }
-        }, 
-        "fevalor": {
-          "$dateFromString": {
-            "dateString": "$fevalor", 
-            "format": "%Y-%m-%d", 
-            "onNull": null, 
-            "onError": null
-          }
-        }, 
-        "feliq": {
-          "$dateFromString": {
-            "dateString": "$feliq", 
-            "format": "%Y-%m-%d", 
-            "onNull": null, 
-            "onError": null
-          }
         }
-      }
-    }, {
-      "$addFields": {
-        "fechaProceso": {
-          "$dateFromParts": {
-            "year": {
-              "$year": "$feoper"
-            }, 
-            "month": {
-              "$add": [
-                {
-                  "$month": "$feoper"
-                }, 1
-              ]
-            }, 
-            "day": {
-              "$subtract": [
-                {
-                  "$dayOfMonth": {
-                    "$dateFromParts": {
-                      "year": {
-                        "$year": "$feoper"
-                      }, 
-                      "month": {
-                        "$add": [
-                          {
-                            "$month": "$feoper"
-                          }, 1
-                        ]
-                      }, 
-                      "day": 1
-                    }
-                  }
-                }, 1
-              ]
-            }, 
-            "hour": 0, 
-            "minute": 0, 
-            "second": 0, 
-            "millisecond": 0
-          }
-        }, 
-        "codEvento": "$cod_evento", 
-        "impCps": "$imp_cps", 
-        "idiForm": "$idi_form", 
-        "idiUvc": "$idi_uvc", 
-        "diasVencido": "$dias_vencido", 
-        "montoPago": "$monto_pago", 
-        "montoPaguvc": "$monto_paguvc", 
-        "impMora": "$imp_mora", 
-        "fileDate": "$file_date", 
-        "codUsuario": "$cod_usuario", 
-        "ctaContable": "$cta_contable", 
-        "cod_evento": "$$REMOVE", 
-        "imp_cps": "$$REMOVE", 
-        "idi_form": "$$REMOVE", 
-        "idi_uvc": "$$REMOVE", 
-        "dias_vencido": "$$REMOVE", 
-        "monto_pago": "$$REMOVE", 
-        "monto_paguvc": "$$REMOVE", 
-        "imp_mora": "$$REMOVE", 
-        "file_date": "$$REMOVE", 
-        "cod_usuario": "$$REMOVE", 
-        "cta_contable": "$$REMOVE"
-      }
-    }, {
-      "$group": {
-        "_id": {
-          "rifCedula": "$rifCedula", 
-          "codEvento": "$codEvento", 
-          "codUsuario": "$codUsuario", 
-          "contrato": "$contrato", 
-          "ctaContable": "$ctaContable", 
-          "cuenta": "$cuenta", 
-          "entidad": "$entidad", 
-          "feforma": "$feforma", 
-          "feoper": "$feoper", 
-          "fevalor": "$fevalor", 
-          "formpago": "$formpago", 
-          "indretro": "$indretro", 
-          "oficina": "$oficina", 
-          "oftit": "$oftit", 
-          "producto": "$producto", 
-          "sitdeuct": "$sitdeuct", 
-          "sitdeuda": "$sitdeuda", 
-          "sitpres": "$sitpres", 
-          "subpro": "$subpro", 
-          "monto_pago": "$monto_pago"
-        }, 
-        "doc": {
-          "$first": "$$ROOT"
-        }
-      }
-    }, {
-      "$replaceRoot": {
-        "newRoot": "$doc"
-      }
-    }, {
-      "$lookup": {
-        "from": "sidis_tasaconversion", 
-        "localField": "fechaProceso", 
-        "foreignField": "Fecha", 
-        "as": "sidisTasaconversion"
       }
     }, {
       "$merge": {
-        "into": "sidis_activosId", 
+        "into": "sidis_Transacciones_hist", 
         "on": [
-          "rifCedula", "fechaProceso", "_id"
-        ], 
-        "whenMatched": "replace", 
-        "whenNotMatched": "insert"
+          "tra_cod_op", "tra_nro_mov", "tra_cuenta_contrato", "tra_fecha_contable"
+        ]
       }
     }
   ]
