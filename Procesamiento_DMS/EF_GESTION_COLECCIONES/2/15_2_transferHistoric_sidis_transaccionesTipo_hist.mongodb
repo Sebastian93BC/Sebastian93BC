@@ -1,0 +1,57 @@
+[
+    {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$lte": [
+                "$fechaProceso", {
+                  "$dateSubtract": {
+                    "startDate": {
+                      "$dateSubtract": {
+                        "startDate": {
+                          "$dateAdd": {
+                            "startDate": {
+                              "$dateTrunc": {
+                                "date": {
+                                  "$toDate": "@processDate"
+                                }, 
+                                "unit": "month"
+                              }
+                            }, 
+                            "unit": "month", 
+                            "amount": 1
+                          }
+                        }, 
+                        "unit": "month", 
+                        "amount": {
+                          "$toInt": "@timingInMonth"
+                        }
+                      }
+                    }, 
+                    "unit": "day", 
+                    "amount": 1
+                  }
+                }
+              ]
+            }
+          }, {
+            "$expr": {
+              "$eq": [
+                "$lastDigRif", {
+                  "$toString": "@parallelizationIndex"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_transaccionesComisiones_hist", 
+        "on": [
+          "tra_rif", "fechaProceso", "tra_cuenta_contable", "tra_cod_op", "_id"
+        ]
+      }
+    }
+  ]

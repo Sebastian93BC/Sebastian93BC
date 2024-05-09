@@ -1,0 +1,271 @@
+[
+    {
+      "$addFields": {
+        "processDate": {
+          "$subtract": [
+            {
+              "$dateFromParts": {
+                "year": {
+                  "$year": {
+                    "$toDate": "@processDate"
+                  }
+                }, 
+                "month": {
+                  "$month": {
+                    "$toDate": "@processDate"
+                  }
+                }
+              }
+            }, 86400000
+          ]
+        }
+      }
+    }, {
+      "$addFields": {
+        "fechaSuperior": {
+          "$dateFromParts": {
+            "year": {
+              "$year": "$processDate"
+            }, 
+            "month": {
+              "$month": "$processDate"
+            }
+          }
+        }, 
+        "month": {
+          "$month": "$processDate"
+        }
+      }
+    }, {
+      "$addFields": {
+        "fechaProcesoAct": {
+          "$dateFromParts": {
+            "year": {
+              "$year": "$fechaProceso"
+            }, 
+            "month": {
+              "$month": "$fechaProceso"
+            }
+          }
+        }, 
+        "fechaInferior": {
+          "$dateSubtract": {
+            "startDate": {
+              "$dateFromParts": {
+                "year": {
+                  "$year": "$fechaSuperior"
+                }, 
+                "month": {
+                  "$month": "$fechaSuperior"
+                }
+              }
+            }, 
+            "unit": "month", 
+            "amount": {
+              "$subtract": [
+                "$month", 1
+              ]
+            }
+          }
+        }
+      }
+    }, {
+      "$match": {
+        "$and": [
+          {
+            "$expr": {
+              "$gte": [
+                "$fechaProcesoAct", "$fechaInferior"
+              ]
+            }
+          }, {
+            "$expr": {
+              "$lte": [
+                "$fechaProcesoAct", "$fechaSuperior"
+              ]
+            }
+          }
+        ]
+      }
+    }, {
+      "$group": {
+        "_id": null, 
+        "globalNetResult27MUSD": {
+          "$sum": "$globalNetResult2USD"
+        }, 
+        "fechaProceso": {
+          "$max": "$fechaProceso"
+        }, 
+        "fechaProcesoInicio": {
+          "$min": "$fechaProceso"
+        }, 
+        "name": {
+          "$addToSet": "$name"
+        }, 
+        "banks": {
+          "$addToSet": {
+            "name": "$name", 
+            "fechaProceso": "$fechaProceso", 
+            "netResult2": {
+              "$sum": "$netResult2"
+            }
+          }
+        }
+      }
+    }, {
+      "$unwind": {
+        "path": "$banks"
+      }
+    }, {
+      "$lookup": {
+        "from": "sidis_tasaconversion", 
+        "localField": "banks.fechaProceso", 
+        "foreignField": "Fecha", 
+        "as": "result"
+      }
+    }, {
+      "$addFields": {
+        "banks.netResult2Usd": {
+          "$round": [
+            {
+              "$divide": [
+                "$banks.netResult2", {
+                  "$arrayElemAt": [
+                    "$result.Tasa_DOL", 0
+                  ]
+                }
+              ]
+            }, 4
+          ]
+        }
+      }
+    }, {
+      "$lookup": {
+        "from": "sidis_Financialstatement", 
+        "let": {
+          "fechaProceso": "$banks.fechaProceso", 
+          "name": "$banks.name"
+        }, 
+        "pipeline": [
+          {
+            "$match": {
+              "$expr": {
+                "$and": [
+                  {
+                    "$eq": [
+                      "$fechaProceso", "$$fechaProceso"
+                    ]
+                  }, {
+                    "$eq": [
+                      "$name", "$$name"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ], 
+        "as": "result"
+      }
+    }, {
+      "$addFields": {
+        "banks.globalNetResult2USD": {
+          "$arrayElemAt": [
+            "$result.globalNetResult2USD", 0
+          ]
+        }, 
+        "banks.gFechaProceso": "$fechaProceso", 
+        "result": "$$REMOVE"
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "name": "$banks.name"
+        }, 
+        "netResult27MUSD": {
+          "$sum": "$banks.netResult2Usd"
+        }, 
+        "netResult27M": {
+          "$sum": "$banks.netResult2"
+        }, 
+        "globalNetResult27MUSD": {
+          "$addToSet": {
+            "value": "$banks.globalNetResult2USD"
+          }
+        }, 
+        "fechaProceso": {
+          "$first": "$fechaProceso"
+        }, 
+        "gfechaProceso": {
+          "$first": "$banks.gFechaProceso"
+        }
+      }
+    }, {
+      "$addFields": {
+        "name": "$_id.name", 
+        "_id": "$$REMOVE", 
+        "globalNetResult27MUSD": {
+          "$round": [
+            {
+              "$sum": "$globalNetResult27MUSD.value"
+            }, 4
+          ]
+        }
+      }
+    }, {
+      "$addFields": {
+        "resultNetResult27MUSD": {
+          "$round": [
+            {
+              "$divide": [
+                {
+                  "$multiply": [
+                    "$netResult27MUSD", 100
+                  ]
+                }, "$globalNetResult27MUSD"
+              ]
+            }, 5
+          ]
+        }
+      }
+    }, {
+      "$sort": {
+        "resultNetResult27MUSD": -1
+      }
+    }, {
+      "$project": {
+        "_id": 0, 
+        "fechaProceso": 1, 
+        "name": 1, 
+        "resultNetResult27MUSD": 1, 
+        "netResult27MUSD": 1, 
+        "netResult27M": 1, 
+        "globalNetResult27MUSD": 1
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "fechaProceso": "$fechaProceso"
+        }, 
+        "netResult2_ac": {
+          "$push": {
+            "name": "$name", 
+            "prctValue": "$resultNetResult27MUSD", 
+            "amountBsValue": "$netResult27M", 
+            "amountUsdValue": "$netResult27MUSD", 
+            "globalValue": "$globalNetResult27MUSD"
+          }
+        }
+      }
+    }, {
+      "$addFields": {
+        "fechaProceso": "$_id.fechaProceso", 
+        "_id": "$$REMOVE"
+      }
+    }, {
+      "$merge": {
+        "into": "Financialstatementdashboard", 
+        "on": "fechaProceso"
+      }
+    }
+  ]

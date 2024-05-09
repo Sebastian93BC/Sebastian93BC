@@ -1,0 +1,38 @@
+{
+        "$and": [
+          {
+            "$expr": {
+              "$lte": [
+                "$file_date", {
+                  "$dateSubtract": {
+                    "startDate": {
+                      "$dateSubtract": {
+                        "startDate": {
+                          "$dateAdd": {
+                            "startDate": {
+                              "$dateTrunc": {
+                                "date": {
+                                  "$toDate": "@processDate"
+                                }, 
+                                "unit": "month"
+                              }
+                            }, 
+                            "unit": "month", 
+                            "amount": 1
+                          }
+                        }, 
+                        "unit": "month", 
+                        "amount": {
+                          "$toInt": "@timingInMonth"
+                        }
+                      }
+                    }, 
+                    "unit": "day", 
+                    "amount": 1
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }

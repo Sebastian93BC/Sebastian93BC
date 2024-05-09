@@ -1,0 +1,13 @@
+{
+    "$and": [
+        {
+            "$expr": {
+                "$eq": [
+                    "$lastDigRif", {
+                        "$toString": "@parallelizationIndex"
+                    }
+                ]
+            }
+        }
+    ]
+}

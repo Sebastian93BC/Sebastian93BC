@@ -1,0 +1,137 @@
+[
+    {
+      "$addFields": {
+        "sumPublicDepositsNationalCurrency": {
+          "$subtract": [
+            {
+              "$subtract": [
+                {
+                  "$ifNull": [
+                    "$publicDeposits", 0
+                  ]
+                }, {
+                  "$ifNull": [
+                    "$exchangeAgreementNo20CheckingAccounts", 0
+                  ]
+                }
+              ]
+            }, {
+              "$subtract": [
+                {
+                  "$ifNull": [
+                    "$freeExchangeSystemCheckingAccounts", 0
+                  ]
+                }, {
+                  "$ifNull": [
+                    "$specialTrustFundsFreeExchangeSystem", 0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }, {
+      "$addFields": {
+        "resultPublicDepositsNationalCurrency": {
+          "$round": [
+            {
+              "$divide": [
+                {
+                  "$multiply": [
+                    "$sumPublicDepositsNationalCurrency", 100
+                  ]
+                }, "$globalPublicDepositsNationalCurrency"
+              ]
+            }, 5
+          ]
+        }
+      }
+    }, {
+      "$lookup": {
+        "from": "sidis_tasaconversion", 
+        "localField": "fechaProceso", 
+        "foreignField": "Fecha", 
+        "as": "result"
+      }
+    }, {
+      "$addFields": {
+        "tasaDolar": {
+          "$arrayElemAt": [
+            "$result.Tasa_DOL", 0
+          ]
+        }, 
+        "tasaEuro": {
+          "$arrayElemAt": [
+            "$result.Tasa_EUR", 0
+          ]
+        }, 
+        "factorConversion": {
+          "$arrayElemAt": [
+            "$result.Conversion", 0
+          ]
+        }
+      }
+    }, {
+      "$sort": {
+        "resultPublicDepositsNationalCurrency": -1
+      }
+    }, {
+      "$project": {
+        "_id": 0, 
+        "fechaProceso": 1, 
+        "name": 1, 
+        "resultPublicDepositsNationalCurrency": 1, 
+        "tasaDolar": 1, 
+        "tasaEuro": 1, 
+        "factorConversion": 1, 
+        "sumPublicDepositsNationalCurrency": 1, 
+        "globalPublicDepositsNationalCurrencyUSD": 1
+      }
+    }, {
+      "$group": {
+        "_id": {
+          "fechaProceso": "$fechaProceso"
+        }, 
+        "publicDepositsNationalCurrency": {
+          "$push": {
+            "name": "$name", 
+            "prctValue": {
+              "$round": [
+                "$resultPublicDepositsNationalCurrency", 4
+              ]
+            }, 
+            "amountBsValue": {
+              "$round": [
+                "$sumPublicDepositsNationalCurrency", 4
+              ]
+            }, 
+            "amountUsdValue": {
+              "$round": [
+                {
+                  "$divide": [
+                    "$sumPublicDepositsNationalCurrency", "$tasaDolar"
+                  ]
+                }, 4
+              ]
+            }, 
+            "globalValue": {
+              "$round": [
+                "$globalPublicDepositsNationalCurrencyUSD", 4
+              ]
+            }
+          }
+        }
+      }
+    }, {
+      "$addFields": {
+        "fechaProceso": "$_id.fechaProceso", 
+        "_id": "$$REMOVE"
+      }
+    }, {
+      "$merge": {
+        "into": "Financialstatementdashboard", 
+        "on": "fechaProceso"
+      }
+    }
+  ]

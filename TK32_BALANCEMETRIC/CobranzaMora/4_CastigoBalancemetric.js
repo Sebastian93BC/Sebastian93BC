@@ -1,259 +1,12 @@
 [
   {
-    $addFields: {
-      today: {
-        $subtract: [
-          {
-            $toDate: {
-              $dateFromString: {
-                dateString: {
-                  $dateToString: {
-                    format: "%Y-%m-%dT00:00:00%z",
-                    date: {
-                      $toDate: "$$NOW",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          {
-            $multiply: [
-              {
-                $toInt: "691",
-                //"{{$json.offSet}}"
-              },
-              86400000,
-            ],
-          },
-        ],
-      },
-    },
-  },
-  {
-    $addFields: {
-      dateStart: {
-        $dateFromParts: {
-          year: {
-            $year: "$today",
-          },
-        },
-      },
-      dateFinish: {
-        $subtract: [
-          {
-            $dateFromParts: {
-              year: {
-                $year: "$today",
-              },
-              month: {
-                $sum: [
-                  {
-                    $month: "$today",
-                  },
-                  1,
-                ],
-              },
-            },
-          },
-          86400000,
-        ],
-      },
-    },
-  },
-  {
-    $match:
-      /**
-       * query: The query in MQL.
-       */
-      {
-        $and: [
-          {
-            $expr: {
-              $gte: ["$fecha", "$dateStart"],
-            },
-          },
-          {
-            $expr: {
-              $lte: ["$fecha", "$dateFinish"],
-            },
-          },
-        ],
-      },
-  },
-  {
-    $group: {
-      _id: "$today",
-      acAnualMonto: {
-        $sum: "$castigo",
-      },
-      acMensualMonto: {
-        $sum: {
-          $cond: [
-            {
-              $eq: ["$dateFinish", "$fecha"],
-            },
-            "$castigo",
-            0,
-          ],
-        },
-      },
-      monto: {
-        $sum: {
-          $cond: [
-            {
-              $eq: ["$dateFinish", "$fecha"],
-            },
-            "$castigo",
-            0,
-          ],
-        },
-      },
-    },
-  },
-  {
-    $lookup: {
-      from: "Balancemetric",
-      localField: "_id",
-      foreignField: "fecha_valor",
-      as: "result",
-    },
-  },
-  {
-    $lookup: {
-      from: "sidis_tasaconversion",
-      localField: "_id",
-      foreignField: "Fecha",
-      as: "result1",
-    },
-  },
-  {
-    $addFields: {
-      result: "$$REMOVE",
-      result1: "$$REMOVE",
-      tasa: {
-        $first: "$result1.Tasa_DOL",
-      },
-      cobranzaMora: {
-        $first: "$result.cobranzaMora",
-      },
-      cobranzaMoraUVC: {
-        $first: "$result.cobranzaMoraUVC",
-      },
-    },
-  },
-  {
-    $addFields: {
-      _id: "$$REMOVE",
-      acAnualMonto: "$$REMOVE",
-      acMensualMonto: "$$REMOVE",
-      monto: "$$REMOVE",
-      tasa: "$$REMOVE",
-      fecha_valor: "$_id",
-      "cobranzaMora.castigo.monto": {
-        $round: [
-          {
-            $multiply: ["$monto", 1000000],
-          },
-          4,
-        ],
-      },
-      "cobranzaMora.castigo.acMensualMonto": {
-        $round: [
-          {
-            $multiply: [
-              "$acMensualMonto",
-              1000000,
-            ],
-          },
-          4,
-        ],
-      },
-      "cobranzaMora.castigo.acAnualMonto": {
-        $round: [
-          {
-            $multiply: ["$acAnualMonto", 1000000],
-          },
-          4,
-        ],
-      },
-      "cobranzaMoraUVC.castigo.monto": {
-        $round: [
-          {
-            $multiply: [
-              {
-                $multiply: ["$monto", "$tasa"],
-              },
-              1000000,
-            ],
-          },
-          4,
-        ],
-      },
-      "cobranzaMoraUVC.castigo.acMensualMonto": {
-        $round: [
-          {
-            $multiply: [
-              {
-                $multiply: [
-                  "$acMensualMonto",
-                  "$tasa",
-                ],
-              },
-              1000000,
-            ],
-          },
-          4,
-        ],
-      },
-      "cobranzaMoraUVC.castigo.acAnualMonto": {
-        $round: [
-          {
-            $multiply: [
-              {
-                $multiply: [
-                  "$acAnualMonto",
-                  "$tasa",
-                ],
-              },
-              1000000,
-            ],
-          },
-          4,
-        ],
-      },
-    },
-  },
-  {
-    $merge: {
-      into: "Balancemetric",
-      on: "fecha_valor",
-      whenMatched: "merge",
-      whenNotMatched: "insert",
-    },
-  },
-]
-
-
-//N8N
-
-[
-  {
     "$addFields": {
       "today": {
         "$subtract": [
           {
-            "$toDate": {
-              "$dateFromString": {
-                "dateString": {
-                  "$dateToString": {
-                    "format": "%Y-%m-%dT00:00:00%z", 
-                    "date": {
-                      "$toDate": "$$NOW"
-                    }
-                  }
-                }
-              }
+            "$dateTrunc": {
+              "date": "$$NOW", 
+              "unit": "day"
             }
           }, {
             "$multiply": [
@@ -267,30 +20,46 @@
     }
   }, {
     "$addFields": {
-      "dateStart": {
-        "$dateFromParts": {
-          "year": {
-            "$year": "$today"
-          }
+      "prevusMonthFirstDateYear": {
+        "$dateTrunc": {
+          "date": {
+            "$dateSubtract": {
+              "startDate": {
+                "$dateTrunc": {
+                  "date": "$today", 
+                  "unit": "month"
+                }
+              }, 
+              "unit": "month", 
+              "amount": 1
+            }
+          }, 
+          "unit": "year"
         }
       }, 
-      "dateFinish": {
-        "$subtract": [
-          {
-            "$dateFromParts": {
-              "year": {
-                "$year": "$today"
-              }, 
-              "month": {
-                "$sum": [
-                  {
-                    "$month": "$today"
-                  }, 1
-                ]
-              }
+      "previusMonthFirstDate": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateTrunc": {
+              "date": "$today", 
+              "unit": "month"
             }
-          }, 86400000
-        ]
+          }, 
+          "unit": "month", 
+          "amount": 1
+        }
+      }, 
+      "previusMonthLastDate": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateTrunc": {
+              "date": "$today", 
+              "unit": "month"
+            }
+          }, 
+          "unit": "day", 
+          "amount": 1
+        }
       }
     }
   }, {
@@ -299,13 +68,13 @@
         {
           "$expr": {
             "$gte": [
-              "$fecha", "$dateStart"
+              "$fecha", "$prevusMonthFirstDateYear"
             ]
           }
         }, {
           "$expr": {
             "$lte": [
-              "$fecha", "$dateFinish"
+              "$fecha", "$previusMonthLastDate"
             ]
           }
         }
@@ -313,7 +82,7 @@
     }
   }, {
     "$group": {
-      "_id": "$today", 
+      "_id": "A", 
       "acAnualMonto": {
         "$sum": "$castigo"
       }, 
@@ -322,7 +91,7 @@
           "$cond": [
             {
               "$eq": [
-                "$dateFinish", "$fecha"
+                "$previusMonthLastDate", "$fecha"
               ]
             }, "$castigo", 0
           ]
@@ -333,68 +102,60 @@
           "$cond": [
             {
               "$eq": [
-                "$dateFinish", "$fecha"
+                "$previusMonthLastDate", "$fecha"
               ]
             }, "$castigo", 0
           ]
         }
+      }, 
+      "acAnualMontoBs": {
+        "$sum": "$castigoBs"
+      }, 
+      "acMensualMontoBs": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$previusMonthLastDate", "$fecha"
+              ]
+            }, "$castigoBs", 0
+          ]
+        }
+      }, 
+      "montoBs": {
+        "$sum": {
+          "$cond": [
+            {
+              "$eq": [
+                "$previusMonthLastDate", "$fecha"
+              ]
+            }, "$castigoBs", 0
+          ]
+        }
+      }, 
+      "prevusMonthFirstDateYear": {
+        "$first": "$prevusMonthFirstDateYear"
+      }, 
+      "previusMonthFirstDate": {
+        "$first": "$previusMonthFirstDate"
+      }, 
+      "previusMonthLastDate": {
+        "$first": "$previusMonthLastDate"
       }
-    }
-  }, {
-    "$lookup": {
-      "from": "Balancemetric", 
-      "localField": "_id", 
-      "foreignField": "fecha_valor", 
-      "as": "result"
     }
   }, {
     "$lookup": {
       "from": "sidis_tasaconversion", 
-      "localField": "_id", 
+      "localField": "previusMonthLastDate", 
       "foreignField": "Fecha", 
-      "as": "result1"
-    }
-  }, {
-    "$addFields": {
-      "result": "$$REMOVE", 
-      "result1": "$$REMOVE", 
-      "tasa": {
-        "$first": "$result1.Tasa_DOL"
-      }, 
-      "cobranzaMora": {
-        "$first": "$result.cobranzaMora"
-      }, 
-      "cobranzaMoraUVC": {
-        "$first": "$result.cobranzaMoraUVC"
-      }
+      "as": "sidis_tasaconversion"
     }
   }, {
     "$addFields": {
       "_id": "$$REMOVE", 
-      "acAnualMonto": "$$REMOVE", 
-      "acMensualMonto": "$$REMOVE", 
-      "monto": "$$REMOVE", 
-      "tasa": "$$REMOVE", 
-      "fecha_valor": "$_id", 
-      "cobranzaMora.castigo.monto": {
-        "$round": [
-          {
-            "$multiply": [
-              "$monto", 1000000
-            ]
-          }, 4
-        ]
-      }, 
-      "cobranzaMora.castigo.acMensualMonto": {
-        "$round": [
-          {
-            "$multiply": [
-              "$acMensualMonto", 1000000
-            ]
-          }, 4
-        ]
-      }, 
-      "cobranzaMora.castigo.acAnualMonto": {
+      "sidis_tasaconversion": "$$REMOVE", 
+      "prevusMonthFirstDateYear": "$$REMOVE", 
+      "acAnualMonto": {
         "$round": [
           {
             "$multiply": [
@@ -403,45 +164,138 @@
           }, 4
         ]
       }, 
-      "cobranzaMoraUVC.castigo.monto": {
+      "acMensualMonto": {
+        "$round": [
+          {
+            "$multiply": [
+              "$acMensualMonto", 1000000
+            ]
+          }, 4
+        ]
+      }, 
+      "monto": {
+        "$round": [
+          {
+            "$multiply": [
+              "$monto", 1000000
+            ]
+          }, 4
+        ]
+      }, 
+      "acAnualMontoUVC": {
         "$round": [
           {
             "$multiply": [
               {
                 "$multiply": [
-                  "$monto", "$tasa"
+                  "$acAnualMontoBs", {
+                    "$first": "$sidis_tasaconversion.Tasa_UVC"
+                  }
                 ]
               }, 1000000
             ]
           }, 4
         ]
       }, 
-      "cobranzaMoraUVC.castigo.acMensualMonto": {
+      "acMensualMontoUVC": {
         "$round": [
           {
             "$multiply": [
               {
                 "$multiply": [
-                  "$acMensualMonto", "$tasa"
+                  "$acMensualMontoBs", {
+                    "$first": "$sidis_tasaconversion.Tasa_UVC"
+                  }
                 ]
               }, 1000000
             ]
           }, 4
         ]
       }, 
-      "cobranzaMoraUVC.castigo.acAnualMonto": {
+      "montoUVC": {
         "$round": [
           {
             "$multiply": [
               {
                 "$multiply": [
-                  "$acAnualMonto", "$tasa"
+                  "$montoBs", {
+                    "$first": "$sidis_tasaconversion.Tasa_UVC"
+                  }
                 ]
               }, 1000000
             ]
           }, 4
         ]
       }
+    }
+  }, {
+    "$lookup": {
+      "from": "Balancemetric", 
+      "let": {
+        "firstDate": "$previusMonthFirstDate", 
+        "lastDate": "$previusMonthLastDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$gte": [
+                    "$fecha_valor", "$$firstDate"
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$lte": [
+                    "$fecha_valor", "$$lastDate"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "fecha_valor": 1, 
+            "cobranzaMora": 1, 
+            "cobranzaMoraUVC": 1
+          }
+        }
+      ], 
+      "as": "Balancemetric"
+    }
+  }, {
+    "$unwind": {
+      "path": "$Balancemetric"
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": {
+        "$mergeObjects": [
+          "$$ROOT", "$Balancemetric"
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "acAnualMonto": "$$REMOVE", 
+      "acMensualMonto": "$$REMOVE", 
+      "monto": "$$REMOVE", 
+      "acAnualMontoBs": "$$REMOVE", 
+      "acMensualMontoBs": "$$REMOVE", 
+      "montoBs": "$$REMOVE", 
+      "previusMonthFirstDate": "$$REMOVE", 
+      "previusMonthLastDate": "$$REMOVE", 
+      "acAnualMontoUVC": "$$REMOVE", 
+      "acMensualMontoUVC": "$$REMOVE", 
+      "montoUVC": "$$REMOVE", 
+      "Balancemetric": "$$REMOVE", 
+      "cobranzaMora.castigo.monto": "$monto", 
+      "cobranzaMora.castigo.acMensualMonto": "$acMensualMonto", 
+      "cobranzaMora.castigo.acAnualMonto": "$acAnualMonto", 
+      "cobranzaMoraUVC.castigo.monto": "$montoUVC", 
+      "cobranzaMoraUVC.castigo.acMensualMonto": "$acMensualMontoUVC", 
+      "cobranzaMoraUVC.castigo.acAnualMonto": "$acAnualMontoUVC"
     }
   }, {
     "$merge": {

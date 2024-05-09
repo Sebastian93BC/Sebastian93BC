@@ -1,40 +1,32 @@
 [
-    {
-      "$match": {
-        "$and": [
-          {
-            "$expr": {
-              "$eq": [
-                "$processName", "{{$json.processName}}"
-              ]
-            }
-          }, {
-            "$expr": {
-              "$eq": [
-                "$processDate", {
-                  "$toDate": "{{$json.processDate}}"
-                }
-              ]
-            }
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$lte": [
+              "$fechaProceso", {
+                "$toDate": "{{$json.processDate}}"
+              }
+            ]
           }
+        }
+      ]
+    }
+  }, {
+    "$addFields": {
+      "lastDigRif": {
+        "$substr": [
+          "$mcl_rif_cedula", 8, -1
         ]
       }
-    }, {
-      "$unwind": {
-        "path": "$subProcess"
-      }
-    }, {
-      "$match": {
-        "$expr": {
-          "$eq": [
-            "$subProcess.subProcessName", "{{$json.subProcessName}}"
-          ]
-        }
-      }
-    }, {
-      "$project": {
-        "_id": 0, 
-        "status": "$subProcess.status"
-      }
     }
-  ]
+  }, {
+    "$merge": {
+      "into": "sidis_cliente_base_segmentacion_hist", 
+      "on": [
+        "rifCedula", "fechaProceso"
+      ]
+    }
+  }
+]

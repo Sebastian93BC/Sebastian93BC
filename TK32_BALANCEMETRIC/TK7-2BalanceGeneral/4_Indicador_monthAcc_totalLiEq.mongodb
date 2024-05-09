@@ -1,0 +1,982 @@
+[
+  {
+    "$limit": 1
+  }, {
+    "$project": {
+      "_id": 0, 
+      "todayDate": {
+        "$subtract": [
+          {
+            "$dateTrunc": {
+              "date": "$$NOW", 
+              "unit": "day"
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "monthRange": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$lte": [
+                  {
+                    "$month": "$todayDate"
+                  }, 6
+                ]
+              }, 
+              "then": {
+                "$range": [
+                  1, {
+                    "$add": [
+                      {
+                        "$month": "$todayDate"
+                      }, 1
+                    ]
+                  }
+                ]
+              }
+            }, {
+              "case": {
+                "$gt": [
+                  {
+                    "$month": "$todayDate"
+                  }, 6
+                ]
+              }, 
+              "then": {
+                "$range": [
+                  7, {
+                    "$add": [
+                      {
+                        "$month": "$todayDate"
+                      }, 1
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }, {
+    "$unwind": {
+      "path": "$monthRange"
+    }
+  }, {
+    "$addFields": {
+      "monthRange": "$$REMOVE", 
+      "processDate": {
+        "$dateSubtract": {
+          "startDate": {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$todayDate"
+              }, 
+              "month": {
+                "$add": [
+                  1, "$monthRange"
+                ]
+              }
+            }
+          }, 
+          "unit": "day", 
+          "amount": 1
+        }
+      }
+    }
+  }, {
+    "$group": {
+      "_id": "$todayDate", 
+      "processDate": {
+        "$addToSet": "$processDate"
+      }
+    }
+  }, {
+    "$set": {
+      "processDate": {
+        "$concatArrays": [
+          "$processDate", [
+            "$_id"
+          ]
+        ]
+      }
+    }
+  }, {
+    "$unwind": "$processDate"
+  }, {
+    "$group": {
+      "_id": "$_id", 
+      "processDate": {
+        "$addToSet": "$processDate"
+      }
+    }
+  }, {
+    "$unwind": "$processDate"
+  }, {
+    "$match": {
+      "$expr": {
+        "$gte": [
+          "$_id", "$processDate"
+        ]
+      }
+    }
+  }, {
+    "$set": {
+      "_id": "$$REMOVE", 
+      "fecha_valor": "$_id"
+    }
+  }, {
+    "$lookup": {
+      "from": "Balancemetric", 
+      "let": {
+        "fecha_valor": "$processDate"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$expr": {
+              "$eq": [
+                "$fecha_valor", "$$fecha_valor"
+              ]
+            }
+          }
+        }, {
+          "$project": {
+            "_id": 0, 
+            "totalLiabilities": "$generalBalance.liabilities.totalLiabilites.monthAcc", 
+            "totalLiabilitiesBs": "$generalBalanceBs.liabilities.totalLiabilites.monthAcc", 
+            "totalEquity": "$generalBalance.equity.totalEquity.monthAcc", 
+            "totalEquityBs": "$generalBalanceBs.equity.totalEquity.monthAcc", 
+            "accNetResult6m": "$netResult.totalVal.monthAcc", 
+            "accNetResult6mBs": "$netResultBs.totalVal.monthAcc"
+          }
+        }
+      ], 
+      "as": "Balancemetric"
+    }
+  }, {
+    "$addFields": {
+      "Balancemetric": "$$REMOVE", 
+      "totalLiabilities": {
+        "$first": "$Balancemetric.totalLiabilities"
+      }, 
+      "totalLiabilitiesBs": {
+        "$first": "$Balancemetric.totalLiabilitiesBs"
+      }, 
+      "totalEquity": {
+        "$first": "$Balancemetric.totalEquity"
+      }, 
+      "totalEquityBs": {
+        "$first": "$Balancemetric.totalEquityBs"
+      }, 
+      "accNetResult6m": {
+        "$first": "$Balancemetric.accNetResult6m"
+      }, 
+      "accNetResult6mBs": {
+        "$first": "$Balancemetric.accNetResult6mBs"
+      }
+    }
+  }, {
+    "$group": {
+      "_id": "$fecha_valor", 
+      "docs": {
+        "$push": "$$ROOT"
+      }
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "docs": "$$REMOVE", 
+      "fecha_valor": "$_id", 
+      "totalLiabilities": {
+        "$first": {
+          "$map": {
+            "input": {
+              "$filter": {
+                "input": "$docs", 
+                "as": "item", 
+                "cond": {
+                  "$eq": [
+                    "$$item.processDate", "$_id"
+                  ]
+                }
+              }
+            }, 
+            "as": "item", 
+            "in": "$$item.totalLiabilities"
+          }
+        }
+      }, 
+      "totalLiabilitiesBs": {
+        "$first": {
+          "$map": {
+            "input": {
+              "$filter": {
+                "input": "$docs", 
+                "as": "item", 
+                "cond": {
+                  "$eq": [
+                    "$$item.processDate", "$_id"
+                  ]
+                }
+              }
+            }, 
+            "as": "item", 
+            "in": "$$item.totalLiabilitiesBs"
+          }
+        }
+      }, 
+      "totalEquity": {
+        "$first": {
+          "$map": {
+            "input": {
+              "$filter": {
+                "input": "$docs", 
+                "as": "item", 
+                "cond": {
+                  "$eq": [
+                    "$$item.processDate", "$_id"
+                  ]
+                }
+              }
+            }, 
+            "as": "item", 
+            "in": "$$item.totalEquity"
+          }
+        }
+      }, 
+      "totalEquityBs": {
+        "$first": {
+          "$map": {
+            "input": {
+              "$filter": {
+                "input": "$docs", 
+                "as": "item", 
+                "cond": {
+                  "$eq": [
+                    "$$item.processDate", "$_id"
+                  ]
+                }
+              }
+            }, 
+            "as": "item", 
+            "in": "$$item.totalEquityBs"
+          }
+        }
+      }, 
+      "accNetResult6m": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  1, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 1
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  2, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 2
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  3, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 3
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  4, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 4
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  5, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 5
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  6, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": null
+            }, {
+              "case": {
+                "$eq": [
+                  7, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 7
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  8, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 8
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  9, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 9
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  10, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 10
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  11, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 11
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6m"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  12, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": null
+            }
+          ]
+        }
+      }, 
+      "accNetResult6mBs": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$eq": [
+                  1, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 1
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  2, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 2
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  3, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 3
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  4, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 4
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  5, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 5
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  6, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": null
+            }, {
+              "case": {
+                "$eq": [
+                  7, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 7
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  8, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 8
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  9, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 9
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  10, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 10
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  11, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": {
+                "$sum": {
+                  "$map": {
+                    "input": {
+                      "$filter": {
+                        "input": "$docs", 
+                        "as": "item", 
+                        "cond": {
+                          "$lte": [
+                            {
+                              "$month": "$$item.processDate"
+                            }, 11
+                          ]
+                        }
+                      }
+                    }, 
+                    "as": "item", 
+                    "in": "$$item.accNetResult6mBs"
+                  }
+                }
+              }
+            }, {
+              "case": {
+                "$eq": [
+                  12, {
+                    "$month": "$_id"
+                  }
+                ]
+              }, 
+              "then": null
+            }
+          ]
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "totalLiabilities": "$$REMOVE", 
+      "totalLiabilitiesBs": "$$REMOVE", 
+      "totalEquity": "$$REMOVE", 
+      "totalEquityBs": "$$REMOVE", 
+      "totalLiabilityEquities": {
+        "$add": [
+          "$totalLiabilities", "$totalEquity", "$accNetResult6m"
+        ]
+      }, 
+      "totalLiabilityEquitiesBs": {
+        "$add": [
+          "$totalLiabilitiesBs", "$totalEquityBs", "$accNetResult6mBs"
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Balancemetric", 
+      "let": {
+        "fecha_valor": "$fecha_valor"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$fecha_valor", "$fecha_valor"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "fecha_valor": 1, 
+            "generalBalance": 1, 
+            "generalBalanceBs": 1
+          }
+        }
+      ], 
+      "as": "Balancemetric"
+    }
+  }, {
+    "$unwind": {
+      "path": "$Balancemetric"
+    }
+  }, {
+    "$addFields": {
+      "totalLiabilityEquities": "$$REMOVE", 
+      "totalLiabilityEquitiesBs": "$$REMOVE", 
+      "Balancemetric.generalBalance.totalLiEq.totalLiabilityEquities": "$totalLiabilityEquities", 
+      "Balancemetric.generalBalanceBs.totalLiEq.totalLiabilityEquities": "$totalLiabilityEquitiesBs", 
+      "Balancemetric.generalBalance.totalLiEq.accNetResult6m": "$accNetResult6m", 
+      "Balancemetric.generalBalanceBs.totalLiEq.accNetResult6m": "$accNetResult6mBs", 
+      "accNetResult6m": "$$REMOVE", 
+      "accNetResult6mBs": "$$REMOVE"
+    }
+  }, {
+    "$replaceRoot": {
+      "newRoot": "$Balancemetric"
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor", 
+      "whenMatched": "merge", 
+      "whenNotMatched": "insert"
+    }
+  }
+]

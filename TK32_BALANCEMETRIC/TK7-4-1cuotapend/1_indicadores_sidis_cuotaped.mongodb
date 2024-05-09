@@ -1,0 +1,112 @@
+[
+  {
+    "$match": {
+      "$and": [
+        {
+          "$expr": {
+            "$eq": [
+              "$file_date", {
+                "$subtract": [
+                  {
+                    "$toDate": {
+                      "$dateFromString": {
+                        "dateString": {
+                          "$dateToString": {
+                            "format": "%Y-%m-%dT00:00:00%z", 
+                            "date": {
+                              "$toDate": "$$NOW"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }, {
+                    "$multiply": [
+                      {
+                        "$toInt": "{{$json.offSet}}"
+                      }, 86400000
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }, {
+    "$addFields": {
+      "fecha_valor": "$file_date", 
+      "contrato": {
+        "$concat": [
+          "$entidad", "$oficina", "$cuenta"
+        ]
+      }, 
+      "fechaProceso": {
+        "$subtract": [
+          {
+            "$dateFromParts": {
+              "year": {
+                "$year": "$file_date"
+              }, 
+              "month": {
+                "$sum": [
+                  {
+                    "$month": "$file_date"
+                  }, 1
+                ]
+              }
+            }
+          }, 86400000
+        ]
+      }, 
+      "nextDay": {
+        "$dateAdd": {
+          "startDate": "$file_date", 
+          "unit": "day", 
+          "amount": 1
+        }
+      }
+    }
+  }, {
+    "$addFields": {
+      "status": {
+        "$switch": {
+          "branches": [
+            {
+              "case": {
+                "$lt": [
+                  "$feliq", "$nextDay"
+                ]
+              }, 
+              "then": "Atrasado"
+            }, {
+              "case": {
+                "$and": [
+                  {
+                    "$gte": [
+                      "$feliq", "$nextDay"
+                    ]
+                  }, {
+                    "$lte": [
+                      "$feliq", "$fechaProceso"
+                    ]
+                  }
+                ]
+              }, 
+              "then": "Vigente"
+            }
+          ], 
+          "default": "Planificada"
+        }
+      }
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_cuotapend", 
+      "on": [
+        "contrato", "fecha_valor", "_id"
+      ]
+    }
+  }
+]
