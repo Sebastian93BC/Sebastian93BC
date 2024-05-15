@@ -1,0 +1,60 @@
+[
+    {
+      "$match": {
+        "processName": "{{$json.processName}}"
+      }
+    }, {
+      "$set": {
+        "_id": "$$REMOVE", 
+        "processDate": {
+          "$toDate": "{{$json.processDate}}"
+        }, 
+        "startDate": "$$NOW", 
+        "status": "En Proceso"
+      }
+    }, {
+      "$unwind": {
+        "path": "$subProcess"
+      }
+    }, {
+      "$unwind": {
+        "path": "$subProcess.parallelizationIndex", 
+        "preserveNullAndEmptyArrays": true
+      }
+    }, {
+      "$match": {
+        "subProcess.activeProcess": true
+      }
+    }, {
+      "$set": {
+        "subProcess.subProcessName": {
+          "$cond": [
+            {
+              "$ifNull": [
+                "$subProcess.parallelizationIndex", false
+              ]
+            }, {
+              "$concat": [
+                "$subProcess.subProcessName", "_", "$subProcess.parallelizationIndex"
+              ]
+            }, "$subProcess.subProcessName"
+          ]
+        }, 
+        "subProcess.subProcessDate": "$processDate", 
+        "subProcess.status": "En Espera"
+      }
+    }, {
+      "$addFields": {
+        "subProcessName": "$subProcess.subProcessName", 
+        "subProcessDate": "$subProcess.subProcessDate"
+      }
+    }, {
+      "$merge": {
+        "into": "sidis_statusProcess", 
+        "on": [
+          "processName", "processDate", "subProcessName", "subProcessDate"
+        ], 
+        "whenMatched": "replace"
+      }
+    }
+  ]

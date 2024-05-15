@@ -165,16 +165,13 @@
         }
       }, 
       "age": {
-        "$floor": {
-          "$divide": [
-            {
-              "$subtract": [
-                {
-                  "$dateTrunc": {
-                    "date": "$$NOW", 
-                    "unit": "hour"
-                  }
-                }, {
+        "$subtract": [
+          {
+            "$subtract": [
+              {
+                "$year": "$$NOW"
+              }, {
+                "$year": {
                   "$dateFromParts": {
                     "year": {
                       "$year": "$sidisCliente.cli_fec_nac"
@@ -184,18 +181,62 @@
                     }, 
                     "day": {
                       "$dayOfMonth": "$sidisCliente.cli_fec_nac"
-                    }, 
-                    "hour": 12
+                    }
                   }
                 }
-              ]
-            }, {
-              "$multiply": [
-                1000, 60, 60, 24, 365
-              ]
-            }
-          ]
-        }
+              }
+            ]
+          }, {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$dateFromParts": {
+                      "day": {
+                        "$dayOfMonth": {
+                          "$dateFromParts": {
+                            "year": {
+                              "$year": "$sidisCliente.cli_fec_nac"
+                            }, 
+                            "month": {
+                              "$month": "$sidisCliente.cli_fec_nac"
+                            }, 
+                            "day": {
+                              "$dayOfMonth": "$sidisCliente.cli_fec_nac"
+                            }
+                          }
+                        }
+                      }, 
+                      "month": {
+                        "$month": {
+                          "$dateFromParts": {
+                            "year": {
+                              "$year": "$sidisCliente.cli_fec_nac"
+                            }, 
+                            "month": {
+                              "$month": "$sidisCliente.cli_fec_nac"
+                            }, 
+                            "day": {
+                              "$dayOfMonth": "$sidisCliente.cli_fec_nac"
+                            }
+                          }
+                        }
+                      }, 
+                      "year": {
+                        "$year": "$$NOW"
+                      }
+                    }
+                  }, {
+                    "$dateTrunc": {
+                      "date": "$$NOW", 
+                      "unit": "day"
+                    }
+                  }
+                ]
+              }, 1, 0
+            ]
+          }
+        ]
       }, 
       "dateOfBirth": {
         "$dateFromParts": {

@@ -66,6 +66,7 @@
     }
   }, {
     "$addFields": {
+      "fileDate": "$$REMOVE", 
       "fechaProceso": {
         "$dateFromParts": {
           "year": {
@@ -107,47 +108,9 @@
       }
     }
   }, {
-    "$group": {
-      "_id": {
-        "rifCedula": "$rifCedula", 
-        "cod_evento": "$cod_evento", 
-        "cod_usuario": "$cod_usuario", 
-        "contrato": "$contrato", 
-        "cta_contable": "$cta_contable", 
-        "cuenta": "$cuenta", 
-        "entidad": "$entidad", 
-        "feforma": "$feforma", 
-        "feoper": "$feoper", 
-        "fevalor": "$fevalor", 
-        "formpago": "$formpago", 
-        "indretro": "$indretro", 
-        "oficina": "$oficina", 
-        "oftit": "$oftit", 
-        "producto": "$producto", 
-        "sitdeuct": "$sitdeuct", 
-        "sitdeuda": "$sitdeuda", 
-        "sitpres": "$sitpres", 
-        "subpro": "$subpro", 
-        "monto_pago": "$monto_pago"
-      }, 
-      "doc": {
-        "$first": "$$ROOT"
-      }
-    }
-  }, {
-    "$replaceRoot": {
-      "newRoot": "$doc"
-    }
-  }, {
-    "$project": {
-      "_id": 0
-    }
-  }, {
     "$merge": {
       "into": "sidis_activosIa", 
-      "on": [
-        "rifCedula", "cod_evento", "cod_usuario", "contrato", "cta_contable", "cuenta", "entidad", "feforma", "feoper", "fevalor", "formpago", "indretro", "oficina", "oftit", "producto", "sitdeuct", "sitdeuda", "sitpres", "subpro", "monto_pago"
-      ], 
+      "on": "_id", 
       "whenMatched": "replace", 
       "whenNotMatched": "insert"
     }

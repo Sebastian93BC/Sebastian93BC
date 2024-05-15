@@ -49,24 +49,42 @@
         }
       }, 
       "age": {
-        "$floor": {
-          "$divide": [
-            {
-              "$subtract": [
-                {
-                  "$dateTrunc": {
-                    "date": "$$NOW", 
-                    "unit": "hour"
+        "$subtract": [
+          {
+            "$subtract": [
+              {
+                "$year": "$$NOW"
+              }, {
+                "$year": "$dateOfBirth"
+              }
+            ]
+          }, {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$dateFromParts": {
+                      "day": {
+                        "$dayOfMonth": "$dateOfBirth"
+                      }, 
+                      "month": {
+                        "$month": "$dateOfBirth"
+                      }, 
+                      "year": {
+                        "$year": "$$NOW"
+                      }
+                    }
+                  }, {
+                    "$dateTrunc": {
+                      "date": "$$NOW", 
+                      "unit": "day"
+                    }
                   }
-                }, "$dateOfBirth"
-              ]
-            }, {
-              "$multiply": [
-                1000, 60, 60, 24, 365
-              ]
-            }
-          ]
-        }
+                ]
+              }, 1, 0
+            ]
+          }
+        ]
       }, 
       "campaignStatus": 1, 
       "emailResult": 1

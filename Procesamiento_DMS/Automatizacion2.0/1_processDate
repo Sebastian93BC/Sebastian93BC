@@ -1,0 +1,36 @@
+[
+  {
+    "$limit": 1
+  }, {
+    "$project": {
+      "date": "{{$json.processDate}}", 
+      "processDate": {
+        "$substr": [
+          {
+            "$toString": {
+              "$dateTrunc": {
+                "date": {
+                  "$subtract": [
+                    {
+                      "$toDate": "{{$json.processDate}}"
+                    }, {
+                      "$multiply": [
+                        {
+                          "$toInt": "{{$json.offSet}}"
+                        }, 86400000
+                      ]
+                    }
+                  ]
+                }, 
+                "unit": "day"
+              }
+            }
+          }, 0, 10
+        ]
+      }, 
+      "offSet": "{{$json.offSet}}", 
+      "processName": "{{$json.processName}}", 
+      "_id": 0
+    }
+  }
+]
