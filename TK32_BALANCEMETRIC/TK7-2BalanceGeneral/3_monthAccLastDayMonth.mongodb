@@ -157,6 +157,16 @@
           "$condLastDayOfMonth", "$sal_actaccOtherLiabilitiesBs", "$Balancemetric.generalBalanceBs.liabilities.accOtherLiabilities.monthAcc"
         ]
       }, 
+      "Balancemetric.generalBalanceBs.liabilities.subObligations.monthAcc": {
+        "$cond": [
+          "$condLastDayOfMonth", "$sal_actsubObligationsBs", "$Balancemetric.generalBalanceBs.liabilities.subObligations.monthAcc"
+        ]
+      }, 
+      "Balancemetric.generalBalanceBs.liabilities.otherObligations.monthAcc": {
+        "$cond": [
+          "$condLastDayOfMonth", "$sal_actotherObligationsBs", "$Balancemetric.generalBalanceBs.liabilities.otherObligations.monthAcc"
+        ]
+      }, 
       "Balancemetric.generalBalanceBs.equity.totalEquity.monthAcc": {
         "$cond": [
           "$condLastDayOfMonth", "$sal_acttotalEquityBs", "$Balancemetric.generalBalanceBs.equity.totalEquity.monthAcc"
@@ -275,6 +285,16 @@
       "Balancemetric.generalBalance.liabilities.accOtherLiabilities.monthAcc": {
         "$cond": [
           "$condLastDayOfMonth", "$sal_actaccOtherLiabilities", "$Balancemetric.generalBalance.liabilities.accOtherLiabilities.monthAcc"
+        ]
+      }, 
+      "Balancemetric.generalBalance.liabilities.subObligations.monthAcc": {
+        "$cond": [
+          "$condLastDayOfMonth", "$sal_actsubObligations", "$Balancemetric.generalBalance.liabilities.subObligations.monthAcc"
+        ]
+      }, 
+      "Balancemetric.generalBalance.liabilities.otherObligations.monthAcc": {
+        "$cond": [
+          "$condLastDayOfMonth", "$sal_actotherObligations", "$Balancemetric.generalBalance.liabilities.otherObligations.monthAcc"
         ]
       }, 
       "Balancemetric.generalBalance.equity.totalEquity.monthAcc": {

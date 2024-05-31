@@ -4,7 +4,20 @@
   }, {
     "$project": {
       "date": {
-        "$toDate": "{{$json.processDate}}"
+        "$subtract": [
+          {
+            "$dateTrunc": {
+              "date": "$$NOW", 
+              "unit": "day"
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
       }
     }
   }, {
@@ -52,6 +65,11 @@
     }
   }, {
     "$addFields": {
+      "plannedAmortUVC": {
+        "$round": [
+          "$plannedAmortUVC", 4
+        ]
+      }, 
       "plannedAmort": {
         "$round": [
           {

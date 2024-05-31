@@ -35,36 +35,8 @@
     }
   }, {
     "$set": {
-      "subProcess.endDate": "$$NOW", 
-      "subProcess.runtimeInMinutes": {
-        "$round": [
-          {
-            "$divide": [
-              {
-                "$subtract": [
-                  "$$NOW", "$subProcess.startDate"
-                ]
-              }, 60000
-            ]
-          }, 2
-        ]
-      }, 
-      "subProcess.status": "Finalizado"
-    }
-  }, {
-    "$set": {
-      "runtimeInMinutes": {
-        "$round": [
-          {
-            "$divide": [
-              {
-                "$subtract": [
-                  "$$NOW", "$startDate"
-                ]
-              }, 60000
-            ]
-          }, 2
-        ]
+      "subProcess.observaciones": {
+        "$toString": "{{$json.offSet}}"
       }
     }
   }, {

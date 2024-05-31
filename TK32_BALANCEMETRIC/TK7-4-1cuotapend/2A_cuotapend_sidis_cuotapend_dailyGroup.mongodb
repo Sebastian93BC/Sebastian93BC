@@ -11,12 +11,38 @@
                     "$dateFromParts": {
                       "year": {
                         "$year": {
-                          "$toDate": "{{$json.processDate}}"
+                          "$subtract": [
+                            {
+                              "$dateTrunc": {
+                                "date": "$$NOW", 
+                                "unit": "day"
+                              }
+                            }, {
+                              "$multiply": [
+                                {
+                                  "$toInt": "{{$json.offSet}}"
+                                }, 86400000
+                              ]
+                            }
+                          ]
                         }
                       }, 
                       "month": {
                         "$month": {
-                          "$toDate": "{{$json.processDate}}"
+                          "$subtract": [
+                            {
+                              "$dateTrunc": {
+                                "date": "$$NOW", 
+                                "unit": "day"
+                              }
+                            }, {
+                              "$multiply": [
+                                {
+                                  "$toInt": "{{$json.offSet}}"
+                                }, 86400000
+                              ]
+                            }
+                          ]
                         }
                       }
                     }
@@ -45,7 +71,20 @@
   }, {
     "$project": {
       "date": {
-        "$toDate": "{{$json.processDate}}"
+        "$subtract": [
+          {
+            "$dateTrunc": {
+              "date": "$$NOW", 
+              "unit": "day"
+            }
+          }, {
+            "$multiply": [
+              {
+                "$toInt": "{{$json.offSet}}"
+              }, 86400000
+            ]
+          }
+        ]
       }, 
       "contrato": 1, 
       "capital": 1, 
@@ -227,6 +266,11 @@
       "status": "$_id.status", 
       "productDesc": "$_id.productDesc", 
       "groupProduct": "$_id.groupProduct", 
+      "plannedAmortUVC": {
+        "$round": [
+          "$plannedAmortUVC", 4
+        ]
+      }, 
       "plannedAmort": {
         "$round": [
           {

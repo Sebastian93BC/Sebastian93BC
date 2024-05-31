@@ -438,75 +438,91 @@
       "condVarJuly": {
         "$cond": [
           {
-            "$and": [
+            "$eq": [
+              "$sal_actTotalBs", 0
+            ]
+          }, false, {
+            "$cond": [
               {
-                "$or": [
+                "$and": [
                   {
-                    "$eq": [
+                    "$or": [
                       {
-                        "$month": "$todayDate"
-                      }, 7
+                        "$eq": [
+                          {
+                            "$month": "$todayDate"
+                          }, 7
+                        ]
+                      }
+                    ]
+                  }, {
+                    "$gte": [
+                      {
+                        "$round": [
+                          {
+                            "$divide": [
+                              {
+                                "$abs": {
+                                  "$subtract": [
+                                    "$sal_actTotalBs", "$sal_actTotalBsyesterday"
+                                  ]
+                                }
+                              }, "$sal_actTotalBs"
+                            ]
+                          }, 4
+                        ]
+                      }, 3.5
                     ]
                   }
                 ]
-              }, {
-                "$gte": [
-                  {
-                    "$round": [
-                      {
-                        "$divide": [
-                          {
-                            "$abs": {
-                              "$subtract": [
-                                "$sal_actTotalBs", "$sal_actTotalBsyesterday"
-                              ]
-                            }
-                          }, "$sal_actTotalBs"
-                        ]
-                      }, 4
-                    ]
-                  }, 3.5
-                ]
-              }
+              }, true, false
             ]
-          }, true, false
+          }
         ]
       }, 
       "condVarJanuary": {
         "$cond": [
           {
-            "$and": [
+            "$eq": [
+              "$sal_actTotalBs", 0
+            ]
+          }, false, {
+            "$cond": [
               {
-                "$or": [
+                "$and": [
                   {
-                    "$eq": [
+                    "$or": [
                       {
-                        "$month": "$todayDate"
-                      }, 1
+                        "$eq": [
+                          {
+                            "$month": "$todayDate"
+                          }, 1
+                        ]
+                      }
+                    ]
+                  }, {
+                    "$gte": [
+                      {
+                        "$round": [
+                          {
+                            "$divide": [
+                              {
+                                "$abs": {
+                                  "$subtract": [
+                                    "$sal_actTotalBs", "$sal_actTotalBsyesterday"
+                                  ]
+                                }
+                              }, "$sal_actTotalBs"
+                            ]
+                          }, 4
+                        ]
+                      }, 3.5
                     ]
                   }
                 ]
-              }, {
-                "$gte": [
-                  {
-                    "$round": [
-                      {
-                        "$divide": [
-                          {
-                            "$abs": {
-                              "$subtract": [
-                                "$sal_actTotalBs", "$sal_actTotalBsyesterday"
-                              ]
-                            }
-                          }, "$sal_actTotalBs"
-                        ]
-                      }, 4
-                    ]
-                  }, 3.5
-                ]
-              }
+              }, true, false
             ]
-          }, true, false
+          }
         ]
       }, 
       "condLastDayOfMonth": {

@@ -247,6 +247,83 @@
           }
         ]
       }, 
+      "netResultBs.profits.incLiqAsset.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincLiqAssetBs", {
+            "$subtract": [
+              "$sal_net_actincLiqAssetBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincLiqAssetBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.profits.incExtraordinary.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincExtraordinaryBs", {
+            "$subtract": [
+              "$sal_net_actincExtraordinaryBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincExtraordinaryBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.profits.incInvestPerm.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestPermBs", {
+            "$subtract": [
+              "$sal_net_actincInvestPermBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestPermBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.profits.incMainOfficBrc.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincMainOfficBrcBs", {
+            "$subtract": [
+              "$sal_net_actincMainOfficBrcBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincMainOfficBrcBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.profits.incInvestCom.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestComBs", {
+            "$subtract": [
+              "$sal_net_actincInvestComBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestComBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.profits.incInvestSpecial.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestSpecialBs", {
+            "$subtract": [
+              "$sal_net_actincInvestSpecialBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestSpecialBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.profits.incMonYearProfit.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincMonYearProfitBs", {
+            "$subtract": [
+              "$sal_net_actincMonYearProfitBs", {
+                "$first": "$data_yesterdayDate.sal_net_actincMonYearProfitBs"
+              }
+            ]
+          }
+        ]
+      }, 
       "netResultBs.expenses.expensesTotal.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpensesTotalBs", {
@@ -511,6 +588,72 @@
           }
         ]
       }, 
+      "netResultBs.expenses.expBcvObligation.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpBcvObligationBs", {
+            "$subtract": [
+              "$sal_net_actexpBcvObligationBs", {
+                "$first": "$data_yesterdayDate.sal_net_actexpBcvObligationBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.expenses.expSubObligation.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpSubObligationBs", {
+            "$subtract": [
+              "$sal_net_actexpSubObligationBs", {
+                "$first": "$data_yesterdayDate.sal_net_actexpSubObligationBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.expenses.expConvOblig.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpConvObligBs", {
+            "$subtract": [
+              "$sal_net_actexpConvObligBs", {
+                "$first": "$data_yesterdayDate.sal_net_actexpConvObligBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.expenses.expMainOfficBrc.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpMainOfficBrcBs", {
+            "$subtract": [
+              "$sal_net_actexpMainOfficBrcBs", {
+                "$first": "$data_yesterdayDate.sal_net_actexpMainOfficBrcBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.expenses.expOtherFinance.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpOtherFinanceBs", {
+            "$subtract": [
+              "$sal_net_actexpOtherFinanceBs", {
+                "$first": "$data_yesterdayDate.sal_net_actexpOtherFinanceBs"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResultBs.expenses.expMonYearProfit.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpMonYearProfitBs", {
+            "$subtract": [
+              "$sal_net_actexpMonYearProfitBs", {
+                "$first": "$data_yesterdayDate.sal_net_actexpMonYearProfitBs"
+              }
+            ]
+          }
+        ]
+      }, 
       "netResult.profits.incomeTotal.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actincomeTotal", {
@@ -665,7 +808,150 @@
           }
         ]
       }, 
+      "netResult.profits.incLiqAsset.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincLiqAsset", {
+            "$subtract": [
+              "$sal_net_actincLiqAsset", {
+                "$first": "$data_yesterdayDate.sal_net_actincLiqAsset"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.profits.incExtraordinary.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincExtraordinary", {
+            "$subtract": [
+              "$sal_net_actincExtraordinary", {
+                "$first": "$data_yesterdayDate.sal_net_actincExtraordinary"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.profits.incInvestPerm.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestPerm", {
+            "$subtract": [
+              "$sal_net_actincInvestPerm", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestPerm"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.profits.incMainOfficBrc.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincMainOfficBrc", {
+            "$subtract": [
+              "$sal_net_actincMainOfficBrc", {
+                "$first": "$data_yesterdayDate.sal_net_actincMainOfficBrc"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.profits.incInvestCom.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestCom", {
+            "$subtract": [
+              "$sal_net_actincInvestCom", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestCom"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.profits.incInvestSpecial.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestSpecial", {
+            "$subtract": [
+              "$sal_net_actincInvestSpecial", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestSpecial"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.profits.incMonYearProfit.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincLiqAsset", {
+            "$subtract": [
+              "$sal_net_actincLiqAsset", {
+                "$first": "$data_yesterdayDate.sal_net_actincLiqAsset"
+              }
+            ]
+          }
+        ]
+      }, 
       "netResult.expenses.expensesTotal.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincExtraordinary", {
+            "$subtract": [
+              "$sal_net_actincExtraordinary", {
+                "$first": "$data_yesterdayDate.sal_net_actincExtraordinary"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expPublicCap.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestPerm", {
+            "$subtract": [
+              "$sal_net_actincInvestPerm", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestPerm"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expOtherFinanc.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincMainOfficBrc", {
+            "$subtract": [
+              "$sal_net_actincMainOfficBrc", {
+                "$first": "$data_yesterdayDate.sal_net_actincMainOfficBrc"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expComission.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestCom", {
+            "$subtract": [
+              "$sal_net_actincInvestCom", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestCom"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expAdmin.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincInvestSpecial", {
+            "$subtract": [
+              "$sal_net_actincInvestSpecial", {
+                "$first": "$data_yesterdayDate.sal_net_actincInvestSpecial"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expEmployees.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actincMonYearProfit", {
+            "$subtract": [
+              "$sal_net_actincMonYearProfit", {
+                "$first": "$data_yesterdayDate.sal_net_actincMonYearProfit"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expOperOthVar.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpensesTotal", {
             "$subtract": [
@@ -676,7 +962,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expPublicCap.current": {
+      "netResult.expenses.expOthers.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpPublicCap", {
             "$subtract": [
@@ -687,7 +973,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOtherFinanc.current": {
+      "netResult.expenses.expTaxIslr.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOtherFinanc", {
             "$subtract": [
@@ -698,7 +984,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expComission.current": {
+      "netResult.expenses.expBanvihCap.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpComission", {
             "$subtract": [
@@ -709,7 +995,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expAdmin.current": {
+      "netResult.expenses.expOthObtFinanc.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpAdmin", {
             "$subtract": [
@@ -720,7 +1006,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expEmployees.current": {
+      "netResult.expenses.expOthFinInter.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpEmployees", {
             "$subtract": [
@@ -731,7 +1017,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOperOthVar.current": {
+      "netResult.expenses.expServComission.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOperOthVar", {
             "$subtract": [
@@ -742,7 +1028,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOthers.current": {
+      "netResult.expenses.expInvestSubdiv.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOthers", {
             "$subtract": [
@@ -753,7 +1039,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expTaxIslr.current": {
+      "netResult.expenses.expExtService.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpTaxIslr", {
             "$subtract": [
@@ -764,7 +1050,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expBanvihCap.current": {
+      "netResult.expenses.expCommTrans.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpBanvihCap", {
             "$subtract": [
@@ -775,7 +1061,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOthObtFinanc.current": {
+      "netResult.expenses.expInsurance.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOthObtFinanc", {
             "$subtract": [
@@ -786,7 +1072,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOthFinInter.current": {
+      "netResult.expenses.expTaxContribut.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOthFinInter", {
             "$subtract": [
@@ -797,7 +1083,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expServComission.current": {
+      "netResult.expenses.expMaintRep.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpServComission", {
             "$subtract": [
@@ -808,7 +1094,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expInvestSubdiv.current": {
+      "netResult.expenses.expUseAssetDep.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpInvestSubdiv", {
             "$subtract": [
@@ -819,7 +1105,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expExtService.current": {
+      "netResult.expenses.expDefAmort.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpExtService", {
             "$subtract": [
@@ -830,7 +1116,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expCommTrans.current": {
+      "netResult.expenses.expOtherAdmin.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpCommTrans", {
             "$subtract": [
@@ -841,7 +1127,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expInsurance.current": {
+      "netResult.expenses.expFinAssetDepr.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpInsurance", {
             "$subtract": [
@@ -852,7 +1138,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expTaxContribut.current": {
+      "netResult.expenses.expExtraordinary.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpTaxContribut", {
             "$subtract": [
@@ -863,7 +1149,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expMaintRep.current": {
+      "netResult.expenses.expBcvObligation.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpMaintRep", {
             "$subtract": [
@@ -874,7 +1160,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expUseAssetDep.current": {
+      "netResult.expenses.expSubObligation.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpUseAssetDep", {
             "$subtract": [
@@ -885,7 +1171,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expDefAmort.current": {
+      "netResult.expenses.expConvOblig.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpDefAmort", {
             "$subtract": [
@@ -896,7 +1182,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOtherAdmin.current": {
+      "netResult.expenses.expMainOfficBrc.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOtherAdmin", {
             "$subtract": [
@@ -907,7 +1193,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expFinAssetDepr.current": {
+      "netResult.expenses.expOtherFinance.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpFinAssetDepr", {
             "$subtract": [
@@ -918,7 +1204,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expExtraordinary.current": {
+      "netResult.expenses.expMonYearProfit.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpExtraordinary", {
             "$subtract": [
@@ -997,6 +1283,41 @@
       "netResultBs.profits.incSecuTitle.monthAcc": {
         "$sum": [
           "$sal_net_actincSecuTitleBs"
+        ]
+      }, 
+      "netResultBs.profits.incLiqAsset.monthAcc": {
+        "$sum": [
+          "$sal_net_actincLiqAssetBs"
+        ]
+      }, 
+      "netResultBs.profits.incExtraordinary.monthAcc": {
+        "$sum": [
+          "$sal_net_actincExtraordinaryBs"
+        ]
+      }, 
+      "netResultBs.profits.incInvestPerm.monthAcc": {
+        "$sum": [
+          "$sal_net_actincInvestPermBs"
+        ]
+      }, 
+      "netResultBs.profits.incMainOfficBrc.monthAcc": {
+        "$sum": [
+          "$sal_net_actincMainOfficBrcBs"
+        ]
+      }, 
+      "netResultBs.profits.incInvestCom.monthAcc": {
+        "$sum": [
+          "$sal_net_actincInvestComBs"
+        ]
+      }, 
+      "netResultBs.profits.incInvestSpecial.monthAcc": {
+        "$sum": [
+          "$sal_net_actincInvestSpecialBs"
+        ]
+      }, 
+      "netResultBs.profits.incMonYearProfit.monthAcc": {
+        "$sum": [
+          "$sal_net_actincMonYearProfitBs"
         ]
       }, 
       "netResultBs.expenses.expensesTotal.monthAcc": {
@@ -1119,6 +1440,36 @@
           "$sal_net_actexpExtraordinaryBs"
         ]
       }, 
+      "netResultBs.expenses.expBcvObligation.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpBcvObligationBs"
+        ]
+      }, 
+      "netResultBs.expenses.expSubObligation.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpSubObligationBs"
+        ]
+      }, 
+      "netResultBs.expenses.expConvOblig.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpConvObligBs"
+        ]
+      }, 
+      "netResultBs.expenses.expMainOfficBrc.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpMainOfficBrcBs"
+        ]
+      }, 
+      "netResultBs.expenses.expOtherFinance.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpOtherFinanceBs"
+        ]
+      }, 
+      "netResultBs.expenses.expMonYearProfit.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpMonYearProfitBs"
+        ]
+      }, 
       "netResult.profits.incomeTotal.monthAcc": {
         "$sum": [
           "$sal_net_actincomeTotal"
@@ -1189,122 +1540,187 @@
           "$sal_net_actincSecuTitle"
         ]
       }, 
+      "netResult.profits.incLiqAsset.monthAcc": {
+        "$sum": [
+          "$sal_net_actincLiqAsset"
+        ]
+      }, 
+      "netResult.profits.incExtraordinary.monthAcc": {
+        "$sum": [
+          "$sal_net_actincExtraordinary"
+        ]
+      }, 
+      "netResult.profits.incInvestPerm.monthAcc": {
+        "$sum": [
+          "$sal_net_actincInvestPerm"
+        ]
+      }, 
+      "netResult.profits.incMainOfficBrc.monthAcc": {
+        "$sum": [
+          "$sal_net_actincMainOfficBrc"
+        ]
+      }, 
+      "netResult.profits.incInvestCom.monthAcc": {
+        "$sum": [
+          "$sal_net_actincInvestCom"
+        ]
+      }, 
+      "netResult.profits.incInvestSpecial.monthAcc": {
+        "$sum": [
+          "$sal_net_actincInvestSpecial"
+        ]
+      }, 
+      "netResult.profits.incMonYearProfit.monthAcc": {
+        "$sum": [
+          "$sal_net_actincMonYearProfit"
+        ]
+      }, 
       "netResult.expenses.expensesTotal.monthAcc": {
         "$sum": [
-          "$sal_net_actexpensesTotal"
+          "$sal_net_actincExtraordinary"
         ]
       }, 
       "netResult.expenses.expPublicCap.monthAcc": {
         "$sum": [
-          "$sal_net_actexpPublicCap"
+          "$sal_net_actincInvestPerm"
         ]
       }, 
       "netResult.expenses.expOtherFinanc.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOtherFinanc"
+          "$sal_net_actincMainOfficBrc"
         ]
       }, 
       "netResult.expenses.expComission.monthAcc": {
         "$sum": [
-          "$sal_net_actexpComission"
+          "$sal_net_actincInvestCom"
         ]
       }, 
       "netResult.expenses.expAdmin.monthAcc": {
         "$sum": [
-          "$sal_net_actexpAdmin"
+          "$sal_net_actincInvestSpecial"
         ]
       }, 
       "netResult.expenses.expEmployees.monthAcc": {
         "$sum": [
-          "$sal_net_actexpEmployees"
+          "$sal_net_actincMonYearProfit"
         ]
       }, 
       "netResult.expenses.expOperOthVar.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOperOthVar"
+          "$sal_net_actexpensesTotal"
         ]
       }, 
       "netResult.expenses.expOthers.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOthers"
+          "$sal_net_actexpPublicCap"
         ]
       }, 
       "netResult.expenses.expTaxIslr.monthAcc": {
         "$sum": [
-          "$sal_net_actexpTaxIslr"
+          "$sal_net_actexpOtherFinanc"
         ]
       }, 
       "netResult.expenses.expBanvihCap.monthAcc": {
         "$sum": [
-          "$sal_net_actexpBanvihCap"
+          "$sal_net_actexpComission"
         ]
       }, 
       "netResult.expenses.expOthObtFinanc.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOthObtFinanc"
+          "$sal_net_actexpAdmin"
         ]
       }, 
       "netResult.expenses.expOthFinInter.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOthFinInter"
+          "$sal_net_actexpEmployees"
         ]
       }, 
       "netResult.expenses.expServComission.monthAcc": {
         "$sum": [
-          "$sal_net_actexpServComission"
+          "$sal_net_actexpOperOthVar"
         ]
       }, 
       "netResult.expenses.expInvestSubdiv.monthAcc": {
         "$sum": [
-          "$sal_net_actexpInvestSubdiv"
+          "$sal_net_actexpOthers"
         ]
       }, 
       "netResult.expenses.expExtService.monthAcc": {
         "$sum": [
-          "$sal_net_actexpExtService"
+          "$sal_net_actexpTaxIslr"
         ]
       }, 
       "netResult.expenses.expCommTrans.monthAcc": {
         "$sum": [
-          "$sal_net_actexpCommTrans"
+          "$sal_net_actexpBanvihCap"
         ]
       }, 
       "netResult.expenses.expInsurance.monthAcc": {
         "$sum": [
-          "$sal_net_actexpInsurance"
+          "$sal_net_actexpOthObtFinanc"
         ]
       }, 
       "netResult.expenses.expTaxContribut.monthAcc": {
         "$sum": [
-          "$sal_net_actexpTaxContribut"
+          "$sal_net_actexpOthFinInter"
         ]
       }, 
       "netResult.expenses.expMaintRep.monthAcc": {
         "$sum": [
-          "$sal_net_actexpMaintRep"
+          "$sal_net_actexpServComission"
         ]
       }, 
       "netResult.expenses.expUseAssetDep.monthAcc": {
         "$sum": [
-          "$sal_net_actexpUseAssetDep"
+          "$sal_net_actexpInvestSubdiv"
         ]
       }, 
       "netResult.expenses.expDefAmort.monthAcc": {
         "$sum": [
-          "$sal_net_actexpDefAmort"
+          "$sal_net_actexpExtService"
         ]
       }, 
       "netResult.expenses.expOtherAdmin.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOtherAdmin"
+          "$sal_net_actexpCommTrans"
         ]
       }, 
       "netResult.expenses.expFinAssetDepr.monthAcc": {
         "$sum": [
-          "$sal_net_actexpFinAssetDepr"
+          "$sal_net_actexpInsurance"
         ]
       }, 
       "netResult.expenses.expExtraordinary.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpTaxContribut"
+        ]
+      }, 
+      "netResult.expenses.expBcvObligation.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpMaintRep"
+        ]
+      }, 
+      "netResult.expenses.expSubObligation.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpUseAssetDep"
+        ]
+      }, 
+      "netResult.expenses.expConvOblig.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpDefAmort"
+        ]
+      }, 
+      "netResult.expenses.expMainOfficBrc.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpOtherAdmin"
+        ]
+      }, 
+      "netResult.expenses.expOtherFinance.monthAcc": {
+        "$sum": [
+          "$sal_net_actexpFinAssetDepr"
+        ]
+      }, 
+      "netResult.expenses.expMonYearProfit.monthAcc": {
         "$sum": [
           "$sal_net_actexpExtraordinary"
         ]
@@ -1350,6 +1766,27 @@
       }, 
       "netResultBs.profits.incSecuTitle.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incSecuTitle.monthAcc"
+      }, 
+      "netResultBs.profits.incLiqAsset.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incLiqAsset.monthAcc"
+      }, 
+      "netResultBs.profits.incExtraordinary.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incExtraordinary.monthAcc"
+      }, 
+      "netResultBs.profits.incInvestPerm.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incInvestPerm.monthAcc"
+      }, 
+      "netResultBs.profits.incMainOfficBrc.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incMainOfficBrc.monthAcc"
+      }, 
+      "netResultBs.profits.incInvestCom.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incInvestCom.monthAcc"
+      }, 
+      "netResultBs.profits.incInvestSpecial.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incInvestSpecial.monthAcc"
+      }, 
+      "netResultBs.profits.incMonYearProfit.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.profits.incMonYearProfit.monthAcc"
       }, 
       "netResultBs.expenses.expensesTotal.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expensesTotal.monthAcc"
@@ -1423,6 +1860,24 @@
       "netResultBs.expenses.expExtraordinary.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expExtraordinary.monthAcc"
       }, 
+      "netResultBs.expenses.expBcvObligation.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expBcvObligation.monthAcc"
+      }, 
+      "netResultBs.expenses.expSubObligation.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expSubObligation.monthAcc"
+      }, 
+      "netResultBs.expenses.expConvOblig.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expConvOblig.monthAcc"
+      }, 
+      "netResultBs.expenses.expMainOfficBrc.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expMainOfficBrc.monthAcc"
+      }, 
+      "netResultBs.expenses.expOtherFinance.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expOtherFinance.monthAcc"
+      }, 
+      "netResultBs.expenses.expMonYearProfit.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResultBs.expenses.expMonYearProfit.monthAcc"
+      }, 
       "netResult.profits.incomeTotal.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incomeTotal.monthAcc"
       }, 
@@ -1464,6 +1919,27 @@
       }, 
       "netResult.profits.incSecuTitle.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incSecuTitle.monthAcc"
+      }, 
+      "netResult.profits.incLiqAsset.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incLiqAsset.monthAcc"
+      }, 
+      "netResult.profits.incExtraordinary.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incExtraordinary.monthAcc"
+      }, 
+      "netResult.profits.incInvestPerm.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incInvestPerm.monthAcc"
+      }, 
+      "netResult.profits.incMainOfficBrc.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incMainOfficBrc.monthAcc"
+      }, 
+      "netResult.profits.incInvestCom.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incInvestCom.monthAcc"
+      }, 
+      "netResult.profits.incInvestSpecial.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incInvestSpecial.monthAcc"
+      }, 
+      "netResult.profits.incMonYearProfit.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.profits.incMonYearProfit.monthAcc"
       }, 
       "netResult.expenses.expensesTotal.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expensesTotal.monthAcc"
@@ -1537,6 +2013,24 @@
       "netResult.expenses.expExtraordinary.monthAccPrev": {
         "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expExtraordinary.monthAcc"
       }, 
+      "netResult.expenses.expBcvObligation.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expBcvObligation.monthAcc"
+      }, 
+      "netResult.expenses.expSubObligation.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expSubObligation.monthAcc"
+      }, 
+      "netResult.expenses.expConvOblig.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expConvOblig.monthAcc"
+      }, 
+      "netResult.expenses.expMainOfficBrc.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expMainOfficBrc.monthAcc"
+      }, 
+      "netResult.expenses.expOtherFinance.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expOtherFinance.monthAcc"
+      }, 
+      "netResult.expenses.expMonYearProfit.monthAccPrev": {
+        "$first": "$Balancemetric_data_previusMonthDate.netResult.expenses.expMonYearProfit.monthAcc"
+      }, 
       "netResultBs.profits.incomeTotal.annualAcc": {
         "$sum": [
           "$sal_actincomeTotalBs", "$sal_actincomeTotalBsAdjstmntValue"
@@ -1605,6 +2099,41 @@
       "netResultBs.profits.incSecuTitle.annualAcc": {
         "$sum": [
           "$sal_actincSecuTitleBs", "$sal_actincSecuTitleBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incLiqAsset.annualAcc": {
+        "$sum": [
+          "$sal_actincLiqAssetBs", "$sal_actincLiqAssetBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incExtraordinary.annualAcc": {
+        "$sum": [
+          "$sal_actincExtraordinaryBs", "$sal_actincExtraordinaryBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incInvestPerm.annualAcc": {
+        "$sum": [
+          "$sal_actincInvestPermBs", "$sal_actincInvestPermBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incMainOfficBrc.annualAcc": {
+        "$sum": [
+          "$sal_actincMainOfficBrcBs", "$sal_actincMainOfficBrcBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incInvestCom.annualAcc": {
+        "$sum": [
+          "$sal_actincInvestComBs", "$sal_actincInvestComBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incInvestSpecial.annualAcc": {
+        "$sum": [
+          "$sal_actincInvestSpecialBs", "$sal_actincInvestSpecialBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.profits.incMonYearProfit.annualAcc": {
+        "$sum": [
+          "$sal_actincMonYearProfitBs", "$sal_actincMonYearProfitBsAdjstmntValue"
         ]
       }, 
       "netResultBs.expenses.expensesTotal.annualAcc": {
@@ -1727,6 +2256,36 @@
           "$sal_actexpExtraordinaryBs", "$sal_actexpExtraordinaryBsAdjstmntValue"
         ]
       }, 
+      "netResultBs.expenses.expBcvObligation.annualAcc": {
+        "$sum": [
+          "$sal_actexpBcvObligationBs", "$sal_actexpBcvObligationBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.expenses.expSubObligation.annualAcc": {
+        "$sum": [
+          "$sal_actexpSubObligationBs", "$sal_actexpSubObligationBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.expenses.expConvOblig.annualAcc": {
+        "$sum": [
+          "$sal_actexpConvObligBs", "$sal_actexpConvObligBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.expenses.expMainOfficBrc.annualAcc": {
+        "$sum": [
+          "$sal_actexpMainOfficBrcBs", "$sal_actexpMainOfficBrcBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.expenses.expOtherFinance.annualAcc": {
+        "$sum": [
+          "$sal_actexpOtherFinanceBs", "$sal_actexpOtherFinanceBsAdjstmntValue"
+        ]
+      }, 
+      "netResultBs.expenses.expMonYearProfit.annualAcc": {
+        "$sum": [
+          "$sal_actexpMonYearProfitBs", "$sal_actexpMonYearProfitBsAdjstmntValue"
+        ]
+      }, 
       "netResult.profits.incomeTotal.annualAcc": {
         "$sum": [
           "$sal_antincomeTotal", "$sal_actincomeTotalAdjstmntValue"
@@ -1795,6 +2354,41 @@
       "netResult.profits.incSecuTitle.annualAcc": {
         "$sum": [
           "$sal_antincSecuTitle", "$sal_actincSecuTitleAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incLiqAsset.annualAcc": {
+        "$sum": [
+          "$sal_antincLiqAsset", "$sal_actincLiqAssetAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incExtraordinary.annualAcc": {
+        "$sum": [
+          "$sal_antincExtraordinary", "$sal_actincExtraordinaryAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incInvestPerm.annualAcc": {
+        "$sum": [
+          "$sal_antincInvestPerm", "$sal_actincInvestPermAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incMainOfficBrc.annualAcc": {
+        "$sum": [
+          "$sal_antincMainOfficBrc", "$sal_actincMainOfficBrcAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incInvestCom.annualAcc": {
+        "$sum": [
+          "$sal_antincInvestCom", "$sal_actincInvestComAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incInvestSpecial.annualAcc": {
+        "$sum": [
+          "$sal_antincInvestSpecial", "$sal_actincInvestSpecialAdjstmntValue"
+        ]
+      }, 
+      "netResult.profits.incMonYearProfit.annualAcc": {
+        "$sum": [
+          "$sal_antincMonYearProfit", "$sal_actincMonYearProfitAdjstmntValue"
         ]
       }, 
       "netResult.expenses.expensesTotal.annualAcc": {
@@ -1917,6 +2511,36 @@
           "$sal_antexpExtraordinary", "$sal_actexpExtraordinaryAdjstmntValue"
         ]
       }, 
+      "netResult.expenses.expBcvObligation.annualAcc": {
+        "$sum": [
+          "$sal_antexpBcvObligation", "$sal_actexpBcvObligationAdjstmntValue"
+        ]
+      }, 
+      "netResult.expenses.expSubObligation.annualAcc": {
+        "$sum": [
+          "$sal_antexpSubObligation", "$sal_actexpSubObligationAdjstmntValue"
+        ]
+      }, 
+      "netResult.expenses.expConvOblig.annualAcc": {
+        "$sum": [
+          "$sal_antexpConvOblig", "$sal_actexpConvObligAdjstmntValue"
+        ]
+      }, 
+      "netResult.expenses.expMainOfficBrc.annualAcc": {
+        "$sum": [
+          "$sal_antexpMainOfficBrc", "$sal_actexpMainOfficBrcAdjstmntValue"
+        ]
+      }, 
+      "netResult.expenses.expOtherFinance.annualAcc": {
+        "$sum": [
+          "$sal_antexpOtherFinance", "$sal_actexpOtherFinanceAdjstmntValue"
+        ]
+      }, 
+      "netResult.expenses.expMonYearProfit.annualAcc": {
+        "$sum": [
+          "$sal_antexpMonYearProfit", "$sal_actexpMonYearProfitAdjstmntValue"
+        ]
+      }, 
       "netResultBs.profits.incomeTotal.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incomeTotal.annualAcc"
       }, 
@@ -1958,6 +2582,27 @@
       }, 
       "netResultBs.profits.incSecuTitle.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incSecuTitle.annualAcc"
+      }, 
+      "netResultBs.profits.incLiqAsset.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incLiqAsset.annualAcc"
+      }, 
+      "netResultBs.profits.incExtraordinary.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incExtraordinary.annualAcc"
+      }, 
+      "netResultBs.profits.incInvestPerm.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incInvestPerm.annualAcc"
+      }, 
+      "netResultBs.profits.incMainOfficBrc.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incMainOfficBrc.annualAcc"
+      }, 
+      "netResultBs.profits.incInvestCom.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incInvestCom.annualAcc"
+      }, 
+      "netResultBs.profits.incInvestSpecial.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incInvestSpecial.annualAcc"
+      }, 
+      "netResultBs.profits.incMonYearProfit.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.profits.incMonYearProfit.annualAcc"
       }, 
       "netResultBs.expenses.expensesTotal.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expensesTotal.annualAcc"
@@ -2031,6 +2676,24 @@
       "netResultBs.expenses.expExtraordinary.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expExtraordinary.annualAcc"
       }, 
+      "netResultBs.expenses.expBcvObligation.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expBcvObligation.annualAcc"
+      }, 
+      "netResultBs.expenses.expSubObligation.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expSubObligation.annualAcc"
+      }, 
+      "netResultBs.expenses.expConvOblig.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expConvOblig.annualAcc"
+      }, 
+      "netResultBs.expenses.expMainOfficBrc.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expMainOfficBrc.annualAcc"
+      }, 
+      "netResultBs.expenses.expOtherFinance.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expOtherFinance.annualAcc"
+      }, 
+      "netResultBs.expenses.expMonYearProfit.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResultBs.expenses.expMonYearProfit.annualAcc"
+      }, 
       "netResult.profits.incomeTotal.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incomeTotal.annualAcc"
       }, 
@@ -2072,6 +2735,27 @@
       }, 
       "netResult.profits.incSecuTitle.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incSecuTitle.annualAcc"
+      }, 
+      "netResult.profits.incLiqAsset.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incLiqAsset.annualAcc"
+      }, 
+      "netResult.profits.incExtraordinary.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incExtraordinary.annualAcc"
+      }, 
+      "netResult.profits.incInvestPerm.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incInvestPerm.annualAcc"
+      }, 
+      "netResult.profits.incMainOfficBrc.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incMainOfficBrc.annualAcc"
+      }, 
+      "netResult.profits.incInvestCom.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incInvestCom.annualAcc"
+      }, 
+      "netResult.profits.incInvestSpecial.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incInvestSpecial.annualAcc"
+      }, 
+      "netResult.profits.incMonYearProfit.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.profits.incMonYearProfit.annualAcc"
       }, 
       "netResult.expenses.expensesTotal.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expensesTotal.annualAcc"
@@ -2144,6 +2828,24 @@
       }, 
       "netResult.expenses.expExtraordinary.annualAccPrev": {
         "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expExtraordinary.annualAcc"
+      }, 
+      "netResult.expenses.expBcvObligation.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expBcvObligation.annualAcc"
+      }, 
+      "netResult.expenses.expSubObligation.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expSubObligation.annualAcc"
+      }, 
+      "netResult.expenses.expConvOblig.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expConvOblig.annualAcc"
+      }, 
+      "netResult.expenses.expMainOfficBrc.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expMainOfficBrc.annualAcc"
+      }, 
+      "netResult.expenses.expOtherFinance.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expOtherFinance.annualAcc"
+      }, 
+      "netResult.expenses.expMonYearProfit.annualAccPrev": {
+        "$first": "$Balancemetric_data_previusYearDate.netResult.expenses.expMonYearProfit.annualAcc"
       }
     }
   }, {

@@ -354,19 +354,21 @@
               }, {
                 "$gte": [
                   {
-                    "$round": [
-                      {
-                        "$divide": [
-                          {
-                            "$abs": {
-                              "$subtract": [
-                                "$sal_actTotalBs", "$sal_actTotalBsyesterday"
-                              ]
-                            }
-                          }, "$sal_actTotalBs"
-                        ]
-                      }, 4
-                    ]
+                    "$abs": {
+                      "$round": [
+                        {
+                          "$divide": [
+                            {
+                              "$abs": {
+                                "$subtract": [
+                                  "$sal_actTotalBs", "$sal_actTotalBsyesterday"
+                                ]
+                              }
+                            }, "$sal_actTotalBs"
+                          ]
+                        }, 4
+                      ]
+                    }
                   }, 3.5
                 ]
               }
@@ -391,19 +393,21 @@
               }, {
                 "$gte": [
                   {
-                    "$round": [
-                      {
-                        "$divide": [
-                          {
-                            "$abs": {
-                              "$subtract": [
-                                "$sal_actTotalBs", "$sal_actTotalBsyesterday"
-                              ]
-                            }
-                          }, "$sal_actTotalBs"
-                        ]
-                      }, 4
-                    ]
+                    "$abs": {
+                      "$round": [
+                        {
+                          "$divide": [
+                            {
+                              "$abs": {
+                                "$subtract": [
+                                  "$sal_actTotalBs", "$sal_actTotalBsyesterday"
+                                ]
+                              }
+                            }, "$sal_actTotalBs"
+                          ]
+                        }, 4
+                      ]
+                    }
                   }, 3.5
                 ]
               }

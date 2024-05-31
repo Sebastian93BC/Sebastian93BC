@@ -60,6 +60,8 @@
     }
   }, {
     "$project": {
+      "sal_net_actTotalBs": 1, 
+      "sal_net_actTotalBsyesterday": 1, 
       "_id": 0, 
       "fecha_valor": 1, 
       "currentBs": {
@@ -74,7 +76,7 @@
       "current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actTotalBsUSD", {
-            "$sum": [
+            "$subtract": [
               "$sal_net_actTotalBsUSD", "$sal_net_actTotalBsUSDyesterday"
             ]
           }
@@ -96,21 +98,21 @@
       "monthAccPrev": {
         "$first": "$BalancemetricpreviusMonthDate.ingresosOtrosOperativos.monthAcc"
       }, 
-      "anualAcAnualBs": {
+      "annualAccBs": {
         "$sum": [
           "$sal_actTotalBs", "$smnnlAdjstmntValue"
         ]
       }, 
-      "anualAcAnual": {
+      "annualAcc": {
         "$sum": [
           "$sal_actTotalBsUSD", "$smnnlAdjstmntValueUSD"
         ]
       }, 
       "annualAccPrevBs": {
-        "$first": "$BalancemetricpreviusMonthDate.ingresosOtrosOperativosBs.annualAccPrev"
+        "$first": "$BalancemetricpreviusMonthDate.ingresosOtrosOperativosBs.annualAccBs"
       }, 
       "annualAccPrev": {
-        "$first": "$BalancemetricpreviusMonthDate.ingresosOtrosOperativos.annualAccPrev"
+        "$first": "$BalancemetricpreviusMonthDate.ingresosOtrosOperativos.annualAcc"
       }
     }
   }, {
@@ -120,12 +122,12 @@
       "ingresosOtrosOperativosBs.current": "$currentBs", 
       "ingresosOtrosOperativosBs.monthAcc": "$monthAccBs", 
       "ingresosOtrosOperativosBs.monthAccPrev": "$monthAccPrevBs", 
-      "ingresosOtrosOperativosBs.anualAcAnual": "$anualAcAnualBs", 
+      "ingresosOtrosOperativosBs.annualAcc": "$annualAccBs", 
       "ingresosOtrosOperativosBs.annualAccPrev": "$annualAccPrevBs", 
       "ingresosOtrosOperativos.current": "$current", 
       "ingresosOtrosOperativos.monthAcc": "$monthAcc", 
       "ingresosOtrosOperativos.monthAccPrev": "$monthAccPrev", 
-      "ingresosOtrosOperativos.anualAcAnual": "$anualAcAnual", 
+      "ingresosOtrosOperativos.annualAcc": "$annualAcc", 
       "ingresosOtrosOperativos.annualAccPrev": "$annualAccPrev"
     }
   }, {

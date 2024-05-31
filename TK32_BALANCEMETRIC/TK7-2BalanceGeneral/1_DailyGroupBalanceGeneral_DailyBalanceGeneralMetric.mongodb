@@ -360,7 +360,7 @@
                 {
                   "$in": [
                     "$$brm.nucta", [
-                      "21", "22", "23", "24", "25", "26", "27"
+                      "21", "22", "23", "24", "25", "26", "27", "28", "29"
                     ]
                   ]
                 }, "$$brm.sal_act", 0
@@ -494,6 +494,44 @@
                   "$in": [
                     "$$brm.nucta", [
                       "27"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actsubObligationsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "28"
+                    ]
+                  ]
+                }, "$$brm.sal_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_actotherObligationsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "29"
                     ]
                   ]
                 }, "$$brm.sal_act", 0
@@ -816,7 +854,7 @@
                 {
                   "$in": [
                     "$$brm.nucta", [
-                      "21", "22", "23", "24", "25", "26", "27"
+                      "21", "22", "23", "24", "25", "26", "27", "28", "29"
                     ]
                   ]
                 }, "$$brm.sal_ant", 0
@@ -950,6 +988,44 @@
                   "$in": [
                     "$$brm.nucta", [
                       "27"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antsubObligationsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "28"
+                    ]
+                  ]
+                }, "$$brm.sal_ant", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_antotherObligationsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "29"
                     ]
                   ]
                 }, "$$brm.sal_ant", 0
@@ -1272,7 +1348,7 @@
                 {
                   "$in": [
                     "$$brm.nucta", [
-                      "21", "22", "23", "24", "25", "26", "27"
+                      "21", "22", "23", "24", "25", "26", "27", "28", "29"
                     ]
                   ]
                 }, "$$brm.sal_net_act", 0
@@ -1406,6 +1482,44 @@
                   "$in": [
                     "$$brm.nucta", [
                       "27"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actsubObligationsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "28"
+                    ]
+                  ]
+                }, "$$brm.sal_net_act", 0
+              ]
+            }
+          }
+        }
+      }, 
+      "sal_net_actotherObligationsBs": {
+        "$sum": {
+          "$map": {
+            "input": "$sidis_brm", 
+            "as": "brm", 
+            "in": {
+              "$cond": [
+                {
+                  "$in": [
+                    "$$brm.nucta", [
+                      "29"
                     ]
                   ]
                 }, "$$brm.sal_net_act", 0
@@ -1679,6 +1793,20 @@
           }
         ]
       }, 
+      "sal_actsubObligationsBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actsubObligationsBs", {
+            "$first": "$MetricPreviusMonthlastDate.sal_actsubObligationsBs"
+          }
+        ]
+      }, 
+      "sal_actotherObligationsBs": {
+        "$cond": [
+          "$avaiableData", "$sal_actotherObligationsBs", {
+            "$first": "$MetricPreviusMonthlastDate.sal_actotherObligationsBs"
+          }
+        ]
+      }, 
       "sal_acttotalEquityBs": {
         "$cond": [
           "$avaiableData", "$sal_acttotalEquityBs", {
@@ -1847,6 +1975,20 @@
           }
         ]
       }, 
+      "sal_antsubObligationsBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antsubObligationsBs", {
+            "$first": "$MetricPreviusMonthlastDate.sal_antsubObligationsBs"
+          }
+        ]
+      }, 
+      "sal_antotherObligationsBs": {
+        "$cond": [
+          "$avaiableData", "$sal_antotherObligationsBs", {
+            "$first": "$MetricPreviusMonthlastDate.sal_antotherObligationsBs"
+          }
+        ]
+      }, 
       "sal_anttotalEquityBs": {
         "$cond": [
           "$avaiableData", "$sal_anttotalEquityBs", {
@@ -2012,6 +2154,20 @@
         "$cond": [
           "$avaiableData", "$sal_net_actaccOtherLiabilitiesBs", {
             "$first": "$MetricPreviusMonthlastDate.sal_net_actaccOtherLiabilitiesBs"
+          }
+        ]
+      }, 
+      "sal_net_actsubObligationsBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actsubObligationsBs", {
+            "$first": "$MetricPreviusMonthlastDate.sal_net_actsubObligationsBs"
+          }
+        ]
+      }, 
+      "sal_net_actotherObligationsBs": {
+        "$cond": [
+          "$avaiableData", "$sal_net_actotherObligationsBs", {
+            "$first": "$MetricPreviusMonthlastDate.sal_net_actotherObligationsBs"
           }
         ]
       }, 
@@ -2256,6 +2412,28 @@
           {
             "$divide": [
               "$sal_actaccOtherLiabilitiesBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actsubObligations": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actsubObligationsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_actotherObligations": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_actotherObligationsBs", {
                 "$first": "$sidis_tasaconversion.Tasa_DOL"
               }
             ]
@@ -2526,6 +2704,28 @@
           }, 4
         ]
       }, 
+      "sal_antsubObligations": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antsubObligationsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_antotherObligations": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_antotherObligationsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
       "sal_anttotalEquity": {
         "$round": [
           {
@@ -2784,6 +2984,28 @@
           {
             "$divide": [
               "$sal_net_actaccOtherLiabilitiesBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actsubObligations": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actsubObligationsBs", {
+                "$first": "$sidis_tasaconversion.Tasa_DOL"
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "sal_net_actotherObligations": {
+        "$round": [
+          {
+            "$divide": [
+              "$sal_net_actotherObligationsBs", {
                 "$first": "$sidis_tasaconversion.Tasa_DOL"
               }
             ]

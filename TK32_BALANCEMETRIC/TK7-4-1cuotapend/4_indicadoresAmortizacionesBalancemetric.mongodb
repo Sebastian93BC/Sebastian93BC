@@ -1,0 +1,207 @@
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fecha_valor", {
+            "$subtract": [
+              {
+                "$dateTrunc": {
+                  "date": "$$NOW", 
+                  "unit": "day"
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$addFields": {
+      "prodRealAmort.productDesc": "$productDesc", 
+      "prodRealAmort.groupProduct": "$groupProduct", 
+      "prodRealAmort.AccRealAmort": "$AccRealAmort", 
+      "prodRealAmortUVC.productDesc": "$productDesc", 
+      "prodRealAmortUVC.groupProduct": "$groupProduct", 
+      "prodRealAmortUVC.AccRealAmort": "$AccRealAmortUVC"
+    }
+  }, {
+    "$group": {
+      "_id": "$fecha_valor", 
+      "fecha_valor": {
+        "$first": "$fecha_valor"
+      }, 
+      "fechaProceso": {
+        "$first": "$fechaProceso"
+      }, 
+      "prodRealAmort": {
+        "$push": "$prodRealAmort"
+      }, 
+      "prodRealAmortUVC": {
+        "$push": "$prodRealAmortUVC"
+      }, 
+      "AccRealAmort": {
+        "$sum": "$AccRealAmort"
+      }, 
+      "AccRealAmortUVC": {
+        "$sum": "$AccRealAmortUVC"
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_cuotapend_dailyGroup", 
+      "let": {
+        "fecha_valor": "$fecha_valor"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$fecha_valor", "$$fecha_valor"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$group": {
+            "_id": {
+              "fecha_valor": "$fecha_valor", 
+              "productDesc": "$productDesc", 
+              "groupProduct": "$groupProduct", 
+              "status": "$status"
+            }, 
+            "status": {
+              "$first": "$status"
+            }, 
+            "productDesc": {
+              "$first": "$productDesc"
+            }, 
+            "groupProduct": {
+              "$first": "$groupProduct"
+            }, 
+            "plannedAmort": {
+              "$sum": "$plannedAmort"
+            }
+          }
+        }, {
+          "$project": {
+            "_id": 0
+          }
+        }
+      ], 
+      "as": "prodPlannedAmort"
+    }
+  }, {
+    "$lookup": {
+      "from": "sidis_cuotapend_dailyGroup", 
+      "let": {
+        "fecha_valor": "$fecha_valor"
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$fecha_valor", "$$fecha_valor"
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$group": {
+            "_id": {
+              "fecha_valor": "$fecha_valor", 
+              "productDesc": "$productDesc", 
+              "groupProduct": "$groupProduct", 
+              "status": "$status"
+            }, 
+            "status": {
+              "$first": "$status"
+            }, 
+            "productDesc": {
+              "$first": "$productDesc"
+            }, 
+            "groupProduct": {
+              "$first": "$groupProduct"
+            }, 
+            "plannedAmortUVC": {
+              "$sum": "$plannedAmortUVC"
+            }
+          }
+        }, {
+          "$project": {
+            "_id": 0
+          }
+        }
+      ], 
+      "as": "prodPlannedAmortUVC"
+    }
+  }, {
+    "$addFields": {
+      "PlannedAmort": {
+        "$sum": "$prodPlannedAmort.plannedAmort"
+      }, 
+      "PlannedAmortUVC": {
+        "$sum": "$prodPlannedAmortUVC.plannedAmortUVC"
+      }
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "fecha_valor": 1, 
+      "fechaProceso": 1, 
+      "amortization.total.PlannedAmort": "$PlannedAmort", 
+      "amortization.total.AccRealAmort": "$AccRealAmort", 
+      "amortization.total.indexAmort_prct": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$AccRealAmort", "$PlannedAmort"
+                ]
+              }, 100
+            ]
+          }, 4
+        ]
+      }, 
+      "amortization.prodPlannedAmort": "$prodPlannedAmort", 
+      "amortization.prodRealAmort": "$prodRealAmort", 
+      "amortizationUVC.total.PlannedAmort": "$PlannedAmortUVC", 
+      "amortizationUVC.total.AccRealAmort": "$AccRealAmortUVC", 
+      "amortizationUVC.total.indexAmort_prct": {
+        "$round": [
+          {
+            "$multiply": [
+              {
+                "$divide": [
+                  "$AccRealAmortUVC", "$PlannedAmortUVC"
+                ]
+              }, 100
+            ]
+          }, 4
+        ]
+      }, 
+      "amortizationUVC.prodPlannedAmort": "$prodPlannedAmortUVC", 
+      "amortizationUVC.prodRealAmort": "$prodRealAmortUVC"
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor"
+    }
+  }
+]

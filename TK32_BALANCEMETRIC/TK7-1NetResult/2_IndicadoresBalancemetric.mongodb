@@ -106,7 +106,7 @@
       "current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actTotalBsUSD", {
-            "$sum": [
+            "$subtract": [
               "$sal_net_actTotalBsUSD", "$sal_net_actTotalBsUSDyesterday"
             ]
           }
