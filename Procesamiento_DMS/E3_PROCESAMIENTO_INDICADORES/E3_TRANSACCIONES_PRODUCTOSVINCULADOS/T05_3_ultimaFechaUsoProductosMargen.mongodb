@@ -1,133 +1,231 @@
 [
-    {
-      "$match": {
-        "$and": [
-          {
-            "mcl_rif_cedula": {
-              "$exists": true
-            }
-          }, {
-            "$expr": {
-              "$eq": [
-                "$mcl_fecha_proceso", {
-                  "$toDate": "@processDate"
-                }
-              ]
-            }
-          }, {
-            "mcl_banca": {
-              "$nin": [
-                "5", 5, "4", 4, "0", 0, "1", 1
-              ]
-            }
-          }, {
-            "$or": [
-              {
-                "$expr": {
-                  "$eq": [
-                    "$sidisProducto.prd_codigo_producto", 1122
-                  ]
-                }
-              }, {
-                "$expr": {
-                  "$eq": [
-                    "$sidisProducto.prd_codigo_producto", 1117
-                  ]
-                }
+  {
+    "$match": {
+      "$and": [
+        {
+          "mcl_rif_cedula": {
+            "$exists": true
+          }
+        }, {
+          "$expr": {
+            "$eq": [
+              "$mcl_fecha_proceso", {
+                "$toDate": "@processDate"
               }
             ]
           }
+        }, {
+          "mcl_banca": {
+            "$nin": [
+              "5", 5, "4", 4, "0", 0, "1", 1
+            ]
+          }
+        }, {
+          "$or": [
+            {
+              "$expr": {
+                "$eq": [
+                  "$sidisProducto.prd_codigo_producto", 1122
+                ]
+              }
+            }, {
+              "$expr": {
+                "$eq": [
+                  "$sidisProducto.prd_codigo_producto", 1117
+                ]
+              }
+            }, {
+              "$expr": {
+                "$eq": [
+                  "$sidisProducto.prd_codigo_producto", 9502
+                ]
+              }
+            }, {
+              "$expr": {
+                "$eq": [
+                  "$sidisProducto.prd_codigo_producto", 1404
+                ]
+              }
+            }, {
+              "$expr": {
+                "$eq": [
+                  "$sidisProducto.prd_codigo_producto", 1414
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }, {
+    "$project": {
+      "sidisProducto": 1, 
+      "mcl_fecha_proceso": 1, 
+      "mcl_rif_cedula": 1
+    }
+  }, {
+    "$addFields": {
+      "rifCedula": "$mcl_rif_cedula", 
+      "fechaProceso": "$mcl_fecha_proceso", 
+      "tdcMasterDigital": {
+        "$cond": [
+          {
+            "$and": [
+              {
+                "$eq": [
+                  "$sidisProducto.prd_codigo_producto", 9502
+                ]
+              }, {
+                "$eq": [
+                  "$mcl_bin_tarjeta", "540143"
+                ]
+              }
+            ]
+          }, 1, 0
+        ]
+      }, 
+      "cuentaEnDolares": {
+        "$cond": [
+          {
+            "$eq": [
+              "$sidisProducto.prd_codigo_producto", 1404
+            ]
+          }, 1, 0
+        ]
+      }, 
+      "cuentaEnEuros": {
+        "$cond": [
+          {
+            "$eq": [
+              "$sidisProducto.prd_codigo_producto", 1414
+            ]
+          }, 1, 0
+        ]
+      }, 
+      "bdvEnLineaEmpresas": {
+        "$cond": [
+          {
+            "$eq": [
+              "$sidisProducto.prd_codigo_producto", 1122
+            ]
+          }, 1, 0
+        ]
+      }, 
+      "bdvEnLineaPersonas": {
+        "$cond": [
+          {
+            "$eq": [
+              "$sidisProducto.prd_codigo_producto", 1117
+            ]
+          }, 1, 0
+        ]
+      }, 
+      "sidisProducto": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "tdcMasterDigitalFechaUso": {
+        "$cond": [
+          {
+            "$eq": [
+              "$tdcMasterDigital", 1
+            ]
+          }, "$mcl_fecha_proceso", null
+        ]
+      }, 
+      "cuentaEnDolaresFechaUso": {
+        "$cond": [
+          {
+            "$eq": [
+              "$cuentaEnDolares", 1
+            ]
+          }, "$mcl_fecha_proceso", null
+        ]
+      }, 
+      "cuentaEnEurosFechaUso": {
+        "$cond": [
+          {
+            "$eq": [
+              "$cuentaEnEuros", 1
+            ]
+          }, "$mcl_fecha_proceso", null
+        ]
+      }, 
+      "bdvEnLineaEmpresasFechaUso": {
+        "$cond": [
+          {
+            "$eq": [
+              "$bdvEnLineaEmpresas", 1
+            ]
+          }, "$mcl_fecha_proceso", null
+        ]
+      }, 
+      "bdvEnLineaPersonaFechaUso": {
+        "$cond": [
+          {
+            "$eq": [
+              "$bdvEnLineaPersonas", 1
+            ]
+          }, "$mcl_fecha_proceso", null
         ]
       }
-    }, {
-      "$project": {
-        "sidisProducto": 1, 
-        "mcl_fecha_proceso": 1, 
-        "mcl_rif_cedula": 1
-      }
-    }, {
-      "$addFields": {
-        "rifCedula": "$mcl_rif_cedula", 
-        "fechaProceso": "$mcl_fecha_proceso", 
-        "bdvEnLineaEmpresas": {
-          "$cond": [
-            {
-              "$eq": [
-                "$sidisProducto.prd_codigo_producto", 1122
-              ]
-            }, 1, 0
-          ]
-        }, 
-        "bdvEnLineaPersonas": {
-          "$cond": [
-            {
-              "$eq": [
-                "$sidisProducto.prd_codigo_producto", 1117
-              ]
-            }, 1, 0
-          ]
-        }, 
-        "sidisProducto": "$$REMOVE"
-      }
-    }, {
-      "$addFields": {
-        "bdvEnLineaEmpresasFechaUso": {
-          "$cond": [
-            {
-              "$eq": [
-                "$bdvEnLineaEmpresas", 1
-              ]
-            }, "$mcl_fecha_proceso", null
-          ]
-        }, 
-        "bdvEnLineaPersonaFechaUso": {
-          "$cond": [
-            {
-              "$eq": [
-                "$bdvEnLineaPersonas", 1
-              ]
-            }, "$mcl_fecha_proceso", null
-          ]
-        }
-      }
-    }, {
-      "$project": {
-        "_id": 0, 
-        "mcl_rif_cedula": 0, 
-        "mcl_fecha_proceso": 0
-      }
-    }, {
-      "$group": {
-        "_id": {
-          "rifCedula": "$rifCedula", 
-          "fechaProceso": "$fechaProceso"
-        }, 
-        "bdvEnLineaEmpresas": {
-          "$max": "$bdvEnLineaEmpresas"
-        }, 
-        "bdvEnLineaPersonas": {
-          "$max": "$bdvEnLineaPersonas"
-        }, 
-        "bdvEnLineaEmpresasFechaUso": {
-          "$max": "$bdvEnLineaEmpresasFechaUso"
-        }, 
-        "bdvEnLineaPersonaFechaUso": {
-          "$max": "$bdvEnLineaPersonaFechaUso"
-        }
-      }
-    }, {
-      "$addFields": {
-        "rifCedula": "$_id.rifCedula", 
-        "fechaProceso": "$_id.fechaProceso", 
-        "_id": "$$REMOVE"
-      }
-    }, {
-      "$merge": {
-        "into": "sidis_productosVinculados", 
-        "on": [
-          "fechaProceso", "rifCedula"
-        ], 
-        "whenNotMatched": "discard"
+    }
+  }, {
+    "$project": {
+      "_id": 0, 
+      "mcl_rif_cedula": 0, 
+      "mcl_fecha_proceso": 0
+    }
+  }, {
+    "$group": {
+      "_id": {
+        "rifCedula": "$rifCedula", 
+        "fechaProceso": "$fechaProceso"
+      }, 
+      "tdcMasterDigital": {
+        "$max": "$tdcMasterDigital"
+      }, 
+      "cuentaEnDolares": {
+        "$max": "$cuentaEnDolares"
+      }, 
+      "cuentaEnEuros": {
+        "$max": "$cuentaEnEuros"
+      }, 
+      "tdcMasterDigitalFechaUso": {
+        "$max": "$tdcMasterDigitalFechaUso"
+      }, 
+      "cuentaEnDolaresFechaUso": {
+        "$max": "$cuentaEnDolaresFechaUso"
+      }, 
+      "cuentaEnEurosFechaUso": {
+        "$max": "$cuentaEnEurosFechaUso"
+      }, 
+      "bdvEnLineaEmpresas": {
+        "$max": "$bdvEnLineaEmpresas"
+      }, 
+      "bdvEnLineaPersonas": {
+        "$max": "$bdvEnLineaPersonas"
+      }, 
+      "bdvEnLineaEmpresasFechaUso": {
+        "$max": "$bdvEnLineaEmpresasFechaUso"
+      }, 
+      "bdvEnLineaPersonaFechaUso": {
+        "$max": "$bdvEnLineaPersonaFechaUso"
       }
     }
-  ]
+  }, {
+    "$addFields": {
+      "rifCedula": "$_id.rifCedula", 
+      "fechaProceso": "$_id.fechaProceso", 
+      "_id": "$$REMOVE"
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_productosVinculados", 
+      "on": [
+        "fechaProceso", "rifCedula"
+      ], 
+      "whenNotMatched": "discard"
+    }
+  }
+]

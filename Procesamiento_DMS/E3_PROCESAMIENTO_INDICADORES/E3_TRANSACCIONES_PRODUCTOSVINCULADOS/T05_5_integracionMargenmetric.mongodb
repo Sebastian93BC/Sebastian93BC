@@ -6,7 +6,7 @@
           "$expr": {
             "$eq": [
               "$fechaProceso", {
-                "$toDate": "{{$json.processDate}}"
+                "$toDate": "@processDate"
               }
             ]
           }
@@ -23,6 +23,80 @@
     "$addFields": {
       "linkedProducts": [
         {
+          "name": "Cuenta en Dolares", 
+          "active": {
+            "$cond": [
+              {
+                "$lte": [
+                  "$cuentaEnDolares", null
+                ]
+              }, {
+                "$toBool": 0
+              }, {
+                "$toBool": "$cuentaEnDolares"
+              }
+            ]
+          }, 
+          "lastUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": "$cuentaEnDolaresFechaUso"
+                  }, 1900
+                ]
+              }, "$cuentaEnDolaresFechaUso", null
+            ]
+          }, 
+          "firstUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": "$cuentaEnDolaresFechaUsoFirstUse"
+                  }, 1900
+                ]
+              }, "$cuentaEnDolaresFechaUsoFirstUse", null
+            ]
+          }
+        }, {
+          "name": "Cuenta en Euros", 
+          "active": {
+            "$cond": [
+              {
+                "$lte": [
+                  "$cuentaEnEuros", null
+                ]
+              }, {
+                "$toBool": 0
+              }, {
+                "$toBool": "$cuentaEnEuros"
+              }
+            ]
+          }, 
+          "lastUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": "$cuentaEnEurosFechaUso"
+                  }, 1900
+                ]
+              }, "$cuentaEnEurosFechaUso", null
+            ]
+          }, 
+          "firstUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": "$cuentaEnEurosFechaUsoFirstUse"
+                  }, 1900
+                ]
+              }, "$cuentaEnEurosFechaUsoFirstUse", null
+            ]
+          }
+        }, {
           "name": "Master", 
           "active": {
             "$cond": [
@@ -94,6 +168,43 @@
                   }, 1900
                 ]
               }, "$tdcProdVinMastercardPreFirstUse", null
+            ]
+          }
+        }, {
+          "name": "Master Digital", 
+          "active": {
+            "$cond": [
+              {
+                "$lte": [
+                  "$tdcMasterDigital", null
+                ]
+              }, {
+                "$toBool": 0
+              }, {
+                "$toBool": "$tdcMasterDigital"
+              }
+            ]
+          }, 
+          "lastUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": "$tdcMasterDigitalFechaUso"
+                  }, 1900
+                ]
+              }, "$tdcMasterDigitalFechaUso", null
+            ]
+          }, 
+          "firstUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": "$tdcMasterDigitalFirstUse"
+                  }, 1900
+                ]
+              }, "$tdcMasterDigitalFirstUse", null
             ]
           }
         }, {
@@ -467,23 +578,14 @@
             ]
           }
         }
-      ], 
-      "_id": "$$REMOVE", 
-      "bdvEnLineaPersonas": "$$REMOVE", 
-      "bdvEnLineaEmpresas": "$$REMOVE", 
-      "bdvEnLineaEmpresasFechaUso": "$$REMOVE", 
-      "bdvEnLineaPersonaFechaUso": "$$REMOVE", 
-      "sidisProducto": "$$REMOVE"
+      ]
     }
   }, {
-    "$merge": {
-      "into": "Margenmetric", 
-      "on": [
-        "rifCedula", "fechaProceso"
-      ], 
-      "whenNotMatched": "discard"
+    "$project": {
+      "_id": 0, 
+      "fechaProceso": 1, 
+      "rifCedula": 1, 
+      "linkedProducts": 1
     }
   }
 ]
-
-

@@ -42,9 +42,33 @@
               {
                 "$expr": {
                   "$eq": [
-                    "$$date", "$fevalor"
+                    "$fevalor", "$$date"
                   ]
                 }
+              }, {
+                "sitdeuct": {
+                  "$ne": "CASTIGO"
+                }
+              }, {
+                "indretro": {
+                  "$ne": "S"
+                }
+              }, {
+                "$or": [
+                  {
+                    "$expr": {
+                      "$ne": [
+                        "$cod_evento", "CANCELACION ANTICIPADA"
+                      ]
+                    }
+                  }, {
+                    "$expr": {
+                      "$ne": [
+                        "$formpago", "EN TELEPROCESO"
+                      ]
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -624,26 +648,19 @@
   }, {
     "$addFields": {
       "sidis_tasaconversion": "$$REMOVE", 
-      "monto_paguvc_bol": {
-        "$round": [
-          {
-            "$divide": [
-              "$monto_paguvc", {
-                "$first": "$sidis_tasaconversion.Tasa_UVC"
-              }
-            ]
-          }, 4
-        ]
-      }, 
       "monto_pag": {
         "$round": [
           {
             "$divide": [
               {
-                "$divide": [
-                  "$monto_paguvc", {
-                    "$first": "$sidis_tasaconversion.Tasa_UVC"
-                  }
+                "$round": [
+                  {
+                    "$divide": [
+                      "$monto_paguvc", {
+                        "$first": "$sidis_tasaconversion.Tasa_UVC"
+                      }
+                    ]
+                  }, 4
                 ]
               }, {
                 "$first": "$sidis_tasaconversion.Tasa_DOL"

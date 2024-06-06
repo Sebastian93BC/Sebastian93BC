@@ -876,72 +876,6 @@
       }, 
       "netResult.profits.incMonYearProfit.current": {
         "$cond": [
-          "$firstDayMonth", "$sal_net_actincLiqAsset", {
-            "$subtract": [
-              "$sal_net_actincLiqAsset", {
-                "$first": "$data_yesterdayDate.sal_net_actincLiqAsset"
-              }
-            ]
-          }
-        ]
-      }, 
-      "netResult.expenses.expensesTotal.current": {
-        "$cond": [
-          "$firstDayMonth", "$sal_net_actincExtraordinary", {
-            "$subtract": [
-              "$sal_net_actincExtraordinary", {
-                "$first": "$data_yesterdayDate.sal_net_actincExtraordinary"
-              }
-            ]
-          }
-        ]
-      }, 
-      "netResult.expenses.expPublicCap.current": {
-        "$cond": [
-          "$firstDayMonth", "$sal_net_actincInvestPerm", {
-            "$subtract": [
-              "$sal_net_actincInvestPerm", {
-                "$first": "$data_yesterdayDate.sal_net_actincInvestPerm"
-              }
-            ]
-          }
-        ]
-      }, 
-      "netResult.expenses.expOtherFinanc.current": {
-        "$cond": [
-          "$firstDayMonth", "$sal_net_actincMainOfficBrc", {
-            "$subtract": [
-              "$sal_net_actincMainOfficBrc", {
-                "$first": "$data_yesterdayDate.sal_net_actincMainOfficBrc"
-              }
-            ]
-          }
-        ]
-      }, 
-      "netResult.expenses.expComission.current": {
-        "$cond": [
-          "$firstDayMonth", "$sal_net_actincInvestCom", {
-            "$subtract": [
-              "$sal_net_actincInvestCom", {
-                "$first": "$data_yesterdayDate.sal_net_actincInvestCom"
-              }
-            ]
-          }
-        ]
-      }, 
-      "netResult.expenses.expAdmin.current": {
-        "$cond": [
-          "$firstDayMonth", "$sal_net_actincInvestSpecial", {
-            "$subtract": [
-              "$sal_net_actincInvestSpecial", {
-                "$first": "$data_yesterdayDate.sal_net_actincInvestSpecial"
-              }
-            ]
-          }
-        ]
-      }, 
-      "netResult.expenses.expEmployees.current": {
-        "$cond": [
           "$firstDayMonth", "$sal_net_actincMonYearProfit", {
             "$subtract": [
               "$sal_net_actincMonYearProfit", {
@@ -951,7 +885,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOperOthVar.current": {
+      "netResult.expenses.expensesTotal.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpensesTotal", {
             "$subtract": [
@@ -962,7 +896,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOthers.current": {
+      "netResult.expenses.expPublicCap.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpPublicCap", {
             "$subtract": [
@@ -973,7 +907,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expTaxIslr.current": {
+      "netResult.expenses.expOtherFinanc.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOtherFinanc", {
             "$subtract": [
@@ -984,7 +918,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expBanvihCap.current": {
+      "netResult.expenses.expComission.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpComission", {
             "$subtract": [
@@ -995,7 +929,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOthObtFinanc.current": {
+      "netResult.expenses.expAdmin.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpAdmin", {
             "$subtract": [
@@ -1006,7 +940,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOthFinInter.current": {
+      "netResult.expenses.expEmployees.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpEmployees", {
             "$subtract": [
@@ -1017,7 +951,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expServComission.current": {
+      "netResult.expenses.expOperOthVar.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOperOthVar", {
             "$subtract": [
@@ -1028,7 +962,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expInvestSubdiv.current": {
+      "netResult.expenses.expOthers.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOthers", {
             "$subtract": [
@@ -1039,7 +973,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expExtService.current": {
+      "netResult.expenses.expTaxIslr.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpTaxIslr", {
             "$subtract": [
@@ -1050,7 +984,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expCommTrans.current": {
+      "netResult.expenses.expBanvihCap.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpBanvihCap", {
             "$subtract": [
@@ -1061,7 +995,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expInsurance.current": {
+      "netResult.expenses.expOthObtFinanc.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOthObtFinanc", {
             "$subtract": [
@@ -1072,7 +1006,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expTaxContribut.current": {
+      "netResult.expenses.expOthFinInter.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOthFinInter", {
             "$subtract": [
@@ -1083,7 +1017,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expMaintRep.current": {
+      "netResult.expenses.expServComission.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpServComission", {
             "$subtract": [
@@ -1094,7 +1028,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expUseAssetDep.current": {
+      "netResult.expenses.expInvestSubdiv.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpInvestSubdiv", {
             "$subtract": [
@@ -1105,7 +1039,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expDefAmort.current": {
+      "netResult.expenses.expExtService.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpExtService", {
             "$subtract": [
@@ -1116,7 +1050,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOtherAdmin.current": {
+      "netResult.expenses.expCommTrans.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpCommTrans", {
             "$subtract": [
@@ -1127,7 +1061,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expFinAssetDepr.current": {
+      "netResult.expenses.expInsurance.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpInsurance", {
             "$subtract": [
@@ -1138,7 +1072,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expExtraordinary.current": {
+      "netResult.expenses.expTaxContribut.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpTaxContribut", {
             "$subtract": [
@@ -1149,7 +1083,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expBcvObligation.current": {
+      "netResult.expenses.expMaintRep.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpMaintRep", {
             "$subtract": [
@@ -1160,7 +1094,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expSubObligation.current": {
+      "netResult.expenses.expUseAssetDep.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpUseAssetDep", {
             "$subtract": [
@@ -1171,7 +1105,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expConvOblig.current": {
+      "netResult.expenses.expDefAmort.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpDefAmort", {
             "$subtract": [
@@ -1182,7 +1116,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expMainOfficBrc.current": {
+      "netResult.expenses.expOtherAdmin.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpOtherAdmin", {
             "$subtract": [
@@ -1193,7 +1127,7 @@
           }
         ]
       }, 
-      "netResult.expenses.expOtherFinance.current": {
+      "netResult.expenses.expFinAssetDepr.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpFinAssetDepr", {
             "$subtract": [
@@ -1204,12 +1138,78 @@
           }
         ]
       }, 
-      "netResult.expenses.expMonYearProfit.current": {
+      "netResult.expenses.expExtraordinary.current": {
         "$cond": [
           "$firstDayMonth", "$sal_net_actexpExtraordinary", {
             "$subtract": [
               "$sal_net_actexpExtraordinary", {
                 "$first": "$data_yesterdayDate.sal_net_actexpExtraordinary"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expBcvObligation.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpBcvObligation", {
+            "$subtract": [
+              "$sal_net_actexpBcvObligation", {
+                "$first": "$data_yesterdayDate.sal_net_actexpBcvObligation"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expSubObligation.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpSubObligation", {
+            "$subtract": [
+              "$sal_net_actexpSubObligation", {
+                "$first": "$data_yesterdayDate.sal_net_actexpSubObligation"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expConvOblig.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpConvOblig", {
+            "$subtract": [
+              "$sal_net_actexpConvOblig", {
+                "$first": "$data_yesterdayDate.sal_net_actexpConvOblig"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expMainOfficBrc.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpMainOfficBrc", {
+            "$subtract": [
+              "$sal_net_actexpMainOfficBrc", {
+                "$first": "$data_yesterdayDate.sal_net_actexpMainOfficBrc"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expOtherFinance.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpOtherFinance", {
+            "$subtract": [
+              "$sal_net_actexpOtherFinance", {
+                "$first": "$data_yesterdayDate.sal_net_actexpOtherFinance"
+              }
+            ]
+          }
+        ]
+      }, 
+      "netResult.expenses.expMonYearProfit.current": {
+        "$cond": [
+          "$firstDayMonth", "$sal_net_actexpMonYearProfit", {
+            "$subtract": [
+              "$sal_net_actexpMonYearProfit", {
+                "$first": "$data_yesterdayDate.sal_net_actexpMonYearProfit"
               }
             ]
           }
@@ -1542,187 +1542,187 @@
       }, 
       "netResult.profits.incLiqAsset.monthAcc": {
         "$sum": [
-          "$sal_net_actincLiqAsset"
+          "$sal_net_actincMonYearProfit"
         ]
       }, 
       "netResult.profits.incExtraordinary.monthAcc": {
         "$sum": [
-          "$sal_net_actincExtraordinary"
+          "$sal_net_actexpensesTotal"
         ]
       }, 
       "netResult.profits.incInvestPerm.monthAcc": {
         "$sum": [
-          "$sal_net_actincInvestPerm"
+          "$sal_net_actexpPublicCap"
         ]
       }, 
       "netResult.profits.incMainOfficBrc.monthAcc": {
         "$sum": [
-          "$sal_net_actincMainOfficBrc"
+          "$sal_net_actexpOtherFinanc"
         ]
       }, 
       "netResult.profits.incInvestCom.monthAcc": {
         "$sum": [
-          "$sal_net_actincInvestCom"
+          "$sal_net_actexpComission"
         ]
       }, 
       "netResult.profits.incInvestSpecial.monthAcc": {
         "$sum": [
-          "$sal_net_actincInvestSpecial"
+          "$sal_net_actexpAdmin"
         ]
       }, 
       "netResult.profits.incMonYearProfit.monthAcc": {
         "$sum": [
-          "$sal_net_actincMonYearProfit"
+          "$sal_net_actexpEmployees"
         ]
       }, 
       "netResult.expenses.expensesTotal.monthAcc": {
         "$sum": [
-          "$sal_net_actincExtraordinary"
+          "$sal_net_actexpensesTotal"
         ]
       }, 
       "netResult.expenses.expPublicCap.monthAcc": {
         "$sum": [
-          "$sal_net_actincInvestPerm"
+          "$sal_net_actexpPublicCap"
         ]
       }, 
       "netResult.expenses.expOtherFinanc.monthAcc": {
         "$sum": [
-          "$sal_net_actincMainOfficBrc"
+          "$sal_net_actexpOtherFinanc"
         ]
       }, 
       "netResult.expenses.expComission.monthAcc": {
         "$sum": [
-          "$sal_net_actincInvestCom"
+          "$sal_net_actexpComission"
         ]
       }, 
       "netResult.expenses.expAdmin.monthAcc": {
         "$sum": [
-          "$sal_net_actincInvestSpecial"
+          "$sal_net_actexpAdmin"
         ]
       }, 
       "netResult.expenses.expEmployees.monthAcc": {
         "$sum": [
-          "$sal_net_actincMonYearProfit"
+          "$sal_net_actexpEmployees"
         ]
       }, 
       "netResult.expenses.expOperOthVar.monthAcc": {
         "$sum": [
-          "$sal_net_actexpensesTotal"
+          "$sal_net_actexpOperOthVar"
         ]
       }, 
       "netResult.expenses.expOthers.monthAcc": {
         "$sum": [
-          "$sal_net_actexpPublicCap"
+          "$sal_net_actexpOthers"
         ]
       }, 
       "netResult.expenses.expTaxIslr.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOtherFinanc"
+          "$sal_net_actexpTaxIslr"
         ]
       }, 
       "netResult.expenses.expBanvihCap.monthAcc": {
         "$sum": [
-          "$sal_net_actexpComission"
+          "$sal_net_actexpBanvihCap"
         ]
       }, 
       "netResult.expenses.expOthObtFinanc.monthAcc": {
         "$sum": [
-          "$sal_net_actexpAdmin"
+          "$sal_net_actexpOthObtFinanc"
         ]
       }, 
       "netResult.expenses.expOthFinInter.monthAcc": {
         "$sum": [
-          "$sal_net_actexpEmployees"
+          "$sal_net_actexpOthFinInter"
         ]
       }, 
       "netResult.expenses.expServComission.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOperOthVar"
+          "$sal_net_actexpServComission"
         ]
       }, 
       "netResult.expenses.expInvestSubdiv.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOthers"
+          "$sal_net_actexpInvestSubdiv"
         ]
       }, 
       "netResult.expenses.expExtService.monthAcc": {
         "$sum": [
-          "$sal_net_actexpTaxIslr"
+          "$sal_net_actexpExtService"
         ]
       }, 
       "netResult.expenses.expCommTrans.monthAcc": {
         "$sum": [
-          "$sal_net_actexpBanvihCap"
+          "$sal_net_actexpCommTrans"
         ]
       }, 
       "netResult.expenses.expInsurance.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOthObtFinanc"
+          "$sal_net_actexpInsurance"
         ]
       }, 
       "netResult.expenses.expTaxContribut.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOthFinInter"
+          "$sal_net_actexpTaxContribut"
         ]
       }, 
       "netResult.expenses.expMaintRep.monthAcc": {
         "$sum": [
-          "$sal_net_actexpServComission"
+          "$sal_net_actexpMaintRep"
         ]
       }, 
       "netResult.expenses.expUseAssetDep.monthAcc": {
         "$sum": [
-          "$sal_net_actexpInvestSubdiv"
+          "$sal_net_actexpUseAssetDep"
         ]
       }, 
       "netResult.expenses.expDefAmort.monthAcc": {
         "$sum": [
-          "$sal_net_actexpExtService"
+          "$sal_net_actexpDefAmort"
         ]
       }, 
       "netResult.expenses.expOtherAdmin.monthAcc": {
         "$sum": [
-          "$sal_net_actexpCommTrans"
+          "$sal_net_actexpOtherAdmin"
         ]
       }, 
       "netResult.expenses.expFinAssetDepr.monthAcc": {
         "$sum": [
-          "$sal_net_actexpInsurance"
+          "$sal_net_actexpFinAssetDepr"
         ]
       }, 
       "netResult.expenses.expExtraordinary.monthAcc": {
         "$sum": [
-          "$sal_net_actexpTaxContribut"
+          "$sal_net_actexpExtraordinary"
         ]
       }, 
       "netResult.expenses.expBcvObligation.monthAcc": {
         "$sum": [
-          "$sal_net_actexpMaintRep"
+          "$sal_net_actexpBcvObligation"
         ]
       }, 
       "netResult.expenses.expSubObligation.monthAcc": {
         "$sum": [
-          "$sal_net_actexpUseAssetDep"
+          "$sal_net_actexpSubObligation"
         ]
       }, 
       "netResult.expenses.expConvOblig.monthAcc": {
         "$sum": [
-          "$sal_net_actexpDefAmort"
+          "$sal_net_actexpConvOblig"
         ]
       }, 
       "netResult.expenses.expMainOfficBrc.monthAcc": {
         "$sum": [
-          "$sal_net_actexpOtherAdmin"
+          "$sal_net_actexpMainOfficBrc"
         ]
       }, 
       "netResult.expenses.expOtherFinance.monthAcc": {
         "$sum": [
-          "$sal_net_actexpFinAssetDepr"
+          "$sal_net_actexpOtherFinance"
         ]
       }, 
       "netResult.expenses.expMonYearProfit.monthAcc": {
         "$sum": [
-          "$sal_net_actexpExtraordinary"
+          "$sal_net_actexpMonYearProfit"
         ]
       }, 
       "netResultBs.profits.incomeTotal.monthAccPrev": {
