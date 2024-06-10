@@ -2850,52 +2850,52 @@
     }
   }, {
     "$addFields": {
-      "netResultBs.totalVal.current": {
+      "netResultBs.total.current": {
         "$sum": [
           "$netResultBs.profits.incomeTotal.current", "$netResultBs.profits.expensesTotal.current", "$netResultBs.profits.expTaxIslr.current"
         ]
       }, 
-      "netResultBs.totalVal.monthAcc": {
+      "netResultBs.total.monthAcc": {
         "$sum": [
           "$netResultBs.profits.incomeTotal.monthAcc", "$netResultBs.profits.expensesTotal.monthAcc", "$netResultBs.profits.expTaxIslr.monthAcc"
         ]
       }, 
-      "netResultBs.totalVal.monthAccPrev": {
+      "netResultBs.total.monthAccPrev": {
         "$sum": [
           "$netResultBs.profits.incomeTotal.monthAccPrev", "$netResultBs.profits.expensesTotal.monthAccPrev", "$netResultBs.profits.expTaxIslr.monthAccPrev"
         ]
       }, 
-      "netResultBs.totalVal.annualAcc": {
+      "netResultBs.total.annualAcc": {
         "$sum": [
           "$netResultBs.profits.incomeTotal.annualAcc", "$netResultBs.profits.expensesTotal.annualAcc", "$netResultBs.profits.expTaxIslr.annualAcc"
         ]
       }, 
-      "netResultBs.totalVal.annualAccPrev": {
+      "netResultBs.total.annualAccPrev": {
         "$sum": [
           "$netResultBs.profits.incomeTotal.annualAccPrev", "$netResultBs.profits.expensesTotal.annualAccPrev", "$netResultBs.profits.expTaxIslr.annualAccPrev"
         ]
       }, 
-      "netResult.totalVal.current": {
+      "netResult.total.current": {
         "$sum": [
           "$netResult.profits.incomeTotal.current", "$netResult.profits.expensesTotal.current", "$netResult.profits.expTaxIslr.current"
         ]
       }, 
-      "netResult.totalVal.monthAcc": {
+      "netResult.total.monthAcc": {
         "$sum": [
           "$netResult.profits.incomeTotal.monthAcc", "$netResult.profits.expensesTotal.monthAcc", "$netResult.profits.expTaxIslr.monthAcc"
         ]
       }, 
-      "netResult.totalVal.monthAccPrev": {
+      "netResult.total.monthAccPrev": {
         "$sum": [
           "$netResult.profits.incomeTotal.monthAccPrev", "$netResult.profits.expensesTotal.monthAccPrev", "$netResult.profits.expTaxIslr.monthAccPrev"
         ]
       }, 
-      "netResult.totalVal.annualAcc": {
+      "netResult.total.annualAcc": {
         "$sum": [
           "$netResult.profits.incomeTotal.annualAcc", "$netResult.profits.expensesTotal.annualAcc", "$netResult.profits.expTaxIslr.annualAcc"
         ]
       }, 
-      "netResult.totalVal.annualAccPrev": {
+      "netResult.total.annualAccPrev": {
         "$sum": [
           "$netResult.profits.incomeTotal.annualAccPrev", "$netResult.profits.expensesTotal.annualAccPrev", "$netResult.profits.expTaxIslr.annualAccPrev"
         ]
