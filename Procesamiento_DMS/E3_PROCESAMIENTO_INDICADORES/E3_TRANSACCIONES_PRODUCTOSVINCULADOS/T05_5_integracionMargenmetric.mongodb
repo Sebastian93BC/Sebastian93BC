@@ -20,9 +20,67 @@
       ]
     }
   }, {
+    "$lookup": {
+      "from": "sidis_bdvAppLinkedUser", 
+      "localField": "rifCedula", 
+      "foreignField": "rifCedula", 
+      "as": "results"
+    }
+  }, {
     "$addFields": {
       "linkedProducts": [
         {
+          "name": "BDVApp", 
+          "active": {
+            "$cond": [
+              {
+                "$lte": [
+                  "$results", null
+                ]
+              }, {
+                "$toBool": 0
+              }, {
+                "$toBool": {
+                  "$size": "$results"
+                }
+              }
+            ]
+          }, 
+          "lastUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": {
+                      "$arrayElemAt": [
+                        "$results.fechaActivacion", 0
+                      ]
+                    }
+                  }, 1900
+                ]
+              }, "$fechaProceso", null
+            ]
+          }, 
+          "firstUse": {
+            "$cond": [
+              {
+                "$gt": [
+                  {
+                    "$year": {
+                      "$arrayElemAt": [
+                        "$results.fechaActivacion", 0
+                      ] 
+                    }
+                  }, 1900
+                ]
+              }, {
+                "$arrayElemAt": [
+                  "$results.fechaActivacion", 0
+                ]
+              }, null
+            ]
+          }
+        }, {
           "name": "Cuenta en Dolares", 
           "active": {
             "$cond": [
@@ -586,6 +644,14 @@
       "fechaProceso": 1, 
       "rifCedula": 1, 
       "linkedProducts": 1
+    }
+  }, {
+    "$merge": {
+      "into": "Margenmetric", 
+      "on": [
+        "rifCedula", "fechaProceso"
+      ], 
+      "whenNotMatched": "discard"
     }
   }
 ]
