@@ -7,17 +7,9 @@
       "todayDate": {
         "$subtract": [
           {
-            "$toDate": {
-              "$dateFromString": {
-                "dateString": {
-                  "$dateToString": {
-                    "format": "%Y-%m-%dT00:00:00%z", 
-                    "date": {
-                      "$toDate": "$$NOW"
-                    }
-                  }
-                }
-              }
+            "$dateTrunc": {
+              "date": "$$NOW", 
+              "unit": "day"
             }
           }, {
             "$multiply": [
@@ -42,7 +34,7 @@
               {
                 "$expr": {
                   "$eq": [
-                    "$fevalor", "$$date"
+                    "$file_date", "$$date"
                   ]
                 }
               }, {
@@ -73,10 +65,11 @@
             ]
           }
         }, {
-          "$project": {
-            "fevalor": 1, 
-            "cta_contable": 1, 
-            "monto_paguvc": 1
+          "$group": {
+            "_id": "$file_date", 
+            "monto_paguvc": {
+              "$sum": "$monto_paguvc"
+            }
           }
         }
       ], 
@@ -508,20 +501,7 @@
       "as": "CobranzamorametricYesterday"
     }
   }, {
-    "$lookup": {
-      "from": "Cobranzamorametric", 
-      "localField": "PreviusMonthlastDate", 
-      "foreignField": "fecha_valor", 
-      "as": "CobranzamorametricPreviusMonthlastDate"
-    }
-  }, {
     "$addFields": {
-      "fecha_valor": "$todayDate", 
-      "todayDate": "$$REMOVE", 
-      "sidis_activosIa": "$$REMOVE", 
-      "sidis_brm": "$$REMOVE", 
-      "CobranzamorametricYesterday": "$$REMOVE", 
-      "CobranzamorametricPreviusMonthlastDate": "$$REMOVE", 
       "monto_paguvc": {
         "$cond": [
           "$avaiableDataBRM", "$monto_paguvc", {
@@ -636,7 +616,11 @@
             ]
           }
         ]
-      }
+      }, 
+      "fecha_valor": "$todayDate", 
+      "todayDate": "$$REMOVE", 
+      "sidis_activosIa": "$$REMOVE", 
+      "sidis_brm": "$$REMOVE"
     }
   }, {
     "$lookup": {
@@ -655,7 +639,7 @@
               {
                 "$round": [
                   {
-                    "$divide": [
+                    "$multiply": [
                       "$monto_paguvc", {
                         "$first": "$sidis_tasaconversion.Tasa_UVC"
                       }
@@ -801,13 +785,6 @@
           }, 4
         ]
       }
-    }
-  }, {
-    "$lookup": {
-      "from": "Cobranzamorametric", 
-      "localField": "yesterdayDate", 
-      "foreignField": "fecha_valor", 
-      "as": "CobranzamorametricYesterday"
     }
   }, {
     "$lookup": {

@@ -555,7 +555,8 @@
         }
       }, 
       "descPunto": "$DESC_PUNTO", 
-      "fileDate": 1
+      "file_date": 1, 
+      "updatedAt": "$$NOW"
     }
   }, {
     "$lookup": {

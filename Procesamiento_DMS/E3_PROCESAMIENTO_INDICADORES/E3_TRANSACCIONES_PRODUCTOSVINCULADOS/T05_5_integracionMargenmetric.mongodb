@@ -69,7 +69,7 @@
                     "$year": {
                       "$arrayElemAt": [
                         "$results.fechaActivacion", 0
-                      ] 
+                      ]
                     }
                   }, 1900
                 ]
