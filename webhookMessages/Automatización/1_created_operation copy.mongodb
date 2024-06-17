@@ -1,0 +1,389 @@
+[
+  {
+    $limit:
+      //only for create_operation
+      1
+  },
+  {
+    $project: {
+      //only for create_operation
+      _id: "$$REMOVE",
+      lastUpdatedAt: "$$REMOVE",
+      proceso: "$$REMOVE",
+      currentUpdatedDate: "$$REMOVE",
+      //add process date
+      processName: "webhook_messages_marketing",
+      // "{{$json.proceso}}",
+      processDate: {
+        $toDate: "2024-02-02"
+        // "{{$json.fechaProceso}}"
+      }
+    }
+  },
+  {
+    $addFields: {
+      //only for create_operation
+
+      processName: "$processName",
+      processDate: "$processDate",
+      description:
+        "Preprocesamiento webhook Messages",
+      fromColletion: "webhook",
+      toColletion: "message",
+      startDate: "$$NOW",
+      endDate: "nda",
+      runtimeInMinutes: "nda",
+      status: "En Proceso",
+      subProcess: [
+        {
+          processName:
+            "AcutalizacionWebhookMessageRecipients",
+          processDate: "$processDate",
+          description:
+            "Actualización message, webhook",
+          processFrequency: "Diaria",
+          fromColletion: "Webhook",
+          toColletion: "Message",
+          startDate: "$$NOW",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En Proceso"
+        },
+        {
+          processName:
+            "AcutalizacionPeopleMessages",
+          processDate: "$processDate",
+          description:
+            "Actualización campaingStatus y emailResult",
+          processFrequency: "Diaria",
+          fromColletion: "Message",
+          toColletion: "People",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera"
+        },
+        {
+          processName:
+            "AcutalizacionCompanyMessages",
+          processDate: "$processDate",
+          description:
+            "Actualización campaingStatus y emailResult",
+          processFrequency: "Diaria",
+          fromColletion: "Message",
+          toColletion: "Company",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera"
+        },
+        {
+          processName:
+            "AcutalizacionExternalpotentialMessages",
+          processDate: "$processDate",
+          description:
+            "Actualización campaingStatus y emailResult",
+          processFrequency: "Diaria",
+          fromColletion: "Message",
+          toColletion: "Externalpotential",
+          startDate: "nda",
+          endDate: "nda",
+          runtimeInMinutes: "nda",
+          status: "En espera"
+        }
+      ]
+    }
+  },
+  // {
+  //   $match: {
+  //only for start and updated_operarion
+  //     processName: "webhook_messages_marketing",
+  // "{{$json.proceso}}",
+  //     $expr: {
+  //       $eq: [
+  //         "$processDate",
+  //         {
+  //           $toDate: "2024-02-02",
+  // "{{$json.fechaProceso}}"
+  //         },
+  //       ],
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for start_operation
+  //     subProcess: {
+  //       $map: {
+  //         input: "$subProcess",
+  //         as: "input",
+  //         in: {
+  //           $cond: [
+  //             {
+  //               $and: [
+  //                 {
+  //                   $eq: [
+  //                     "$$input.processName",
+  //                     "AcutalizacionPeopleMessages",
+  // "{{$json.subProceso}}"
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               $mergeObjects: [
+  //                 {
+  //                   processName:
+  //                     "$$input.processName",
+  //                 },
+  //                 {
+  //                   processDate: "$processDate",
+  //                 },
+  //                 {
+  //                   description:
+  //                     "$$input.description",
+  //                 },
+  //                 {
+  //                   fromColletion:
+  //                     "$$input.fromColletion",
+  //                 },
+  //                 {
+  //                   toColletion:
+  //                     "$$input.toColletion",
+  //                 },
+  //                 {
+  //                   startDate: "$$NOW",
+  //                 },
+  //                 {
+  //                   endDate: "$$input.endDate",
+  //                 },
+  //                 {
+  //                   runtimeInMinutes: "",
+  //                 },
+  //                 {
+  //                   status: "En Proceso",
+  //                 },
+  //               ],
+  //             },
+  //             "$$input",
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for updated_operation
+  //     subProcess: {
+  //       $map: {
+  //         input: "$subProcess",
+  //         as: "item",
+  //         in: {
+  //           $cond: [
+  //             {
+  //               $and: [
+  //                 {
+  //                   $eq: [
+  //                     "$$item.processName",
+  //                     "AcutalizacionWebhookMessageRecipients",
+  // "{{$json.subProceso}}"
+  //                   ],
+  //                 },
+  //               ],
+  //             },
+  //             {
+  //               $mergeObjects: [
+  //                 {
+  //                   processName:
+  //                     "$$item.processName",
+  //                 },
+  //                 {
+  //                   processDate:
+  //                     "$$item.processDate",
+  //                 },
+  //                 {
+  //                   description:
+  //                     "$$item.description",
+  //                 },
+  //                 {
+  //                   processFrequency:
+  //                     "$$item.processFrequency",
+  //                 },
+  //                 {
+  //                   fromColletion:
+  //                     "$$item.fromColletion",
+  //                 },
+  //                 {
+  //                   toColletion:
+  //                     "$$item.toColletion",
+  //                 },
+  //                 {
+  //                   startDate: "$$item.startDate",
+  //                 },
+  //                 {
+  //                   endDate: "$$NOW",
+  //                 },
+  //                 {
+  //                   runtimeInMinutes: {
+  //                     $round: [
+  //                       {
+  //                         $divide: [
+  //                           {
+  //                             $subtract: [
+  //                               "$$NOW",
+  //                               "$$item.startDate",
+  //                             ],
+  //                           },
+  //                           60000,
+  //                         ],
+  //                       },
+  //                       2,
+  //                     ],
+  //                   },
+  //                 },
+  //                 {
+  //                   status: "Finalizado",
+  //                 },
+  //               ],
+  //             },
+  //             "$$item",
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
+  // {
+  //   $addFields: {
+  //Just for updated_operation
+  //     status: {
+  //       $cond: [
+  //         {
+  //           $or: [
+  //             {
+  //               $in: [
+  //                 "En Proceso",
+  //                 "$subProcess.status",
+  //               ],
+  //             },
+  //             {
+  //               $in: [
+  //                 "En espera",
+  //                 "$subProcess.status",
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //         "En Proceso",
+  //         "Finalizado",
+  //       ],
+  //     },
+  //     endDate: "$$NOW",
+  //     runtimeInMinutes: {
+  //       $round: [
+  //         {
+  //           $divide: [
+  //             {
+  //               $subtract: ["$$NOW", "$startDate"],
+  //             },
+  //             60000,
+  //           ],
+  //         },
+  //         2,
+  //       ],
+  //     },
+  //   },
+  // },
+  {
+    $merge: {
+      into: "sidis_statusProcesos",
+      on: ["processName", "processDate"]
+    }
+  }
+]
+
+//n8n
+
+[
+  {
+    "$limit": 1
+  }, {
+    "$project": {
+      "_id": "$$REMOVE", 
+      "lastUpdatedAt": "$$REMOVE", 
+      "proceso": "$$REMOVE", 
+      "currentUpdatedDate": "$$REMOVE", 
+      "processName":  "{{$json.proceso}}",
+      "processDate": {
+        "$toDate": "{{$json.fechaProceso}}"
+      }
+    }
+  }, {
+    "$addFields": {
+      "processName": "$processName", 
+      "processDate": "$processDate", 
+      "description": "Preprocesamiento webhook Messages", 
+      "fromColletion": "webhook", 
+      "toColletion": "message", 
+      "startDate": "$$NOW", 
+      "endDate": "nda", 
+      "runtimeInMinutes": "nda", 
+      "status": "En Proceso", 
+      "subProcess": [
+        {
+          "processName": "AcutalizacionWebhookMessageRecipients", 
+          "processDate": "$processDate", 
+          "description": "Actualización message, webhook", 
+          "processFrequency": "Diaria", 
+          "fromColletion": "Webhook", 
+          "toColletion": "Message", 
+          "startDate": "$$NOW", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En Proceso"
+        }, {
+          "processName": "AcutalizacionPeopleMessages", 
+          "processDate": "$processDate", 
+          "description": "Actualización campaingStatus y emailResult", 
+          "processFrequency": "Diaria", 
+          "fromColletion": "Message", 
+          "toColletion": "People", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "AcutalizacionCompanyMessages", 
+          "processDate": "$processDate", 
+          "description": "Actualización campaingStatus y emailResult", 
+          "processFrequency": "Diaria", 
+          "fromColletion": "Message", 
+          "toColletion": "Company", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }, {
+          "processName": "AcutalizacionExternalpotentialMessages", 
+          "processDate": "$processDate", 
+          "description": "Actualización campaingStatus y emailResult", 
+          "processFrequency": "Diaria", 
+          "fromColletion": "Message", 
+          "toColletion": "Externalpotential", 
+          "startDate": "nda", 
+          "endDate": "nda", 
+          "runtimeInMinutes": "nda", 
+          "status": "En espera"
+        }
+      ]
+    }
+  }, {
+    "$merge": {
+      "into": "sidis_statusProcesos", 
+      "on": [
+        "processName", "processDate"
+      ]
+    }
+  }
+]

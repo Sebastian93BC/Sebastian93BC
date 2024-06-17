@@ -1,0 +1,21 @@
+//hashed
+db.createCollection("Message")
+
+sh.shardCollection("bdv.Message", {
+  lastDigRif: 'hashed',
+  messageid: 1,
+
+})
+
+db.Message.createIndex(
+  {
+    lastDigRif: 1,
+    messageid: 1,
+    email:1
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+//test sharding
+
+db.Message.getShardDistribution()

@@ -1,0 +1,22 @@
+//hashed
+db.createCollection("WebhookMessage")
+
+sh.shardCollection("bdv.WebhookMessage", {
+  messageId: 'hashed',
+  email: 1,
+
+})
+
+db.WebhookMessage.createIndex(
+  {
+    messageId: 1,
+    email: 1,
+    event:1,
+    timestamp:1,
+  },
+  { unique: true, name: "mergeIndex" },
+)
+
+//test sharding
+
+db.WebhookMessage.getShardDistribution()

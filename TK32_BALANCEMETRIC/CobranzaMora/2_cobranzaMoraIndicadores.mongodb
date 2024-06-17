@@ -1,0 +1,403 @@
+[
+  {
+    "$match": {
+      "$expr": {
+        "$eq": [
+          "$fecha_valor", {
+            "$subtract": [
+              {
+                "$dateTrunc": {
+                  "date": "$$NOW", 
+                  "unit": "day"
+                }
+              }, {
+                "$multiply": [
+                  {
+                    "$toInt": "{{$json.offSet}}"
+                  }, 86400000
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }, {
+    "$lookup": {
+      "from": "Balancemetric", 
+      "localField": "yesterdayDate", 
+      "foreignField": "fecha_valor", 
+      "as": "BalancemetricYesterday"
+    }
+  }, {
+    "$lookup": {
+      "from": "Objectiveformat", 
+      "let": {
+        "mes": {
+          "$month": "$fecha_valor"
+        }, 
+        "ano": {
+          "$year": "$fecha_valor"
+        }
+      }, 
+      "pipeline": [
+        {
+          "$match": {
+            "$and": [
+              {
+                "$expr": {
+                  "$eq": [
+                    "$$mes", {
+                      "$month": "$fecha"
+                    }
+                  ]
+                }
+              }, {
+                "$expr": {
+                  "$eq": [
+                    "$$ano", {
+                      "$year": "$fecha"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }, {
+          "$project": {
+            "cmCobAct": 1, 
+            "cmCobRet": 1
+          }
+        }
+      ], 
+      "as": "Objectiveformat"
+    }
+  }, {
+    "$project": {
+      "fecha_valor": 1, 
+      "cobranzaMoraUVC.cobranza.actual": {
+        "$cond": [
+          {
+            "$eq": [
+              "$firstDayMonth", true
+            ]
+          }, "$monto_paguvc", {
+            "$subtract": [
+              "$monto_paguvc", {
+                "$first": "$BalancemetricYesterday.cobranzaMoraUVC.cobranza.acMensual"
+              }
+            ]
+          }
+        ]
+      }, 
+      "cobranzaMoraUVC.cobranza.acMensual": "$monto_paguvc", 
+      "cobranzaMoraUVC.cobranza.acAnual": {
+        "$cond": [
+          {
+            "$eq": [
+              "$firstDayYear", true
+            ]
+          }, "$monto_paguvc", {
+            "$sum": [
+              {
+                "$cond": [
+                  {
+                    "$eq": [
+                      "$firstDayMonth", true
+                    ]
+                  }, "$monto_paguvc", {
+                    "$subtract": [
+                      "$monto_paguvc", {
+                        "$first": "$BalancemetricYesterday.cobranzaMoraUVC.cobranza.acMensual"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "$first": "$BalancemetricYesterday.cobranzaMoraUVC.cobranza.acAnual"
+              }
+            ]
+          }
+        ]
+      }, 
+      "cobranzaMora.cobranza.actual": {
+        "$cond": [
+          {
+            "$eq": [
+              "$firstDayMonth", true
+            ]
+          }, "$monto_pag", {
+            "$subtract": [
+              "$monto_pag", {
+                "$first": "$BalancemetricYesterday.cobranzaMora.cobranza.acMensual"
+              }
+            ]
+          }
+        ]
+      }, 
+      "cobranzaMora.cobranza.acMensual": "$monto_pag", 
+      "cobranzaMora.cobranza.acAnual": {
+        "$cond": [
+          {
+            "$eq": [
+              "$firstDayYear", true
+            ]
+          }, "$monto_pag", {
+            "$sum": [
+              {
+                "$cond": [
+                  {
+                    "$eq": [
+                      "$firstDayMonth", true
+                    ]
+                  }, "$monto_pag", {
+                    "$subtract": [
+                      "$monto_pag", {
+                        "$first": "$BalancemetricYesterday.cobranzaMora.cobranza.acMensual"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "$first": "$BalancemetricYesterday.cobranzaMora.cobranza.acAnual"
+              }
+            ]
+          }
+        ]
+      }, 
+      "cobranzaMoraUVC.mora.mtoCartVenActBs": "$sal_act133Bs", 
+      "cobranzaMoraUVC.mora.mtoCartVenAntBs": "$sal_ant133Bs", 
+      "cobranzaMoraUVC.mora.mtoCartVenNetActBs": "$sal_net_act133Bs", 
+      "cobranzaMoraUVC.mora.mtoCartVen2ActBs": {
+        "$sum": [
+          "$sal_act133Bs", "$sal_act132Bs"
+        ]
+      }, 
+      "cobranzaMoraUVC.mora.mtoCartVen2AntBs": {
+        "$sum": [
+          "$sal_ant133Bs", "$sal_ant132Bs"
+        ]
+      }, 
+      "cobranzaMoraUVC.mora.mtoCartVen2NetActBs": {
+        "$sum": [
+          "$sal_net_act133Bs", "$sal_net_act132Bs"
+        ]
+      }, 
+      "cobranzaMoraUVC.mora.mtoCartBrutActBs": {
+        "$sum": [
+          "$sal_act133Bs", "$sal_act132Bs", "$sal_act131Bs", "$sal_act134Bs"
+        ]
+      }, 
+      "cobranzaMoraUVC.mora.mtoCartBrutAntBs": {
+        "$sum": [
+          "$sal_ant133Bs", "$sal_ant132Bs", "$sal_ant131Bs", "$sal_ant134Bs"
+        ]
+      }, 
+      "cobranzaMoraUVC.mora.mtoCartBrutNetActBs": {
+        "$sum": [
+          "$sal_net_act133Bs", "$sal_net_act132Bs", "$sal_net_act131Bs", "$sal_net_act134Bs"
+        ]
+      }, 
+      "cobranzaMora.mora.mtoCartVenAct": "$sal_act133", 
+      "cobranzaMora.mora.mtoCartVenAnt": "$sal_ant133", 
+      "cobranzaMora.mora.mtoCartVenNetAct": "$sal_net_act133", 
+      "cobranzaMora.mora.mtoCartVen2Act": {
+        "$sum": [
+          "$sal_act133", "$sal_act132"
+        ]
+      }, 
+      "cobranzaMora.mora.mtoCartVen2Ant": {
+        "$sum": [
+          "$sal_ant133", "$sal_ant132"
+        ]
+      }, 
+      "cobranzaMora.mora.mtoCartVen2NetAct": {
+        "$sum": [
+          "$sal_net_act133", "$sal_net_act132"
+        ]
+      }, 
+      "cobranzaMora.mora.mtoCartBrutAct": {
+        "$sum": [
+          "$sal_act133", "$sal_act132", "$sal_act131", "$sal_act134"
+        ]
+      }, 
+      "cobranzaMora.mora.mtoCartBrutAnt": {
+        "$sum": [
+          "$sal_ant133", "$sal_ant132", "$sal_ant131", "$sal_ant134"
+        ]
+      }, 
+      "cobranzaMora.mora.mtoCartBrutNetAct": {
+        "$sum": [
+          "$sal_net_act133", "$sal_net_act132", "$sal_net_act131", "$sal_net_act134"
+        ]
+      }, 
+      "Objectiveformat": 1
+    }
+  }, {
+    "$addFields": {
+      "cobranzaMoraUVC.cobranza.cumpMensPcrt": {
+        "$cond": [
+          {
+            "$ne": [
+              {
+                "$first": "$Objectiveformat.cmCobAct"
+              }, 0
+            ]
+          }, {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$cobranzaMoraUVC.cobranza.acMensual", {
+                        "$first": "$Objectiveformat.cmCobAct"
+                      }
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }, "NO HAY OBJETIVO"
+        ]
+      }, 
+      "cobranzaMoraUVC.cobranza.cumpMensRetPcrt": {
+        "$cond": [
+          {
+            "$ne": [
+              {
+                "$first": "$Objectiveformat.cmCobRet"
+              }, 0.0
+            ]
+          }, {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$cobranzaMoraUVC.cobranza.acMensual", {
+                        "$first": "$Objectiveformat.cmCobRet"
+                      }
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }, "NO HAY OBJETIVO"
+        ]
+      }, 
+      "cobranzaMora.cobranza.cumpMensPcrt": {
+        "$cond": [
+          {
+            "$ne": [
+              {
+                "$first": "$Objectiveformat.cmCobAct"
+              }, 0
+            ]
+          }, {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$cobranzaMoraUVC.cobranza.acMensual", {
+                        "$first": "$Objectiveformat.cmCobAct"
+                      }
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }, "NO HAY OBJETIVO"
+        ]
+      }, 
+      "cobranzaMora.cobranza.cumpMensRetPcrt": {
+        "$cond": [
+          {
+            "$ne": [
+              {
+                "$first": "$Objectiveformat.cmCobRet"
+              }, 0.0
+            ]
+          }, {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$cobranzaMoraUVC.cobranza.acMensual", {
+                        "$first": "$Objectiveformat.cmCobRet"
+                      }
+                    ]
+                  }, 100
+                ]
+              }, 2
+            ]
+          }, "NO HAY OBJETIVO"
+        ]
+      }, 
+      "Objectiveformat": "$$REMOVE"
+    }
+  }, {
+    "$addFields": {
+      "_id": "$$REMOVE", 
+      "cobranzaMora.indiceMora.actualPcrt": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  "$cobranzaMora.mora.mtoCartVenAct", "$cobranzaMora.mora.mtoCartBrutAct"
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "cobranzaMoraUVC.indiceMora.actualPcrt": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  "$cobranzaMoraUVC.mora.mtoCartVenActBs", "$cobranzaMoraUVC.mora.mtoCartBrutActBs"
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "cobranzaMora.indiceMora.ampliadaPcrt": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  "$cobranzaMora.mora.mtoCartVen2Act", "$cobranzaMora.mora.mtoCartBrutAct"
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "cobranzaMoraUVC.indiceMora.ampliadaPcrt": {
+        "$round": [
+          {
+            "$multiply": [
+              100, {
+                "$divide": [
+                  "$cobranzaMoraUVC.mora.mtoCartVen2ActBs", "$cobranzaMoraUVC.mora.mtoCartBrutActBs"
+                ]
+              }
+            ]
+          }, 4
+        ]
+      }, 
+      "updatedAt": "$$NOW"
+    }
+  }, {
+    "$merge": {
+      "into": "Balancemetric", 
+      "on": "fecha_valor"
+    }
+  }
+]
