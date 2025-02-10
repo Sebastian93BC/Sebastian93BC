@@ -1,5 +1,0 @@
-Aplicamos ajuste de variación semestral para el campo sal_act
-
-
-test datos 2024-04-03
-los datos de los primeros meses del 2022 se repiten para todos los días
