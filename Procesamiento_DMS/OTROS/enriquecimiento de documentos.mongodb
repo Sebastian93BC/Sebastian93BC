@@ -1,1 +1,0 @@
-db.margen_test.updateMany({}, { $set: { sidisTasaconversion: db.sidis_tasaconversion.find({Fecha:ISODate('2023-05-31T00:00:00.000+00:00')}) } })

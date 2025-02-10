@@ -1,1 +1,0 @@
-[{"$addFields":{"fechaProceso":{"$toDate":"@fechaProceso"}}},{"$group":{"_id":{"fechaProceso":"$fechaProceso"},"banks":{"$push":{"name":"$bank","icon":"$icon"}}}},{"$addFields":{"fechaProceso":"$_id.fechaProceso","_id":"$$REMOVE"}},{"$merge":{"into":"Financialstatementdashboard","on":"fechaProceso"}}]
